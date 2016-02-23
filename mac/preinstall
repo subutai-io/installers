@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ -e /Applications/VirtualBox.app ]
+	then exit 0
+else sudo installer -pkg /Applications/Subutai/dist/VirtualBox.pkg -target /
+fi
