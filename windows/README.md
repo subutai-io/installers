@@ -38,6 +38,8 @@ You need the following tools to build the installer:
 	./home 				- cygwin-related folder (sshpass, scp and ssh are cygwin-based and looking at this folder)
 	./home/user/.ssh 	- SSH keys
 	./ova 				- VirtualBox images
+	./redist 			- Redistributables
+	./redist/subutai 	- Subutai-specific redistributables
 	./templates 		- Subutai templates
 
 # Description of Files
