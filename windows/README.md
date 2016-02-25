@@ -1,18 +1,18 @@
 # Subutai Windows Installer
 
-# SETUP ENVIRONMENT
+# Setup environment
 You need the following tools to build the installer:
-	* Advanced Installer 12
-	* VMware Player or Workstation 12
-	* Windows 10 x64 VMware image
-	* Windows 8 x64 VMware image
-	* Windows 7 x64 VMware image
+	Advanced Installer 12
+	VMware Player or Workstation 12
+	Windows 10 x64 VMware image
+	Windows 8 x64 VMware image
+	Windows 7 x64 VMware image
 
-# BUILD THE INSTALLER
+# Build the installer
 	Simply run the Build process from Advanced installer
 	You can use CLI for this purpose: http://www.advancedinstaller.com/user-guide/command-line.html
 
-# TEST THE INSTALLER
+# Test the installer
 	You can Build and Run the installer inside VM right from Advanced installer
 
 # Structure of folders
