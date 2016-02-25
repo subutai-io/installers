@@ -1,5 +1,11 @@
 # Subutai Windows Installer
 
+# How to install
+Run installer w/Administrative privileges on fresh Windows 7/8/10 x64 machine </br>
+Wait until installation process and shell scripts finish installation </br>
+Now you can go to Chrome browser and open management dashbord https://localhost:11443 </br>
+
+
 # Setup environment
 You need the following tools to build the installer:
 	<ul>
