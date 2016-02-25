@@ -2,11 +2,13 @@
 
 # Setup environment
 You need the following tools to build the installer:
-	Advanced Installer 12 </br>
-	VMware Player or Workstation 12 </br>
-	Windows 10 x64 VMware image </br>
-	Windows 8 x64 VMware image </br>
-	Windows 7 x64 VMware image </br>
+	<ul>
+	<li> Advanced Installer 12 </li>
+	<li> VMware Player or Workstation 12 </li>
+	<li> Windows 10 x64 VMware image </li>
+	<li> Windows 8 x64 VMware image </li>
+	<li> Windows 7 x64 VMware image </li>
+	</ul>
 
 # Build the installer
 	Simply run the Build process from Advanced installer
