@@ -4,6 +4,14 @@ vboxmanage="/usr/local/bin/VBoxManage"
 
 ssh-keygen -R [localhost]:4567
 
+if [ -e /Applications/VirtualBox.app ]; then :
+else sudo installer -pkg /Applications/Subutai/dist/VirtualBox.pkg -target /
+fi
+
+if [ -e /dev/tap0 ]; then :
+else sudo installer -pkg /Applications/Subutai/dist/tuntap_20150118.pkg -target /
+fi
+
 function import_vm {
 sudo -H -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
 sudo -H -u $(users) $vboxmanage modifyvm snappy --cpus 4
@@ -47,9 +55,18 @@ ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567
 ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo iptables -P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT"
 }
 
+function set_path {
+sudo -H -u $(users) echo 'export PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
+}
+
+function create_config {
+sudo -u $(users) mkdir /usr/local/etc/p2p
+sudo -u $(users) echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
+}
+
 function run_services {
 /Applications/Subutai/p2p daemon &>/dev/null &
-/Applications/Subutai/SubutaiTray.app/Contents/MacOS/SubutaiTray &
+sudo -u $(users) /Applications/Subutai/SubutaiTray.app/Contents/MacOS/SubutaiTray &
 }
 
 if [ "sudo -H -u $(users) $vboxmanage list vms | grep subutai" ]; then
@@ -68,4 +85,6 @@ else
 fi
 install_subutai
 install_management
+if sudo -u $(users) grep Subutai ~/.bash_profile; then :; else set_path; fi
+if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
 run_services
