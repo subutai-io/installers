@@ -9,6 +9,7 @@ This document shows how to build a .pkg installer for Mac OS X
 * [Google Chrome with Subutai PGP plugin installed] (https://github.com/subutai-io/Tooling-pgp-plugin)
 * [SubutaiTray app] (https://github.com/subutai-io/SubutaiTray)
 * [P2P] (https://github.com/subutai-io/p2p)
+* [TUN/TAP drivers] (http://tuntaposx.sourceforge.net/download.xhtml)
 * Management and master template for Subutai
 * Installation scripts
 
@@ -16,7 +17,7 @@ This document shows how to build a .pkg installer for Mac OS X
 Create a folder with name subutai in your home directory and download all prerequisites there. Create these folders in subutai directory and place components accordingly:
 ```
 scripts - for installation scripts
-dist - for VirtualBox .pkg file
+dist - for VirtualBox and TUN/TAP driver
 templates - for Subutai management and master templates
 snap - for Subutai snap package
 snappy.ova image, Google Chrome, p2p and SubutaiTray app must be placed under the root of subutai directory.
@@ -27,6 +28,7 @@ So it should look similar to this:
 ├── SubutaiTray.app
 ├── dist
 │   └── VirtualBox.pkg
+│   └── tuntap_20150118.pkg
 ├── p2p
 ├── scripts
 │   ├── postinstall
