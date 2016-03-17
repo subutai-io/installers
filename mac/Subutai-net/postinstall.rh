@@ -16,7 +16,7 @@ if [ -e /dev/tap0 ]; then :
 else sudo installer -pkg /Applications/Subutai/dist/tuntap_20150118.pkg -target /
 fi
 
-if [ -e "/Applications/Google Chrome.app"]; then :
+if [ -e "/Applications/Google Chrome.app" ]; then :
 else cp -R "/Applications/Subutai/dist/Google Chrome.app" /Applications/
 fi
 
@@ -64,7 +64,8 @@ sudo -u $(users) echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
 }
 
 function install_plugin {
-sudo -u $(users) printf "{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}" > /Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+sudo -u $(users) mkdir -p /Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions
+sudo -u $(users) printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
 }
 
 function run_services {
