@@ -5,7 +5,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AGREE_CHECKBOX" Value="Yes" Type="4"/>
-    <ROW Property="AI_APP_ARGS" Value="params=deploy-redist,prepare-vbox,prepare-ssh,prepare-rh,deploy-p2p network-installation=true repoUrl=http://http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/get?name=repomd5 appDir=[APPDIR] peer=[PEER_OPTION]"/>
+    <ROW Property="AI_APP_ARGS" Value="params==deploy-redist,prepare-vbox,prepare-ssh,prepare-rh,deploy-p2p network-installation==true repoUrl==http://http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/get?name=repomd5 appDir==[APPDIR] peer==[PEER_OPTION]"/>
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CF_TYPE" Value="1" MultiBuildValue="DefaultBuild:0" Type="4" MsiKey="AI_CF_TYPE"/>
     <ROW Property="AI_COLOR_DISABLED_TEXT" Value="3026478" MsiKey="AI_COLOR_DISABLED_TEXT"/>
@@ -97,13 +97,13 @@
     <ROW BootstrOptKey="GlobalOptions" GeneralOptions="bh" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" EulaPathLocId="*" IntroTextPathLocId="*"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
-    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="builds" PackageFileName="Subutai-4.0.0" Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="bin\icon.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" ExtUI="true" UseLargeSchema="true" ExeName="Subutai-4.0.0" MsiPackageType="x64" UACExecutionLevel="2"/>
+    <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="1" PackageFolder="builds" PackageFileName="subutai-windows-network-installer" Languages="en" InstallationType="4" CabsLocation="1" PackageType="1" FilesInsideExe="true" ExeIconPath="bin\icon.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" ExtUI="true" UseLargeSchema="true" ExeName="subutai-windows-network-installer" MsiPackageType="x64" UACExecutionLevel="2"/>
     <ROW BuildKey="MsiBuild" BuildName="MsiBuild" BuildOrder="2" BuildType="1" PackageFolder="MsiBuildSetupFiles" Languages="en" InstallationType="4" CabsLocation="1" CompressCabs="false" PackageType="1" FilesInsideExe="true" ExeIconPath="bin\icon.ico" ExtractionFolder="[AppDataFolder][|Manufacturer]\[|ProductName] [|ProductVersion]\install" UseLargeSchema="true"/>
     <ATTRIBUTE name="CurrentBuild" value="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildEventsComponent">
     <ROW EventId="0" EventRun="C:\installers\windows\bin\aria.exe" EventCmdLine="http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/get?name=Deployment.exe --allow-overwrite=true" EventWkDir="C:\installers\windows\bin" EventOrder="1" EventType="1" EventInterupt="true" EventEnabled="true" EventPrecompression="false" EventBuild="DefaultBuild"/>
-    <ROW EventId="1" EventRun="curl" EventCmdLine="-F file=@Subutai-4.0.0.exe -X POST http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/upload" EventWkDir="C:\installers\windows\builds" EventOrder="2" EventType="2" EventInterupt="true" EventEnabled="false" EventPrecompression="false" EventBuild="DefaultBuild"/>
+    <ROW EventId="1" EventRun="curl" EventCmdLine="-F file=@subutai-windows-network-installer.exe -X POST http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/upload" EventWkDir="C:\installers\windows\builds" EventOrder="2" EventType="2" EventInterupt="true" EventEnabled="true" EventPrecompression="false" EventBuild="DefaultBuild"/>
     <ROW EventId="2" EventRun="C:\Program Files (x86)\Git\bin\git.exe" EventCmdLine="pull" EventWkDir="C:\installers" EventOrder="3" EventType="1" EventInterupt="false" EventEnabled="true" EventPrecompression="false" EventBuild="DefaultBuild"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DictionaryComponent">
