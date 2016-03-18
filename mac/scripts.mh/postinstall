@@ -16,6 +16,7 @@ ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567
 function run_services {
 /Applications/Subutai/p2p daemon &>/dev/null &
 sudo -u $(users) /Applications/Subutai/SubutaiTray.app/Contents/MacOS/SubutaiTray &
+/usr/bin/osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Subutai/SubutaiTray.app", name:"Subutai Tray"}'
 }
 
 install_management
