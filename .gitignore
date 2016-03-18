@@ -12,6 +12,7 @@
 hs_err_pid*
 
 # Advanced installer
+windows/builds/Deployment.exe
 windows/builds/*
 windows/MsiBuildSetupFiles/*
 windows/*-cache/*
