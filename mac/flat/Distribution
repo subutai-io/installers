@@ -5,6 +5,7 @@
     <choices-outline>
         <line choice="installer_choice_1"/>
         <line choice="installer_choice_2"/>
+        <line choice="installer_choice_3"/>
     </choices-outline>
     <choice id="installer_choice_1" start_enabled="false" start_selected="true" title="Resource host" description="">
         <pkg-ref id="io.subutai.pkg.rh"/>
@@ -12,6 +13,10 @@
     <choice id="installer_choice_2" title="Management host" description="">
         <pkg-ref id="io.subutai.pkg.mh"/>
     </choice>
+    <choice id="installer_choice_3" start_enabled="false" start_selected="true" title="libssh2" description="">
+        <pkg-ref id="org.rudix.pkg.libssh2"/>
+    </choice>
     <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="614864">#rh.pkg</pkg-ref>
     <pkg-ref id="io.subutai.pkg.mh" version="1.0" auth="Root" installKBytes="257088">#mh.pkg</pkg-ref>
+    <pkg-ref id="org.rudix.pkg.libssh2" auth="Root" version="1.6.0-0" installKBytes="626">#libssh2install.pkg</pkg-ref>
 </installer-script>
