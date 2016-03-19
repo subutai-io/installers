@@ -20,10 +20,19 @@ if [ -e "/Applications/Google Chrome.app" ]; then :
 else cp -R "/Applications/Subutai/dist/Google Chrome.app" /Applications/
 fi
 
+function get_memvm {
+totalmem=`sudo -H -u $(users) sysctl hw.memsize | LC_NUMERIC=POSIX awk '{print \$2}'`
+if [ $totalmem -ge 8000000000 ]; then 
+		memvm=$(($totalmem/4/1024/1024))
+	else
+		memvm=$(($totalmem/2/1024/1024))
+fi
+}
+
 function import_vm {
 sudo -H -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
 sudo -H -u $(users) $vboxmanage modifyvm snappy --cpus 4
-sudo -H -u $(users) $vboxmanage modifyvm snappy --memory 3072
+sudo -H -u $(users) $vboxmanage modifyvm snappy --memory $memvm
 sudo -H -u $(users) $vboxmanage modifyvm snappy --nic1 nat
 sudo -H -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
 sudo -H -u $(users) $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
@@ -72,6 +81,8 @@ function run_services {
 /Applications/Subutai/p2p daemon &>/dev/null &
 sudo -u $(users) /Applications/Subutai/SubutaiTray.app/Contents/MacOS/SubutaiTray &
 }
+
+get_memvm
 
 if [ "sudo -H -u $(users) $vboxmanage list vms | grep subutai" ]; then
 	sudo -H -u $(users) $vboxmanage controlvm subutai poweroff
