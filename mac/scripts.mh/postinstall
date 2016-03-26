@@ -1,23 +1,9 @@
 #!/bin/bash
 
-curl -o /Applications/Subutai/templates/master-subutai-template_4.0.0_amd64.tar.gz http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/get?name=master-subutai-template_4.0.0_amd64.tar.gz
-curl -o /Applications/Subutai/templates/management-subutai-template_4.0.0_amd64.tar.gz http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/get?name=management-subutai-template_4.0.0_amd64.tar.gz
-
 function install_management {
 ssh-keygen -R "[localhost]:4567"
-scp -P4567 -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no /Applications/Subutai/templates/master-subutai-template_4.0.0_amd64.tar.gz /Applications/Subutai/templates/management-subutai-template_4.0.0_amd64.tar.gz ubuntu@localhost:~/
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo mv /home/ubuntu/*.gz /mnt/lib/lxc/lxc-data/tmpdir/"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo iptables -P INPUT DROP; sudo iptables -P OUTPUT DROP; sudo iptables -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT; sudo iptables -A OUTPUT -p tcp --sport 22 -m state --state ESTABLISHED,RELATED -j ACCEPT"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo echo -e 'y' | sudo subutai import master"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo echo -e 'y' | sudo subutai import management"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo iptables -P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT"
-}
-
-function run_services {
-/Applications/Subutai/p2p daemon &>/dev/null &
-sudo -u $(users) /Applications/Subutai/SubutaiTray.app/Contents/MacOS/SubutaiTray &
-/usr/bin/osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Subutai/SubutaiTray.app", name:"Subutai Tray"}'
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import master"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import management"
 }
 
 install_management
-run_services

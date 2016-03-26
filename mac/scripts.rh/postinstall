@@ -1,23 +1,95 @@
 #!/bin/bash
 
-curl -o /tmp/Subutai.tar.gz http://kurjun.cdn.subutai.io:8081/rest/kurjun/files/get?name=Subutai.tar.gz
-/usr/bin/tar -xf /tmp/Subutai.tar.gz -C /Applications
+mkdir /tmp/Subutai
 
 vboxmanage="/usr/local/bin/VBoxManage"
 plugin_path=/Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
 
 ssh-keygen -R "[localhost]:4567"
 
-if [ -e /Applications/VirtualBox.app ]; then :
-else sudo installer -pkg /Applications/Subutai/dist/VirtualBox.pkg -target /
+function jsonval {
+    temp=`echo $json | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $prop`
+    echo ${temp##*|}
+}
+
+function download {
+	json=`curl -k -s -X GET https://peer.noip.me:8338/kurjun/rest/file/info?name=$filename`
+	prop='id'
+	id=`jsonval`
+	if [ -e $target ]; then
+		if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`"]; then :
+		else curl -k -o $target https://peer.noip.me:8338/kurjun/rest/file/get\?id\=$id
+		fi
+	else curl -k -o $target https://peer.noip.me:8338/kurjun/rest/file/get\?id\=$id
+	fi
+} 
+
+function get_ova {
+	target="/Applications/Subutai/snappy.ova"; filename="snappy.ova"; download
+}
+
+function get_snap {
+	mkdir /Applications/Subutai/snap/
+	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64.snap"; download
+}
+
+function install_tuntap {
+	target="/tmp/Subutai/tuntap_20150118.pkg"; filename="tuntap_20150118_osx.pkg"; download
+	sudo installer -pkg /tmp/Subutai/tuntap_20150118.pkg -target /
+}
+
+function install_libssh2 {
+	target="/tmp/Subutai/libssh2-1.6.0-0.pkg"; filename="libssh2-1.6.0-0_osx.pkg"; download
+	sudo installer -pkg /tmp/Subutai/libssh2-1.6.0-0.pkg -target /
+}
+
+function get_tray {
+	target="/tmp/Subutai/SubutaiTray.tar.gz"; filename="SubutaiTray.app_osx.tar.gz"; download
+	/usr/bin/tar -xf /tmp/Subutai/SubutaiTray.tar.gz -C /Applications/Subutai
+}
+
+function get_p2p {
+	target="/Applications/Subutai/p2p"; filename="p2p_osx"; download
+	chmod a+x /Applications/Subutai/p2p
+}
+
+function install_vbox {
+	target="/tmp/Subutai/VirtualBox.pkg"; filename="VirtualBox_osx.pkg"; download
+	sudo installer -pkg /tmp/Subutai/VirtualBox.pkg -target /
+}
+
+function get_chrome {
+	target="/tmp/Subutai/GoogleChrome.tar.gz"; filename="GoogleChrome_osx.tar.gz"; download
+	/usr/bin/tar -xf /tmp/Subutai/GoogleChrome.tar.gz -C /Applications
+}
+
+get_tray
+get_p2p
+get_ova
+get_snap
+
+if [ -e /Applications/VirtualBox.app ]; then
+	vboxmanage_version=`sudo -H -u $(users) $vboxmanage --version | cut -d 'r' -f 1`
+	virtualbox_version=$(echo $vboxmanage_version | cut -d '.' -f 1)\
+$(echo $vboxmanage_version | cut -d '.' -f 2 | xargs printf "%02d")\
+$(echo $vboxmanage_version | cut -d '.' -f 3 | xargs printf "%02d")
+
+	if [ $(printf '%d\n' $virtualbox_version) -ge 50014 ]; then :
+	else install_vbox
+	fi
+else install_vbox
 fi
 
 if [ -e /dev/tap0 ]; then :
-else sudo installer -pkg /Applications/Subutai/dist/tuntap_20150118.pkg -target /
+else install_tuntap
+fi
+
+if [ -e /usr/local/lib/libssh2.dylib ]; then :
+else install_libssh2
 fi
 
 if [ -e "/Applications/Google Chrome.app" ]; then :
-else cp -R "/Applications/Subutai/dist/Google Chrome.app" /Applications/
+else get_chrome
 fi
 
 function get_memvm {
@@ -64,7 +136,7 @@ ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepa
 }
 
 function set_path {
-sudo -H -u $(users) echo 'export PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
+sudo -H -u $(users) echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
 }
 
 function create_config {
@@ -79,7 +151,7 @@ sudo -u $(users) printf '{\n\t"external_update_url": "https://clients2.google.co
 
 function run_services {
 /Applications/Subutai/p2p daemon &>/dev/null &
-sudo -u $(users) /Applications/Subutai/SubutaiTray.app/Contents/MacOS/SubutaiTray &
+sudo -u $(users) open /Applications/Subutai/SubutaiTray.app
 }
 
 get_memvm
@@ -99,10 +171,11 @@ else
 	copy_key
 fi
 install_subutai
-if sudo -u $(users) grep Subutai ~/.bash_profile; then :; else set_path; fi
+if [ "`sudo -u $(users) grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
 if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
 if [ -e plugin_path ]; then :; else install_plugin; fi
-if [ -e /Applications/Subutai/templates ]; then :; else run_services; fi
+if [ -e /Applications/Subutai ]; then run_services; fi
 
 #clean
-/bin/rm /tmp/Subutai.tar.gz
+chown -R $(users) /Applications/Subutai/
+/bin/rm -rf /tmp/Subutai
