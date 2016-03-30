@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ -e "/Applications/Subutai/" ]; then
+	/usr/bin/osascript -e 'quit app "SubutaiTray.app"'
+	rm -rf /Applications/Subutai/SubutaiTray.app
+	pkill -9 p2p
+	rm /Applications/Subutai/p2p
+else
+	mkdir /Applications/Subutai/
+fi

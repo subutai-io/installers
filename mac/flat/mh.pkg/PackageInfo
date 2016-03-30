@@ -1,0 +1,7 @@
+<pkg-info format-version="2" identifier="io.subutai.pkg.mh" version="1.0" overwrite-permissions="false" install-location="/" auth="root">
+<payload installKBytes="0" numberOfFiles="1"/>
+<scripts>
+    <preinstall file="./preinstall"/>
+    <postinstall file="./postinstall"/>
+</scripts>
+</pkg-info>

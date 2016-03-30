@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<installer-script authoringTool="Packages" authoringToolVersion="1.1.3" authoringToolBuild="2B112" minSpecVersion="1.0">
+    <options customize="always"/>
+    <title>Subutai Social Installer</title>
+    <choices-outline>
+        <line choice="installer_choice_1"/>
+        <line choice="installer_choice_2"/>
+    </choices-outline>
+    <choice id="installer_choice_1" start_enabled="false" start_selected="true" title="Resource host" description="">
+        <pkg-ref id="io.subutai.pkg.rh"/>
+    </choice>
+    <choice id="installer_choice_2" title="Management host" description="">
+        <pkg-ref id="io.subutai.pkg.mh"/>
+    </choice>
+    <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="337416">#rh.pkg</pkg-ref>
+    <pkg-ref id="io.subutai.pkg.mh" version="1.0" auth="Root" installKBytes="0">#mh.pkg</pkg-ref>
+</installer-script>

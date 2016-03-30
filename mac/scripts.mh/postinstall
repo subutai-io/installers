@@ -1,0 +1,9 @@
+#!/bin/bash
+
+function install_management {
+ssh-keygen -R "[localhost]:4567"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import master"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import management"
+}
+
+install_management
