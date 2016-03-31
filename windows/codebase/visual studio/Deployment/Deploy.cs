@@ -13,6 +13,9 @@ using Deployment.items;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
+using MonoTorrent.Client;
+using MonoTorrent.Client.Encryption;
+using MonoTorrent.Common;
 using Renci.SshNet;
 using File = System.IO.File;
 
@@ -113,6 +116,31 @@ namespace Deployment
                 Program.form1.progressBarControl1.EditValue =
                     e.ProgressPercentage;
             });
+        }
+        #endregion
+
+        #region HELPERS: Download file via P2P
+
+        public void DownloadViaP2P(string torrentFilePath, string destinationPath)
+        {
+            EngineSettings settings = new EngineSettings();
+            settings.AllowedEncryption = EncryptionTypes.All;
+            settings.SavePath = destinationPath;
+
+            if (!Directory.Exists(settings.SavePath))
+                Directory.CreateDirectory(settings.SavePath);
+
+            var engine = new ClientEngine(settings);
+
+            engine.ChangeListenEndpoint(new IPEndPoint(IPAddress.Any, 6969));
+
+            Torrent torrent = Torrent.Load(torrentFilePath);
+
+            TorrentManager manager = new TorrentManager(torrent, engine.Settings.SavePath, new TorrentSettings());
+
+            engine.Register(manager);
+
+            manager.Start();
         }
         #endregion
 
