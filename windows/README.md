@@ -79,8 +79,8 @@ And we use Deployment.exe tool developed under Visual Studio to handle the secon
 	bin | tray.zip - tray application
 	bin | p2p.exe - Subutai P2P service
 	ova | snappy.ova - Ubuntu Snappy ViratualBox image
-	redist | chrome.msi - Google Chrome browser
-	redist | tap-driver.exe - TAP driver
-	redist | vcredist64.exe - Visual C++ Redistributables
-	redist | virtualbox.exe - Oracle VirtualBox
+	redist | chrome.msi - Google Chrome browser (https://www.google.com/work/chrome/browser/)
+	redist | tap-driver.exe - TAP driver (https://swupdate.openvpn.org/community/releases/tap-windows-9.21.1.exe)
+	redist | vcredist64.exe - Visual C++ Redistributables (https://www.microsoft.com/en-us/download/details.aspx?id=48145)
+	redist | virtualbox.exe - Oracle VirtualBox (http://download.virtualbox.org/virtualbox/5.0.16/VirtualBox-5.0.16-105871-Win.exe)
 	redist/subutai | subutai_4.0.0_amd64.snap - Subutai package for Ubuntu Snappy
