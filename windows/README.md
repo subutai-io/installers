@@ -84,3 +84,12 @@ And we use Deployment.exe tool developed under Visual Studio to handle the secon
 	redist | vcredist64.exe - Visual C++ Redistributables (https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 	redist | virtualbox.exe - Oracle VirtualBox (http://download.virtualbox.org/virtualbox/5.0.16/VirtualBox-5.0.16-105871-Win.exe)
 	redist/subutai | subutai_4.0.0_amd64.snap - Subutai package for Ubuntu Snappy
+
+# Vagrant Box for Windows Installer
+We prepared a Vagrant box for you with all required environment to build / change the installer as you wish.
+<ul>
+	<li>RDP: localhost:43389 (you can change this in Vagrant file)</li>
+	<li>Username: user</li>
+	<li>Passord: user</li>
+	<li>Shared folders: please open Vagrant file and change synced folders as you wishm but the first one shares sources of Windows Installer w/the virtual machine</li>
+</ul>
