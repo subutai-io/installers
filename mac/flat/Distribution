@@ -13,5 +13,5 @@
         <pkg-ref id="io.subutai.pkg.mh"/>
     </choice>
     <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="337416">#rh.pkg</pkg-ref>
-    <pkg-ref id="io.subutai.pkg.mh" version="1.0" auth="Root" installKBytes="0">#mh.pkg</pkg-ref>
+    <pkg-ref id="io.subutai.pkg.mh" version="1.0" auth="Root" installKBytes="287940">#mh.pkg</pkg-ref>
 </installer-script>
