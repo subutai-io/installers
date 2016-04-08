@@ -315,6 +315,20 @@ namespace Deployment
             }
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --memory {vmRam}");
 
+
+
+            //number of cores
+            StageReporter("", "Setting number of processors");
+            int hostCores = Environment.ProcessorCount; //number of logical processors
+            //textBox1.Text = "hostCores=" + hostCores.ToString();
+            ulong vmCores = 1;
+            if (hostCores > 4) //to ensure that not > than halph phys processors will be used
+            {
+                vmCores = (ulong)hostCores / 2;
+            }
+            //textBox1.Text = "vmCores=" + vmCores.ToString();
+            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --cpus {vmCores}");
+
             // time settings
             StageReporter("", "Setting timezone");
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
@@ -322,7 +336,6 @@ namespace Deployment
             //start VM
             StageReporter("", "Starting VM");
             Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
-
 
 
             // DEPLOY PEER
@@ -338,6 +351,30 @@ namespace Deployment
 
             // copying snap
             StageReporter("", "Copying Subutai SNAP");
+
+
+            if (_arguments["params"].Contains("dev"))
+            {
+                Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                $"{_arguments["appDir"]}/redist/subutai/prepare-server-dev.sh",
+                $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64-dev.snap"
+                }, "/home/ubuntu/tmpfs");
+            }
+            else if (_arguments["params"].Contains("master"))
+            {
+                Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                $"{_arguments["appDir"]}/redist/subutai/prepare-server-master.sh",
+                $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64-master.snap"
+                }, "/home/ubuntu/tmpfs");
+            }
+            else
+            {
+                Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
+                $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
+                }, "/home/ubuntu/tmpfs");
+            }
+
             Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
                 $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"

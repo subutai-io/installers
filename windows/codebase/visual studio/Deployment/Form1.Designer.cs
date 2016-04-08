@@ -68,9 +68,9 @@
             // labelControl1
             // 
             this.labelControl1.Appearance.Font = new System.Drawing.Font("Cambria", 12F);
-            this.labelControl1.Location = new System.Drawing.Point(12, 9);
+            this.labelControl1.Location = new System.Drawing.Point(12, 6);
             this.labelControl1.Name = "labelControl1";
-            this.labelControl1.Size = new System.Drawing.Size(188, 19);
+            this.labelControl1.Size = new System.Drawing.Size(234, 23);
             this.labelControl1.TabIndex = 3;
             this.labelControl1.Text = "Downloading prerequisites";
             // 
@@ -95,9 +95,9 @@
             // Form1
             // 
             this.Appearance.Options.UseFont = true;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(386, 66);
+            this.ClientSize = new System.Drawing.Size(450, 66);
             this.Controls.Add(this.marqueeProgressBarControl1);
             this.Controls.Add(this.labelControl1);
             this.Controls.Add(this.progressBarControl1);
