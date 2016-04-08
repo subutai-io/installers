@@ -5,4 +5,6 @@ redist | chrome.msi
 redist | tap-driver.exe
 redist | vcredist64.exe
 redist | virtualbox.exe
-redist/subutai | subutai_4.0.0_amd64.snapredist/subutai | subutai_4.0.0_amd64-dev.snapredist/subutai | subutai_4.0.0_amd64-master.snap
+redist/subutai | subutai_4.0.0_amd64.snap
+redist/subutai | subutai_4.0.0_amd64-dev.snap
+redist/subutai | subutai_4.0.0_amd64-master.snap
