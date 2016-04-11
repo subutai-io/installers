@@ -47,11 +47,11 @@
             this.progressPanel1.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
             this.progressPanel1.Caption = "Downloading Prerequisites";
             this.progressPanel1.Description = "Downloading ...";
-            this.progressPanel1.Location = new System.Drawing.Point(206, 27);
+            this.progressPanel1.Location = new System.Drawing.Point(206, 23);
             this.progressPanel1.LookAndFeel.SkinName = "Metropolis";
             this.progressPanel1.Name = "progressPanel1";
             this.progressPanel1.ShowCaption = false;
-            this.progressPanel1.Size = new System.Drawing.Size(181, 31);
+            this.progressPanel1.Size = new System.Drawing.Size(330, 39);
             this.progressPanel1.TabIndex = 0;
             this.progressPanel1.Text = "progressPanel1";
             this.progressPanel1.Click += new System.EventHandler(this.progressPanel1_Click);
@@ -67,10 +67,10 @@
             // 
             // labelControl1
             // 
-            this.labelControl1.Appearance.Font = new System.Drawing.Font("Cambria", 12F);
-            this.labelControl1.Location = new System.Drawing.Point(12, 9);
+            this.labelControl1.Appearance.Font = new System.Drawing.Font("Tahoma", 11.8F);
+            this.labelControl1.Location = new System.Drawing.Point(12, 3);
             this.labelControl1.Name = "labelControl1";
-            this.labelControl1.Size = new System.Drawing.Size(188, 19);
+            this.labelControl1.Size = new System.Drawing.Size(237, 24);
             this.labelControl1.TabIndex = 3;
             this.labelControl1.Text = "Downloading prerequisites";
             // 
@@ -95,9 +95,9 @@
             // Form1
             // 
             this.Appearance.Options.UseFont = true;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(386, 66);
+            this.ClientSize = new System.Drawing.Size(531, 66);
             this.Controls.Add(this.marqueeProgressBarControl1);
             this.Controls.Add(this.labelControl1);
             this.Controls.Add(this.progressBarControl1);

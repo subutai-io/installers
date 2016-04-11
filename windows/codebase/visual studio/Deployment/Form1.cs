@@ -152,7 +152,6 @@ namespace Deployment
 
             Deploy.HideMarquee();
             download_description_file();
-            
         }
 
         private void download_description_file()
@@ -179,7 +178,7 @@ namespace Deployment
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
 
-            if (_prerequisitesDownloaded != rows.Length - 1)
+            if (_prerequisitesDownloaded != rows.Length - 3) //.snap?
             {
                 _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
@@ -191,11 +190,26 @@ namespace Deployment
                     );
                 _prerequisitesDownloaded++;
             }
-            else
+            else //snap
             {
-                _deploy.DownloadFile(
+                var destfile = file;
+                if ((_arguments["params"].Contains("dev")) || (_arguments["params"].Contains("master")))
+                {
+                    if (_arguments["params"].Contains("dev"))
+                    {
+                        row = rows[_prerequisitesDownloaded + 1];
+                    } else //master
+                    {
+                        row = rows[_prerequisitesDownloaded + 2];
+                    }
+                    folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
+                    folder = folderFile[0].Trim();
+                    file = folderFile[1].Trim();
+                }
+                //MessageBox.Show("file:" + folder + "\\" + file + "destfile:" + destfile);
+                 _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}/{folder}/{file}",
+                    destination: $"{_arguments["appDir"]}/{folder}/{destfile}",
                     onComplete: TaskFactory,
                     report: $"Getting {file}",
                     async: true,
@@ -315,6 +329,22 @@ namespace Deployment
             }
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --memory {vmRam}");
 
+            //number of cores
+            StageReporter("", "Setting number of processors");
+            int hostCores = Environment.ProcessorCount; //number of logical processors
+            //textBox1.Text = "hostCores=" + hostCores.ToString();
+            ulong vmCores = 1;
+            if (hostCores > 4 && hostCores < 17) //to ensure that not > than halph phys processors will be used
+            {
+                vmCores = (ulong)hostCores / 2;
+            } else if (hostCores >16)
+            {
+                vmCores = 8;
+            }
+
+            //textBox1.Text = "vmCores=" + vmCores.ToString();
+            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --cpus {vmCores}");
+
             // time settings
             StageReporter("", "Setting timezone");
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
@@ -322,7 +352,6 @@ namespace Deployment
             //start VM
             StageReporter("", "Starting VM");
             Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
-
 
 
             // DEPLOY PEER
@@ -338,19 +367,20 @@ namespace Deployment
 
             // copying snap
             StageReporter("", "Copying Subutai SNAP");
+
             Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
                 $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
-            }, "/home/ubuntu/tmpfs");
-
-            // adopting prepare-server.sh
+                }, "/home/ubuntu/tmpfs");
+                         
+           // adopting prepare-server.sh
             StageReporter("", "Adapting installation scripts");
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
-
+             
             // running prepare-server.sh script
             StageReporter("", "Running installation scripts");
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
-
+ 
             // deploying peer options
             StageReporter("", "Setting peer options");
             if (_arguments["peer"] != "rh-only")
