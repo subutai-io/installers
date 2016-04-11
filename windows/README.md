@@ -10,7 +10,7 @@ Now you can go to Chrome browser and open management dashbord https://localhost:
 You need the following tools to build the installer:
 	<ul>
 		<li> Advanced Installer 12 </li>
-		<li> Visual Studio 2008 / 2013 / 2015 </li>
+		<li> Visual Studio 2015 </li>
 		<li> DevExpress 2016 </li>
 	</ul>
 
@@ -83,7 +83,12 @@ And we use Deployment.exe tool developed under Visual Studio to handle the secon
 	redist | tap-driver.exe - TAP driver (https://swupdate.openvpn.org/community/releases/tap-windows-9.21.1.exe)
 	redist | vcredist64.exe - Visual C++ Redistributables (https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 	redist | virtualbox.exe - Oracle VirtualBox (http://download.virtualbox.org/virtualbox/5.0.16/VirtualBox-5.0.16-105871-Win.exe)
-	redist/subutai | subutai_4.0.0_amd64.snap - Subutai package for Ubuntu Snappy
+	redist/subutai | subutai_4.0.0_amd64.snap - Subutai package for Ubuntu Snappy 	redist/subutai | subutai_4.0.0_amd64-dev.snap - Subutai package for Ubuntu Snappy built from dev branch
+	redist/subutai | subutai_4.0.0_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
+
+
+
+
 
 # Vagrant Box for Windows Installer
 We prepared a Vagrant box for you with all required environment to build / change the installer as you wish.
