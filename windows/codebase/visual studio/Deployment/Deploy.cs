@@ -36,8 +36,10 @@ namespace Deployment
         public void SetEnvironmentVariables()
         {
             Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox;{_arguments["appDir"]}\\bin"
-                );
+                string.Format("{0};{1}\\Program Files\\Oracle\\VirtualBox;{2}\\bin", 
+          Environment.GetEnvironmentVariable("PATH"), 
+          Environment.GetEnvironmentVariable("SystemDrive"),
+          _arguments["appDir"]));
         }
 
         #region HELPERS: Download
@@ -104,7 +106,7 @@ namespace Deployment
             }
             else
             {
-                onComplete?.Invoke(null, null);
+              if (onComplete != null) onComplete.Invoke(null, null);
             }
         }
 
@@ -264,7 +266,7 @@ namespace Deployment
                 // Call WaitForExit and then the using statement will close.
                 using (var exeProcess = Process.Start(startInfo))
                 {
-                    exeProcess?.WaitForExit();
+                  if (exeProcess != null) exeProcess.WaitForExit();
                 }
             }
             catch (Exception)
@@ -311,7 +313,7 @@ namespace Deployment
                     var fileStream = new FileStream(filePath, FileMode.Open);
                     {
                         var destination =
-                            $"{remotePath}/{new FileInfo(filePath).Name}";
+                            string.Format("{}/{1}", remotePath, new FileInfo(filePath).Name);
                         client.UploadFile(fileStream, destination, true, null);
                     }
                 }

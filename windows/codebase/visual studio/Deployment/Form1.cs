@@ -18,7 +18,8 @@ namespace Deployment
         private readonly Deploy _deploy;
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>(); 
 
-        private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
+        //private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
+        private readonly string _cloneName = string.Format("subutai-{0}", DateTime.Now.ToString("yyyyMMddhhmm"));
 
         private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[]{};
 
@@ -139,7 +140,8 @@ namespace Deployment
                    });
                }).ContinueWith((prevTask) =>
                {
-                   Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}/bin/tray/SubutaiTray.exe", "");
+                   //Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}/bin/tray/SubutaiTray.exe", "");
+                 Deploy.LaunchCommandLineApp(string.Format("{0}/bin/tray/SubutaiTray.exe", _arguments["appDir"]), "");
                });
         }
         #endregion
@@ -159,7 +161,8 @@ namespace Deployment
             //StageReporter("", "Getting description file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"], 
-                destination: $"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}", 
+                //destination: $"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}", 
+                destination: string.Format("{0}/{1}", _arguments["appDir"], _arguments["repo_descriptor"]),
                 onComplete: download_prerequisites, 
                 report: "Getting repo descriptor", 
                 async: true, 
@@ -170,7 +173,8 @@ namespace Deployment
 
         private void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
-            var rows = File.ReadAllLines($"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}");
+            //var rows = File.ReadAllLines($"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}");
+            var rows = File.ReadAllLines(string.Format("{0}/{1}", _arguments["appDir"], _arguments["repo_descriptor"]));
 
             var row = rows[_prerequisitesDownloaded];
             var folderFile = row.Split(new[] {"|"}, StringSplitOptions.None);
@@ -182,9 +186,9 @@ namespace Deployment
             {
                 _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}/{folder}/{file}",
+                    destination: string.Format("{0}/{1}/{2}", _arguments["appDir"], folder, file),
                     onComplete: download_prerequisites,
-                    report: $"Getting {file}",
+                    report: string.Format("Getting {0}", file),
                     async: true,
                     kurjun: true
                     );
@@ -209,9 +213,9 @@ namespace Deployment
                 //MessageBox.Show("file:" + folder + "\\" + file + "destfile:" + destfile);
                  _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}/{folder}/{destfile}",
+                    destination: string.Format("{0}/{1}/{3}", _arguments["appDir"], folder, destfile),
                     onComplete: TaskFactory,
-                    report: $"Getting {file}",
+                    report: string.Format("Getting {0}", file),
                     async: true,
                     kurjun: true);
             }
@@ -236,7 +240,7 @@ namespace Deployment
                 if (calculatedMd5 != kurjunFileInfo.id.Split(new [] {"."}, StringSplitOptions.None)[1])
                 {
                     Program.ShowError(
-                        $"Verification of MD5 checksums for {filename} failed. Interrupting installation.", "MD5 checksums mismatch");
+                        string.Format("Verification of MD5 checksums for {0} failed. Interrupting installation.", filename), "MD5 checksums mismatch");
                 }
             }
         }
@@ -257,28 +261,28 @@ namespace Deployment
             Deploy.ShowMarquee();
 
             StageReporter("", "TAP driver");
-            Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
+            Deploy.LaunchCommandLineApp(string.Format("{0}\\redist\\tap-driver.exe", _arguments["appDir"]), "/S");
 
             StageReporter("", "MS Visual C++");
-            Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
+            Deploy.LaunchCommandLineApp(string.Format("{0}\\redist\\vcredist64.exe", _arguments["appDir"]), "/install /quiet");
 
             StageReporter("", "Chrome");
-            Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{_arguments["appDir"]}\\redist\\chrome.msi\"");
+            Deploy.LaunchCommandLineApp("msiexec", string.Format("/qn /i \"{0}\\redist\\chrome.msi\"", _arguments["appDir"]));
 
             StageReporter("", "Virtual Box");
-            Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\virtualbox.exe", "--silent");
+            Deploy.LaunchCommandLineApp(string.Format("{0}\\redist\\virtualbox.exe", _arguments["appDir"]), "--silent");
             Deploy.CreateShortcut(
-                $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
+                string.Format("{0}\\Oracle\\VirtualBox\\VirtualBox.exe", Environment.GetEnvironmentVariable("ProgramFiles")),
+                string.Format("{0}\\Desktop\\Oracle VM VirtualBox.lnk", Environment.GetEnvironmentVariable("Public")),
                 "", true);
             Deploy.CreateShortcut(
-                $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
+                string.Format("{0}\\Oracle\\VirtualBox\\VirtualBox.exe", Environment.GetEnvironmentVariable("ProgramFiles")),
+                string.Format("{0}\\Desktop\\Oracle VM VirtualBox.lnk", Environment.GetEnvironmentVariable("Public")),
                 "", true);
 
             Deploy.CreateShortcut(
-                $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
+                string.Format("{0}\\Oracle\\VirtualBox\\VirtualBox.exe", Environment.GetEnvironmentVariable("ProgramFiles")),
+                string.Format("{0}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk", Environment.GetEnvironmentVariable("ProgramData")),
                 "", true);
         }
 
@@ -295,7 +299,8 @@ namespace Deployment
 
             // import OVAs
             StageReporter("", "Importing Snappy");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}\\ova\\snappy.ova");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("import {0}\\ova\\snappy.ova", _arguments["appDir"]));
         }
 
         private void prepare_rh()
@@ -307,13 +312,15 @@ namespace Deployment
 
             // clone VM
             StageReporter("", "Cloning VM");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {_cloneName} snappy");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("clonevm --register --name {0} snappy", _cloneName));
 
             // prepare NIC
             StageReporter("", "Preparing NIC");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("modifyvm {0} --nic4 none", _cloneName));
             Deploy.LaunchCommandLineApp("vboxmanage",
-                $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
+                string.Format("modifyvm {0} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'", _cloneName));
 
             // set RAM
             StageReporter("", "Setting RAM");
@@ -327,7 +334,8 @@ namespace Deployment
             {
                 vmRam = 8125;
             }
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --memory {vmRam}");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("modifyvm {0} --memory {1}", _cloneName, vmRam));
 
             //number of cores
             StageReporter("", "Setting number of processors");
@@ -343,15 +351,18 @@ namespace Deployment
             }
 
             //textBox1.Text = "vmCores=" + vmCores.ToString();
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --cpus {vmCores}");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("modifyvm {0} --cpus {1}", _cloneName, vmCores));
 
             // time settings
             StageReporter("", "Setting timezone");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("modifyvm {} --rtcuseutc on", _cloneName));
 
             //start VM
             StageReporter("", "Starting VM");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
+            Deploy.LaunchCommandLineApp("vboxmanage", 
+              string.Format("startvm --type headless {0}", _cloneName));
 
 
             // DEPLOY PEER
@@ -369,8 +380,8 @@ namespace Deployment
             StageReporter("", "Copying Subutai SNAP");
 
             Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
-                $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
+                string.Format("{0}/redist/subutai/prepare-server.sh", _arguments["appDir"]),
+                string.Format("{0}/redist/subutai/subutai_4.0.0_amd64.snap", _arguments["appDir"])
                 }, "/home/ubuntu/tmpfs");
                          
            // adopting prepare-server.sh
@@ -434,16 +445,17 @@ namespace Deployment
             Deploy.ShowMarquee();
 
             var name = "Subutai Social P2P";
-            var binPath = $"{_arguments["appDir"]}\\bin\\p2p.exe";
+            var binPath = string.Format("{0}\\bin\\p2p.exe", _arguments["appDir"]);
             const string binArgument = "daemon";
 
             // installing service
             StageReporter("", "Installing P2P service");
-            Deploy.LaunchCommandLineApp("nssm", $"install \"{name}\" \"{binPath}\" \"{binArgument}\"");
+            Deploy.LaunchCommandLineApp("nssm", 
+              string.Format("install \"{0}\" \"{1}\" \"{2}\"", name, binPath, binArgument));
 
             // starting service
             StageReporter("", "Starting P2P service");
-            Deploy.LaunchCommandLineApp("nssm", $"start \"{name}\"");
+            Deploy.LaunchCommandLineApp("nssm", string.Format("start \"{0}\"", name));
         }
 
         #endregion
