@@ -1,9 +1,17 @@
 #!/bin/bash
 
-function install_management {
 ssh-keygen -R "[localhost]:4567"
+
+function wait_ssh {
+while [ $(sleep 1 | telnet localhost 4567 | grep SSH > /dev/null 2>&1; echo $?) != "0" ]; do
+	sleep 1
+done
+}
+
+function install_management {
 ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import master"
 ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import management"
 }
 
+wait_ssh
 install_management
