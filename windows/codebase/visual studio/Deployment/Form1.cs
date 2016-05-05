@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
+using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using Deployment.items;
 using Renci.SshNet;
 using File = System.IO.File;
@@ -16,15 +19,15 @@ namespace Deployment
         private readonly string[] _args = Environment.GetCommandLineArgs();
         private readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
         private readonly Deploy _deploy;
-        public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>(); 
+        public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
 
         private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
 
-        private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[]{};
+        private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
 
         private void ParseArguments()
         {
-            foreach (var splitted in _args.Select(argument => argument.Split(new[] {"="}, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
+            foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
             {
                 _arguments[splitted[0]] = splitted[1];
             }
@@ -33,14 +36,13 @@ namespace Deployment
         public Form1()
         {
             InitializeComponent();
-
             ParseArguments();
-
+            //gateway_if();
             _deploy = new Deploy(_arguments);
 
             timer1.Start();
+            //MessageBox.Show($"modifyvm  vmname --nic4 nat --cableconnected4 on --natpf4 'ssh-fwd,tcp,,4567,,22' --natpf4 'mgt-fwd,tcp,,9999,,8443\'", "String", MessageBoxButtons.OK); }
         }
-
         public void StageReporter(string stageName, string subStageName)
         {
             Program.form1.Invoke((MethodInvoker)delegate
@@ -157,6 +159,7 @@ namespace Deployment
         private void download_description_file()
         {
             //StageReporter("", "Getting description file");
+
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"], 
                 destination: $"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}", 
@@ -164,6 +167,7 @@ namespace Deployment
                 report: "Getting repo descriptor", 
                 async: true, 
                 kurjun: true);
+            
         }
 
         private int _prerequisitesDownloaded = 0;
@@ -178,7 +182,7 @@ namespace Deployment
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
 
-            if (_prerequisitesDownloaded != rows.Length - 3) //.snap?
+            if (_prerequisitesDownloaded < rows.Length - 3) //.snap? (_prerequisitesDownloaded != rows.Length - 3) 
             {
                 _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
@@ -190,18 +194,19 @@ namespace Deployment
                     );
                 _prerequisitesDownloaded++;
             }
-            else //snap
+            else //if (_prerequisitesDownloaded == rows.Length - 3) //snap
             {
                 var destfile = file;
                 if ((_arguments["params"].Contains("dev")) || (_arguments["params"].Contains("master")))
                 {
                     if (_arguments["params"].Contains("dev"))
                     {
-                        row = rows[_prerequisitesDownloaded + 1];
+                        _prerequisitesDownloaded++;
                     } else //master
                     {
-                        row = rows[_prerequisitesDownloaded + 2];
+                        _prerequisitesDownloaded += 2;
                     }
+                    row = rows[_prerequisitesDownloaded];
                     folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
                     folder = folderFile[0].Trim();
                     file = folderFile[1].Trim();
@@ -209,13 +214,14 @@ namespace Deployment
                 //MessageBox.Show("file:" + folder + "\\" + file + "destfile:" + destfile);
                  _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}/{folder}/{destfile}",
+                    destination: $"{_arguments["appDir"]}/{folder}/{file}",
                     onComplete: TaskFactory,
                     report: $"Getting {file}",
                     async: true,
                     kurjun: true);
-            }
-        }
+
+            } 
+       }
 
         private void check_md5()
         {
@@ -233,7 +239,8 @@ namespace Deployment
 
                 StageReporter("", "Checking " + filename);
 
-                if (calculatedMd5 != kurjunFileInfo.id.Split(new [] {"."}, StringSplitOptions.None)[1])
+                //if (calculatedMd5 != kurjunFileInfo.id.Split(new [] {"."}, StringSplitOptions.None)[1])
+                if (calculatedMd5 != kurjunFileInfo.id.Replace("raw.", ""))
                 {
                     Program.ShowError(
                         $"Verification of MD5 checksums for {filename} failed. Interrupting installation.", "MD5 checksums mismatch");
@@ -283,16 +290,14 @@ namespace Deployment
         }
 
         private void prepare_vbox()
-        {
+ {
             // PREPARE VBOX
             StageReporter("Preparing Virtual Box", "");
 
             Deploy.ShowMarquee();
-
             // prepare NAT network
-            StageReporter("", "NAT network");
             Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
-
+            //???
             // import OVAs
             StageReporter("", "Importing Snappy");
             Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}\\ova\\snappy.ova");
@@ -310,8 +315,10 @@ namespace Deployment
             Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {_cloneName} snappy");
 
             // prepare NIC
-            StageReporter("", "Preparing NIC");
+            StageReporter("", "Preparing NIC - NAT");
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
+            //Deploy.LaunchCommandLineApp("vboxmanage",
+            //    $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
             Deploy.LaunchCommandLineApp("vboxmanage",
                 $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
 
@@ -352,7 +359,6 @@ namespace Deployment
             //start VM
             StageReporter("", "Starting VM");
             Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
-
 
             // DEPLOY PEER
             StageReporter("Setting up peer", "");
@@ -425,8 +431,113 @@ namespace Deployment
                     }
                 }
             }
+            // prepare NIC
+            StageReporter("", "Preparing NIC - bridged");
+            vm_bridged();
         }
 
+        private  void  vm_bridged()
+        {
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null");
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
+            
+            //stop VM
+            Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
+            //Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic1 none");
+            //sudo - u $(users) $vboxmanage controlvm subutai poweroff soft
+            //MessageBox.Show("powered off", "vm_bridged()", MessageBoxButtons.OK);
+            //get default routing interface
+            string netif = gateway_if();
+            //local netif =$(netstat - rn | grep default | head - 1 | awk '{print $6}')
+            //get VBox name of interface - the same as netif?
+            //local vboxif =$(sudo - u $(users) $vboxmanage list bridgedifs | grep $netif | head - 1 | sed - e 's/Name:[ \t]*//g')
+
+            //change nic1 type
+            string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
+            //MessageBox.Show("cmd:" + br_cmd, "bridge", MessageBoxButtons.OK);
+            Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
+            Deploy.LaunchCommandLineApp("vboxmanage",
+                $"modifyvm {_cloneName} --nic4 nat --cableconnected4 on --natpf4 'ssh-fwd,tcp,,4567,,22' --natpf4 'mgt-fwd,tcp,,9999,,8443\'");//mgt-fwd
+
+             // start VM
+            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+            //sudo - u $(users) $vboxmanage startvm --type headless subutai
+        }
+
+        private string gateway_if()
+        {
+            var gateway_address = NetworkInterface.GetAllNetworkInterfaces()
+                .Where(e => e.OperationalStatus == OperationalStatus.Up)
+                .SelectMany(e => e.GetIPProperties().GatewayAddresses)
+                .FirstOrDefault();
+
+            IPHostEntry host;
+            host = Dns.GetHostEntry(Dns.GetHostName());
+            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            foreach (NetworkInterface adapter in interfaces)
+            {
+                if (adapter.OperationalStatus.ToString() != "Up")
+                    continue;
+                foreach (UnicastIPAddressInformation unicast_address_info in adapter.GetIPProperties().UnicastAddresses)
+                {
+                    if ((unicast_address_info.Address.AddressFamily == AddressFamily.InterNetwork) &&
+                        !(
+                            adapter.Description.ToString().Contains("Virtual") ||
+                            adapter.Description.ToString().Contains("Pseudo") ||
+                            adapter.Description.ToString().Contains("Software") ||
+                            adapter.Name.ToString().Contains("Virtual")
+                            ))
+
+                    //&& (unicast_address_info.Address.AddressFamily != AddressFamily.))
+                    //ip.AddressFamily == AddressFamily.InterNetwork))
+                    {
+
+                        //if (!(
+                        //    adapter.Description.ToString().Contains("Virtual") || 
+                        //    adapter.Description.ToString().Contains("Pseudo") || 
+                        //    adapter.Description.ToString().Contains("Software") ||
+                        //    adapter.Name.ToString().Contains("Virtual")
+                        //    ))
+                        IPAddress mask = unicast_address_info.IPv4Mask;
+                        //MessageBox.Show("ip=" + unicast_address_info.Address.ToString() + "gw=" + adapter.GetIPProperties().GatewayAddresses.FirstOrDefault().Address.ToString(), adapter.Name.ToString(), MessageBoxButtons.OK);
+                        if (IsInSameSubnet(unicast_address_info.Address, gateway_address.Address, mask) &&
+                            adapter.GetIPProperties().GatewayAddresses.FirstOrDefault().Address.ToString() == gateway_address.Address.ToString())
+                        {
+                            //MessageBox.Show("return ip=" + unicast_address_info.Address.ToString(), adapter.Description.ToString(), MessageBoxButtons.OK);
+                            return adapter.Description.ToString();
+                        }
+                    }
+                  }
+               }
+            return null;
+          }
+       
+
+        private IPAddress GetNetworkAddress(IPAddress address, IPAddress subnetMask)
+        {
+            byte[] ipAdressBytes = address.GetAddressBytes();
+            byte[] subnetMaskBytes = subnetMask.GetAddressBytes();
+
+            if (ipAdressBytes.Length != subnetMaskBytes.Length)
+                throw new ArgumentException("Lengths of IP address and subnet mask do not match.");
+
+            byte[] broadcastAddress = new byte[ipAdressBytes.Length];
+            for (int i = 0; i < broadcastAddress.Length; i++)
+            {
+                broadcastAddress[i] = (byte)(ipAdressBytes[i] & (subnetMaskBytes[i]));
+            }
+            return new IPAddress(broadcastAddress);
+        }
+
+
+        private bool IsInSameSubnet(IPAddress address2, IPAddress address1, IPAddress subnetMask)
+        {
+            IPAddress network1 = GetNetworkAddress(address1, subnetMask);
+            IPAddress network2 = GetNetworkAddress(address2, subnetMask);
+
+            return network1.Equals(network2);
+        }
         private void deploy_p2p()
         {
             // DEPLOYING P2P SERVICE

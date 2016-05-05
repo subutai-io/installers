@@ -50,14 +50,29 @@ namespace Deployment
                 var filename = Path.GetFileName(destination);
                 var info = request_kurjun_fileInfo(url, RestFileinfoURL, filename);
                 url = url + RestFileURL + info.id;
+                //MessageBox.Show("info.id = " + info.id,"deserialized response",MessageBoxButtons.OK);
 
-                md5 = info.id.Split(new[] {"."}, StringSplitOptions.None)[1];
+                //md5 = info.id.Split(new[] {"."}, StringSplitOptions.None)[1];
+                //md5 = info.id.Split(new[] { "." }, StringSplitOptions.None)[0];
+                //MessageBox.Show("md5 = " + md5, "splitted", MessageBoxButtons.OK);
+                md5 = info.id.Replace("raw.", "");
+                //MessageBox.Show("md5 = " + md5, "replaced", MessageBoxButtons.OK);
+                //md5 = info.id;
 
                 if (!Program.form1.PrerequisiteFilesInfo.ContainsKey(destination))
                     Program.form1.PrerequisiteFilesInfo.Add(destination, info);
             }
 
             var shouldWeDownload = false;
+            if (destination.Contains("-dev") )
+            {
+                destination = destination.Remove(destination.IndexOf('-'), 4);
+            }
+
+            if (destination.Contains("-master"))
+            {
+                destination = destination.Remove(destination.IndexOf('-'), 7);
+            }
 
             var fileInfo = new FileInfo(destination);
             if (fileInfo.Exists)
@@ -239,7 +254,6 @@ namespace Deployment
         private KurjunFileInfo request_kurjun_fileInfo(string url, string restURL, string filename)
         {
             var json = rest_api_request(url + restURL + filename);
-
             return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
         }
         #endregion
@@ -426,6 +440,7 @@ namespace Deployment
                 Program.form1.marqueeProgressBarControl1.Visible = false;
             });
         }
+
         #endregion
     }
 }

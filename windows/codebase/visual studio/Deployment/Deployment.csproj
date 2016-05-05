@@ -88,6 +88,7 @@
     <EmbeddedResource Include="InstallationFinished.resx">
       <DependentUpon>InstallationFinished.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="licenses.licx" />
     <EmbeddedResource Include="Properties\licenses.licx" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
