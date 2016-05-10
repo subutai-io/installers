@@ -102,6 +102,14 @@ fi
 }
 
 function import_vm {
+# create vboxnet0
+if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1 >/dev/null; echo $?)" == "1" ]; then
+	sudo -u $(users) $vboxmanage hostonlyif create
+	sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1
+	sudo -u $(users) $vboxmanage dhcpserver add --ifname vboxnet0 --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200
+	sudo -u $(users) $vboxmanage dhcpserver modify --ifname vboxnet0 --enable
+fi
+
 sudo -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
 sudo -u $(users) $vboxmanage modifyvm snappy --cpus 4
 sudo -u $(users) $vboxmanage modifyvm snappy --memory $memvm
