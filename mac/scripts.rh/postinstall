@@ -13,14 +13,14 @@ function jsonval {
 }
 
 function download {
-	json=`curl -k -s -X GET https://peer.noip.me:8338/kurjun/rest/file/info?name=$filename`
+	json=`curl -k -s -X GET https://cdn.subut.ai:8338/kurjun/rest/file/info?name=$filename`
 	prop='id'
 	id=`jsonval`
 	if [ -e $target ]; then
-		if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`"]; then :
-		else curl -k -o $target https://peer.noip.me:8338/kurjun/rest/file/get\?id\=$id
+		if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
+		else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
 		fi
-	else curl -k -o $target https://peer.noip.me:8338/kurjun/rest/file/get\?id\=$id
+	else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
 	fi
 } 
 
@@ -30,17 +30,17 @@ function get_ova {
 
 function get_snap {
 	mkdir /Applications/Subutai/snap/
-	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64-dev.snap"; download
+	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64.snap"; download
 }
 
 function install_tuntap {
 	target="/tmp/Subutai/tuntap_20150118.pkg"; filename="tuntap_20150118_osx.pkg"; download
-	sudo installer -pkg /tmp/Subutai/tuntap_20150118.pkg -target /
+	installer -pkg /tmp/Subutai/tuntap_20150118.pkg -target /
 }
 
 function install_libssh2 {
 	target="/tmp/Subutai/libssh2-1.6.0-0.pkg"; filename="libssh2-1.6.0-0_osx.pkg"; download
-	sudo installer -pkg /tmp/Subutai/libssh2-1.6.0-0.pkg -target /
+	installer -pkg /tmp/Subutai/libssh2-1.6.0-0.pkg -target /
 }
 
 function get_tray {
@@ -55,7 +55,7 @@ function get_p2p {
 
 function install_vbox {
 	target="/tmp/Subutai/VirtualBox.pkg"; filename="VirtualBox_osx.pkg"; download
-	sudo installer -pkg /tmp/Subutai/VirtualBox.pkg -target /
+	installer -pkg /tmp/Subutai/VirtualBox.pkg -target /
 }
 
 function get_chrome {
@@ -69,7 +69,7 @@ get_ova
 get_snap
 
 if [ -e /Applications/VirtualBox.app ]; then
-	vboxmanage_version=`sudo -H -u $(users) $vboxmanage --version | cut -d 'r' -f 1`
+	vboxmanage_version=`sudo -u $(users) $vboxmanage --version | cut -d 'r' -f 1`
 	virtualbox_version=$(echo $vboxmanage_version | cut -d '.' -f 1)\
 $(echo $vboxmanage_version | cut -d '.' -f 2 | xargs printf "%02d")\
 $(echo $vboxmanage_version | cut -d '.' -f 3 | xargs printf "%02d")
@@ -93,7 +93,7 @@ else get_chrome
 fi
 
 function get_memvm {
-totalmem=`sudo -H -u $(users) sysctl hw.memsize | LC_NUMERIC=POSIX awk '{print \$2}'`
+totalmem=`sysctl hw.memsize | LC_NUMERIC=POSIX awk '{print \$2}'`
 if [ $totalmem -ge 8000000000 ]; then 
 		memvm=$(($totalmem/4/1024/1024))
 	else
@@ -102,15 +102,41 @@ fi
 }
 
 function import_vm {
-sudo -H -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
-sudo -H -u $(users) $vboxmanage modifyvm snappy --cpus 4
-sudo -H -u $(users) $vboxmanage modifyvm snappy --memory $memvm
-sudo -H -u $(users) $vboxmanage modifyvm snappy --nic1 nat
-sudo -H -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
-sudo -H -u $(users) $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
-sudo -H -u $(users) $vboxmanage modifyvm snappy --rtcuseutc on
-sudo -H -u $(users) $vboxmanage modifyvm snappy --name subutai
-sudo -H -u $(users) $vboxmanage startvm --type headless subutai
+sudo -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
+sudo -u $(users) $vboxmanage modifyvm snappy --cpus 4
+sudo -u $(users) $vboxmanage modifyvm snappy --memory $memvm
+sudo -u $(users) $vboxmanage modifyvm snappy --nic1 nat
+sudo -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
+sudo -u $(users) $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
+sudo -u $(users) $vboxmanage modifyvm snappy --nic4 hostonly
+sudo -u $(users) $vboxmanage modifyvm snappy --rtcuseutc on
+sudo -u $(users) $vboxmanage modifyvm snappy --name subutai
+sudo -u $(users) $vboxmanage startvm --type headless subutai
+}
+
+function vm_to_bridge {
+#enable eth1
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo sync"
+
+#stop VM
+sudo -u $(users) $vboxmanage controlvm subutai poweroff soft
+
+#get default routing interface
+local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
+#get VBox name of interface
+local vboxif=$(sudo -u $(users) $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
+
+#change nic1 type
+sudo -u $(users) $vboxmanage modifyvm subutai --nic1 bridged --bridgeadapter1 "$vboxif"
+
+#enable NAT on nic4
+sudo -u $(users) $vboxmanage modifyvm subutai --nic4 nat
+sudo -u $(users) $vboxmanage modifyvm subutai --cableconnected4 on
+sudo -u $(users) $vboxmanage modifyvm subutai --natpf4 "ssh-fwd,tcp,,4567,,22" --natpf4 "https-fwd,tcp,,9999,,8443"
+
+#start VM
+sudo -u $(users) $vboxmanage startvm --type headless subutai
 }
 
 function wait_ssh {
@@ -136,12 +162,12 @@ ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepa
 }
 
 function set_path {
-sudo -H -u $(users) echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
+sudo -u $(users) echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
 }
 
 function create_config {
-sudo -u $(users) mkdir /usr/local/etc/p2p
-sudo -u $(users) echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
+mkdir -p /usr/local/etc/p2p
+echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
 }
 
 function install_plugin {
@@ -150,15 +176,15 @@ sudo -u $(users) printf '{\n\t"external_update_url": "https://clients2.google.co
 }
 
 function run_services {
-/Applications/Subutai/p2p daemon &>/dev/null &
+launchctl load /Library/LaunchDaemons/io.subutai.p2p.daemon.plist
 sudo -u $(users) open /Applications/Subutai/SubutaiTray.app
 }
 
 get_memvm
 
-if [ "sudo -H -u $(users) $vboxmanage list vms | grep subutai" ]; then
-	sudo -H -u $(users) $vboxmanage controlvm subutai poweroff
-	sudo -H -u $(users) $vboxmanage unregistervm subutai --delete
+if [ "`sudo -u $(users) $vboxmanage list vms | grep subutai`" ]; then
+	sudo -u $(users) $vboxmanage controlvm subutai poweroff
+	sudo -u $(users) $vboxmanage unregistervm subutai --delete
 	import_vm
 else
 	import_vm
@@ -171,6 +197,8 @@ else
 	copy_key
 fi
 install_subutai
+#vm_to_bridge
+
 if [ "`sudo -u $(users) grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
 if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
 if [ -e plugin_path ]; then :; else install_plugin; fi
