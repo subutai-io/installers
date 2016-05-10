@@ -30,7 +30,7 @@ function get_ova {
 
 function get_snap {
 	mkdir /Applications/Subutai/snap/
-	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64.snap"; download
+	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64-dev.snap"; download
 }
 
 function install_tuntap {
