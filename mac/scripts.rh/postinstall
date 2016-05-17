@@ -108,13 +108,8 @@ sudo -u $(users) $vboxmanage modifyvm snappy --memory $memvm
 sudo -u $(users) $vboxmanage modifyvm snappy --nic1 nat
 sudo -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
 sudo -u $(users) $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
-# sudo -u $(users) $vboxmanage modifyvm snappy --nic4 hostonly --hostonlyadapter4 vboxnet0
 sudo -u $(users) $vboxmanage modifyvm snappy --rtcuseutc on
-sudo -u $(users) $vboxmanage modifyvm snappy --name subutai
-sudo -u $(users) $vboxmanage startvm --type headless subutai
-}
 
-function prepare-nic {
 # create vboxnet0
 if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1 >/dev/null; echo $?)" == "1" ]; then
 	sudo -u $(users) $vboxmanage hostonlyif create
@@ -123,7 +118,7 @@ if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.5
 	sudo -u $(users) $vboxmanage dhcpserver modify --ifname vboxnet0 --enable
 fi
 # enable hostonly
-sudo -u $(users) $vboxmanage modifyvm subutai --nic2 hostonly --hostonlyadapter2 vboxnet0
+sudo -u $(users) $vboxmanage modifyvm snappy --nic2 hostonly --hostonlyadapter2 vboxnet0
 
 #get default routing interface
 local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
@@ -131,7 +126,10 @@ local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
 local vboxif=$(sudo -u $(users) $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
 
 # enable bridged
-sudo -u $(users) $vboxmanage modifyvm subutai --nic3 bridged --bridgeadapter3 "$vboxif"
+sudo -u $(users) $vboxmanage modifyvm snappy --nic3 bridged --bridgeadapter3 "$vboxif"
+
+sudo -u $(users) $vboxmanage modifyvm snappy --name subutai
+sudo -u $(users) $vboxmanage startvm --type headless subutai
 }
 
 # disables (saved for history)
@@ -219,7 +217,6 @@ else
 fi
 install_subutai
 #vm_to_bridge
-prepare-nic
 
 if [ "`sudo -u $(users) grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
 if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
