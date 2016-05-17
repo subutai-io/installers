@@ -30,7 +30,7 @@ function get_ova {
 
 function get_snap {
 	mkdir /Applications/Subutai/snap/
-	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64-dev.snap"; download
+	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64.snap"; download
 }
 
 function install_tuntap {
@@ -123,7 +123,7 @@ if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.5
 	sudo -u $(users) $vboxmanage dhcpserver modify --ifname vboxnet0 --enable
 fi
 # enable hostonly
-sudo -u $(users) $vboxmanage modifyvm snappy --nic2 hostonly --hostonlyadapter2 vboxnet0
+sudo -u $(users) $vboxmanage modifyvm subutai --nic2 hostonly --hostonlyadapter2 vboxnet0
 
 #get default routing interface
 local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
