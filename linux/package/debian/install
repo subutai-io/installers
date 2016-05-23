@@ -1,0 +1,4 @@
+subutai-tray.png usr/share/icons/subutai-tray.png
+subutai-tray.desktop usr/share/applications
+prepare-server opt/subutai/tray/scripts/
+p2p etc/init.d/

@@ -1,0 +1,183 @@
+#/bin/sh
+#
+
+if [ -d /tmp/Subutai ]; then
+    rm -rf /tmp/Subutai
+fi
+mkdir /tmp/Subutai
+mkdir -p /opt/subutai/tray/bin
+mkdir -p /opt/subutai/tray/scripts
+mkdir -p /opt/subutai/tray/snap
+
+vboxmanage="VBoxManage"
+subutai_dir="/opt/subutai/tray"
+username=`getent passwd | awk -F: '$3 == 1000 { print $1 }'`
+#plugin_path=/Users/$username/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+
+ssh-keygen -R "[localhost]:4567"
+
+jsonval() {
+temp=`echo $json | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w $prop`
+echo ${temp##*|}
+}
+
+download() {
+json=`curl -k -s -X GET https://cdn.subut.ai:8338/kurjun/rest/file/info?name=$filename` 
+prop='id'
+id=`jsonval`
+if [ -e $target ]; then
+if [ "`md5sum $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
+else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
+fi
+else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
+fi
+} 
+
+get_ova() {
+echo "Downloading ova"
+target="$subutai_dir/snappy.ova"; filename="snappy.ova"; download
+}
+
+get_snap() {
+echo "Downloading snap"
+mkdir -p $subutai_dir/snap/
+target="$subutai_dir/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64.snap"; download
+}
+
+get_p2p() {
+echo "Downloading p2p"
+target="$subutai_dir/bin/p2p"; filename="p2p"; download
+chmod +x $subutai_dir/bin/p2p
+if [ ! -L /usr/bin/p2p ]; then
+ln -s $subutai_dir/bin/p2p /usr/bin/p2p
+fi
+}
+
+get_tray() {
+target="$subutai_dir/bin/SubutaiTray"; filename="SubutaiTray"; download
+chmod +x $subutai_dir/bin/SubutaiTray
+if [ ! -L /usr/bin/subutai-tray ]; then
+ln -s $subutai_dir/bin/SubutaiTray /usr/bin/subutai-tray
+fi
+}
+
+get_p2p
+get_ova
+get_snap
+get_tray
+
+get_memvm() {
+#    totalmem=`sysctl hw.memsize | LC_NUMERIC=POSIX awk '{print \$2}'`
+#        if [ $totalmem -ge 8000000000 ]; then 
+#            memvm=$(($totalmem/4/1024/1024))
+#        else
+#            memvm=$(($totalmem/2/1024/1024))
+#        fi
+memvm=3800
+}
+
+import_vm() {
+sudo -u $username $vboxmanage import $subutai_dir/snappy.ova
+sudo -u $username $vboxmanage modifyvm snappy --cpus 4
+sudo -u $username $vboxmanage modifyvm snappy --memory $memvm
+sudo -u $username $vboxmanage modifyvm snappy --nic1 nat
+sudo -u $username $vboxmanage modifyvm snappy --cableconnected1 on
+sudo -u $username $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
+sudo -u $username $vboxmanage modifyvm snappy --rtcuseutc on
+sudo -u $username $vboxmanage modifyvm snappy --name subutai
+sudo -u $username $vboxmanage startvm --type headless subutai
+}
+
+vm_to_bridge() {
+echo "Setting up bridged network"
+#enable eth1
+ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null"
+ssh -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo sync"
+
+#stop VM
+sudo -u $username $vboxmanage controlvm subutai poweroff soft
+
+#get default routing interface
+local netif=$(netstat -rn | grep UG | head -1 | awk '{print $8}')
+#get VBox name of interface
+local vboxif=$(sudo -u $username $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
+echo "Interface name: $vboxif"
+
+#change nic1 type
+sudo -u $username $vboxmanage modifyvm subutai --nic1 bridged --bridgeadapter1 "$vboxif"
+
+#enable NAT on nic4
+sudo -u $username $vboxmanage modifyvm subutai --nic4 nat
+sudo -u $username $vboxmanage modifyvm subutai --cableconnected4 on
+sudo -u $username $vboxmanage modifyvm subutai --natpf4 "ssh-fwd,tcp,,4567,,22" --natpf4 "https-fwd,tcp,,9999,,8443"
+
+#start VM
+sudo -u $username $vboxmanage startvm --type headless subutai
+}
+
+wait_ssh() {
+    local ret=1
+    while [ $ret != "0" ]; do
+        sleep 1 | telnet localhost 4567 | grep SSH > /dev/null 2>&1
+        ret=$?
+    done
+}
+
+copy_key() {
+pubkey="$(cat /root/.ssh/id_rsa.pub)"
+expect -f - <<EOF
+set timeout 30
+spawn ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "bash -c 'echo $pubkey >> /home/ubuntu/.ssh/authorized_keys' "
+expect "?assword:"
+send "ubuntu\r"
+expect eof
+EOF
+}
+
+install_subutai() {
+scp -P4567 -o StrictHostKeyChecking=no $subutai_dir/scripts/prepare-server $subutai_dir/snap/subutai_4.0.0_amd64.snap ubuntu@localhost:~/
+ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo chmod +x /home/ubuntu/prepare-server"
+ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepare-server"
+}
+
+install_plugin() {
+echo "Installing plugin"
+if [ -d /home/$username/.config/google-chrome ]; then
+    sudo -u $username /home/$username/.config/google-chrome/Default/Extensions
+    sudo -u $username printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /home/$username/.config/google-chrome/Default/Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+fi
+if [ -d /home/$username/.config/chromium ]; then
+    sudo -u $username /home/$username/.config/chromium/Default/Extensions
+    sudo -u $username printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /home/$username/.config/chromium/Default/Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+fi
+}
+
+run_services() {
+    service p2p start
+}
+
+get_memvm
+
+if [ "`sudo -u $username $vboxmanage list vms | grep subutai`" ]; then
+sudo -u $username $vboxmanage controlvm subutai poweroff
+sudo -u $username $vboxmanage unregistervm subutai --delete
+import_vm
+else
+import_vm
+fi
+wait_ssh
+if [ -f "/root/.ssh/id_rsa.pub" ]; then
+copy_key
+else
+ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -N ""
+copy_key
+fi
+install_subutai
+vm_to_bridge
+
+if [ -e plugin_path ]; then :; else install_plugin; fi
+if [ -e $subutai_dir ]; then run_services; fi
+
+#clean
+chown -R $username $subutai_dir
+rm -rf /tmp/Subutai

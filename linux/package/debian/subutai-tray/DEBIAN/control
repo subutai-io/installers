@@ -1,0 +1,10 @@
+Package: subutai-tray
+Version: 4.0.0-RC11ubuntu1
+Architecture: amd64
+Maintainer: Mikhail Savochkin <i@crioto.com>
+Installed-Size: 71
+Depends: expect, openssh-client, virtualbox, chromium-browser, libqt5websockets5
+Section: unknown
+Priority: optional
+Homepage: https://subutai.io
+Description: Subutai Tray Application

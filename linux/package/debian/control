@@ -1,0 +1,14 @@
+Source: subutai-tray
+Section: unknown
+Priority: optional
+Maintainer: Mikhail Savochkin <i@crioto.com>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: https://subutai.io
+#Vcs-Git: git://git.debian.org/collab-maint/subutai-tray.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/subutai-tray.git;a=summary
+
+Package: subutai-tray
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, expect, openssh-client, virtualbox, chromium-browser, libqt5websockets5
+Description: Subutai Tray Application

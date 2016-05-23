@@ -1,0 +1,12 @@
+subutai-tray (4.0.0-RC11ubuntu1) UNRELEASED; urgency=medium
+
+  [ Mikhail Savochkin ]
+  * Added postinstall 
+
+ -- Mikhail Savochkin <i@crioto.com>  Sat, 07 May 2016 12:26:32 +0600
+
+subutai-tray (1.0) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Mikhail Savochkin <i@crioto.com>  Sat, 07 May 2016 00:17:44 +0600
