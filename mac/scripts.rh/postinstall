@@ -109,7 +109,30 @@ sudo -u $(users) $vboxmanage modifyvm snappy --nic1 nat
 sudo -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
 sudo -u $(users) $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
 sudo -u $(users) $vboxmanage modifyvm snappy --rtcuseutc on
+sudo -u $(users) $vboxmanage modifyvm snappy --name subutai
+sudo -u $(users) $vboxmanage startvm --type headless subutai
+}
 
+# new networking v2
+function reconfigure_nic {
+#stop VM
+sudo -u $(users) $vboxmanage controlvm subutai poweroff soft
+
+# Bridge (eth0)
+# get default routing interface
+local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
+# get VBox name of interface
+local vboxif=$(sudo -u $(users) $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
+# enable bridged
+sudo -u $(users) $vboxmanage modifyvm subutai --nic1 bridged --bridgeadapter1 "$vboxif"
+
+# NAT (eth1)
+#enable NAT on nic4
+sudo -u $(users) $vboxmanage modifyvm subutai --nic2 nat
+sudo -u $(users) $vboxmanage modifyvm subutai --cableconnected2 on
+sudo -u $(users) $vboxmanage modifyvm subutai --natpf2 "ssh-fwd,tcp,,4567,,22" --natpf2 "https-fwd,tcp,,9999,,8443"
+
+# Host-only (eth2)
 # create vboxnet0
 if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1 >/dev/null; echo $?)" == "1" ]; then
 	sudo -u $(users) $vboxmanage hostonlyif create
@@ -118,17 +141,9 @@ if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.5
 	sudo -u $(users) $vboxmanage dhcpserver modify --ifname vboxnet0 --enable
 fi
 # enable hostonly
-sudo -u $(users) $vboxmanage modifyvm snappy --nic2 hostonly --hostonlyadapter2 vboxnet0
+sudo -u $(users) $vboxmanage modifyvm subutai --nic3 hostonly --hostonlyadapter3 vboxnet0
 
-#get default routing interface
-local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
-#get VBox name of interface
-local vboxif=$(sudo -u $(users) $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
-
-# enable bridged
-sudo -u $(users) $vboxmanage modifyvm snappy --nic3 bridged --bridgeadapter3 "$vboxif"
-
-sudo -u $(users) $vboxmanage modifyvm snappy --name subutai
+#start VM
 sudo -u $(users) $vboxmanage startvm --type headless subutai
 }
 
@@ -216,6 +231,7 @@ else
 	copy_key
 fi
 install_subutai
+reconfigure_nic
 #vm_to_bridge
 
 if [ "`sudo -u $(users) grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
