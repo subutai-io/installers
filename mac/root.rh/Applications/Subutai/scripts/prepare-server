@@ -23,3 +23,4 @@ systemctl disable snappy-autopilot.timer
 mount -o remount,rw /
 rm -rf /lib/systemd/system/snappy-autopilot.timer
 mount -o remount,ro /
+sync
