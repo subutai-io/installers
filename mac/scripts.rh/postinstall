@@ -147,32 +147,6 @@ sudo -u $(users) $vboxmanage modifyvm subutai --nic3 hostonly --hostonlyadapter3
 sudo -u $(users) $vboxmanage startvm --type headless subutai
 }
 
-# disables (saved for history)
-function vm_to_bridge {
-#enable eth1
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo sync"
-
-#stop VM
-sudo -u $(users) $vboxmanage controlvm subutai poweroff soft
-
-#get default routing interface
-local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
-#get VBox name of interface
-local vboxif=$(sudo -u $(users) $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
-
-#change nic1 type
-sudo -u $(users) $vboxmanage modifyvm subutai --nic1 bridged --bridgeadapter1 "$vboxif"
-
-#enable NAT on nic4
-sudo -u $(users) $vboxmanage modifyvm subutai --nic4 nat
-sudo -u $(users) $vboxmanage modifyvm subutai --cableconnected4 on
-sudo -u $(users) $vboxmanage modifyvm subutai --natpf4 "ssh-fwd,tcp,,4567,,22" --natpf4 "https-fwd,tcp,,9999,,8443"
-
-#start VM
-sudo -u $(users) $vboxmanage startvm --type headless subutai
-}
-
 function wait_ssh {
 while [ $(sleep 1 | telnet localhost 4567 | grep SSH > /dev/null 2>&1; echo $?) != "0" ]; do
 	sleep 1
@@ -232,7 +206,6 @@ else
 fi
 install_subutai
 reconfigure_nic
-#vm_to_bridge
 
 if [ "`sudo -u $(users) grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
 if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
