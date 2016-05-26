@@ -60,7 +60,7 @@ namespace vs_preinstall
                 l_Proc.ForeColor = Color.Green;
             }
 
-            if ((long)hostRam < 4000)
+            if ((long)hostRam < 2000) //4000
             {
                 l_RAM.ForeColor = Color.Red;
                 res =  false;

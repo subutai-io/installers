@@ -59,11 +59,7 @@ namespace Deployment
             });
         }
 
-        private void progressPanel1_Click(object sender, EventArgs e)
-        {
-
-        }
-
+     
         #region TASKS FACTORY
 
         private void TaskFactory(object sender, AsyncCompletedEventArgs e)
@@ -206,6 +202,11 @@ namespace Deployment
 
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
+            if (file.Contains("tray") && _arguments["params"].Contains("dev"))
+            {
+                file = file.Replace("tray.", "tray-dev.");
+            }
+                       
             logger.Info("Downloading prerequisites: {0}.", $"{_arguments["appDir"]}/{folder}/{file}");
 
             if (_prerequisitesDownloaded < rows.Length - 3) //.snap? (_prerequisitesDownloaded != rows.Length - 3) 
@@ -322,10 +323,9 @@ namespace Deployment
         }
 
         private void prepare_vbox()
- {
+       {
             // PREPARE VBOX
             StageReporter("Preparing Virtual Box", "");
-            //logger.Info("Preparing Virtual Box.");
             logger.Info("Preparing Virtual Box");
             Deploy.ShowMarquee();
             // prepare NAT network
@@ -354,31 +354,26 @@ namespace Deployment
             Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
             logger.Info("vboxmanage unregistervm --delete snappy");
 
-            // prepare NIC
             StageReporter("", "Preparing NIC - NAT");
             logger.Info("Preparing NIC-NAT");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
-            //Deploy.LaunchCommandLineApp("vboxmanage",
-            //    $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
             Deploy.LaunchCommandLineApp("vboxmanage",
-                $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 \"ssh-fwd,tcp,,4567,,22\" --natpf1 \"mgt-fwd,tcp,,9999,,8443\"");
-            logger.Info("modifyvm {0} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'", _cloneName);
+                $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
+            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
 
-            StageReporter("", "Setting vbox0");
-            logger.Info("Setting vbox0");
-            vm_vbox0();
-            StageReporter("", "Setting bridged");
-            logger.Info("Setting bridged");
-            vm_bridged();
+     
             // set RAM
             StageReporter("", "Setting RAM");
-            
+
             var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
             //ulong vmRam = 3072;
             ulong vmRam = 2048;
-            if ((hostRam < 16200) && (hostRam > 8000))
+            if (hostRam < 4100)
             {
-                vmRam = hostRam/2;
+                vmRam = 1024;
+            }
+            if ((hostRam < 16200) && (hostRam > 8500))
+            {
+                vmRam = hostRam / 2;
             }
             else if (hostRam > 16500)
             {
@@ -395,7 +390,8 @@ namespace Deployment
             if (hostCores > 4 && hostCores < 17) //to ensure that not > than halph phys processors will be used
             {
                 vmCores = (ulong)hostCores / 2;
-            } else if (hostCores >16)
+            }
+            else if (hostCores > 16)
             {
                 vmCores = 8;
             }
@@ -430,8 +426,8 @@ namespace Deployment
                 $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
                 $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
                 }, "/home/ubuntu/tmpfs");
-                         
-           // adopting prepare-server.sh
+
+            // adopting prepare-server.sh
             StageReporter("", "Adapting installation scripts");
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Adapting installation scripts");
@@ -466,19 +462,19 @@ namespace Deployment
                         // installing management template
                         logger.Info("Importing management");
                         StageReporter("", "Importing management");
-                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import management 3?>&2 > management_log");
+                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import management 3>&2 > management_log");
                     }
                     else
                     {
                         // installing master template
                         StageReporter("", "Importing master");
                         logger.Info("Importing master");
-                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 3>&2 > master_log");
-                        
+                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
+
                         // installing management template
                         StageReporter("", "Importing management");
                         logger.Info("Importing management");
-                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 3>&2 > management_log ");
+                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
                     }
 
                     if (_arguments["network-installation"].ToLower() != "true")
@@ -490,9 +486,15 @@ namespace Deployment
                     }
                 }
             }
-            
+
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
+
+            vm_reconfigure_nic();
+
+            // prepare NIC
+
             //check_files();
-            //wait_mh("http://www.gooogle.com/");
+            //wait_mh("");
         }
 
         private string vm_vbox0_ifname()
@@ -527,7 +529,7 @@ namespace Deployment
             {
                 //enable hostonly 
                 netif_vbox0 = "VirtualBox Host-Only Ethernet Adapter";
-                Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic2 hostonly --hostonlyadapter2 \"{netif_vbox0}\"");
+                Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"");
                 Deploy.LaunchCommandLineApp("vboxmanage", " hostonlyif create ");
                 Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif ipconfig \"{netif_vbox0}\" --ip 192.168.56.1  ");
                 Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
@@ -535,7 +537,7 @@ namespace Deployment
                 Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
             }
             //enable hostonly 
-            string res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic2 hostonly --hostonlyadapter2 \"{netif_vbox0}\"");
+            string res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"");
             logger.Info("Enable hostonly. {0}", res);
         }
 
@@ -570,7 +572,6 @@ namespace Deployment
   
             //change nic1 type
             string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
-            //MessageBox.Show("cmd:" + br_cmd, "bridge", MessageBoxButtons.OK);
             logger.Info("br_cmd: {0}", br_cmd);
             Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
             Deploy.LaunchCommandLineApp("vboxmanage",
@@ -579,8 +580,42 @@ namespace Deployment
              // start VM
             Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
             logger.Info("vm: {0}started", _cloneName);
-            
-            //sudo - u $(users) $vboxmanage startvm --type headless subutai
+ 
+        }
+
+        private void vm_reconfigure_nic()
+        {
+            //stop VM
+            Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
+
+            StageReporter("Setting network interfaces", "");
+            StageReporter("", "Setting nic1 bridged");
+            //get default routing interface
+            string netif = gateway_if();
+            logger.Info("Gateway interface: {0}", netif);
+
+            //Bridge eth0
+            string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
+            logger.Info("br_cmd: {0}", br_cmd);
+            Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
+            //string res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic1 bridged --bridgedadapter1 \"{netif}\"");
+            logger.Info("Enable bridged nic1. {0}", "eth0");
+  
+            //NAT (eth1) 
+            //NAT on nic2
+            StageReporter("", "Setting nic2 NAT");
+            Deploy.LaunchCommandLineApp("vboxmanage",
+               $"modifyvm {_cloneName} --nic2 nat --cableconnected2 on --natpf2 \"ssh-fwd,tcp,,4567,,22\" --natpf2 \"https-fwd,tcp,,9999,,8443\"");//
+            logger.Info("Enable NAT nic2. {0}", "eth1");
+
+            //Hostonly eth2 on nic 3
+            StageReporter("", "Setting nic3 hostonly");
+            vm_vbox0();
+
+            // start VM
+            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+            logger.Info("vm: {0}started", _cloneName);
+
         }
 
         private string gateway_if()
@@ -669,13 +704,14 @@ namespace Deployment
             // starting service
             StageReporter("", "Starting P2P service");
             Deploy.LaunchCommandLineApp("nssm", $"start \"{name}\"");
-            //logger.Info("Starting P2P service");
+            logger.Info("Starting P2P service");
         }
 
         #endregion
 
         private void Form1_VisibleChanged(object sender, EventArgs e)
         {
+            logger.Info("Showing Installed");
             if (((Form1)sender).Visible == false)
                 Program.form2.Show();
         }
@@ -750,14 +786,18 @@ namespace Deployment
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            DevExpress.Skins.SkinManager.EnableFormSkins();
+            DevExpress.LookAndFeel.LookAndFeelHelper.ForceDefaultLookAndFeelChanged();
+
             _deploy.SetEnvironmentVariables();
 
             if (_arguments["network-installation"].ToLower() == "true")
             {
                 //DOWNLOAD REPO
                 StageReporter("Downloading prerequisites", "");
-
                 Deploy.HideMarquee();
+                //Deploy.ShowMarquee();//
+
                 download_repo();
             }
 
