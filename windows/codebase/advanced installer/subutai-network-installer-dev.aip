@@ -5,7 +5,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AGREE_CHECKBOX" Value="Yes" Type="4"/>
-    <ROW Property="AI_APP_ARGS" Value="params=deploy-redist,prepare-vbox,prepare-ssh,dev,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5 repo_tgt=repotgt appDir=[APPDIR] peer=[PEER_OPTION]"/>
+    <ROW Property="AI_APP_ARGS" Value="params=deploy-redist,prepare-vbox,dev,prepare-ssh,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5 repo_tgt=repotgt appDir=[APPDIR] peer=[PEER_OPTION]"/>
     <ROW Property="AI_ARP_SIZE" Value="3000"/>
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CF_TYPE" Value="1" MultiBuildValue="DefaultBuild:0" Type="4" MsiKey="AI_CF_TYPE"/>
@@ -227,7 +227,7 @@
     <ROW Dialog_="FatalError" Control="ProductNameTitle" Type="Text" X="137" Y="29" Width="108" Height="50" Attributes="196611" Text="[ProductName]" TextStyle="[ProductNameForSplash]" Order="1000" TextLocId="Metro.Control.Text.ProductName"/>
     <ROW Dialog_="FatalError" Control="CompanyText" Type="Text" X="138" Y="24" Width="191" Height="12" Attributes="196611" Text="[Manufacturer]" TextStyle="[ManufacturerFont]" Order="1100" TextLocId="Metro.Control.Text.Manufacturer"/>
     <ROW Dialog_="FatalError" Control="Bitmap_1" Type="Bitmap" X="15" Y="9" Width="98" Height="84" Attributes="1" Text="SS_Console_logo_700x700px01.png" Order="1200"/>
-    <ROW Dialog_="FatalError" Control="Text_1" Type="Text" X="19" Y="193" Width="303" Height="36" Attributes="196611" Text="Probably Your system does not meet requremets (Processor cores 2+, RAM 2+ GB, VT-x/AMD-V allowed) " Order="1300" TextLocId="Control.Text.FatalError#Description2"/>
+    <ROW Dialog_="FatalError" Control="Text_1" Type="Text" X="19" Y="193" Width="303" Height="36" Attributes="196611" Text="Probably Your system does not meet requremets (Processor cores 2+, RAM 4+ GB, VT-x/AMD-V allowed) " Order="1300" TextLocId="Control.Text.FatalError#Description2"/>
     <ROW Dialog_="FilesInUse" Control="AdvInst" Type="Text" X="5" Y="388" Width="74" Height="11" Attributes="196611" Text="Advanced Installer" TextStyle="[BrandingStyle]" Order="800" MsiKey="FilesInUse#AdvInst"/>
     <ROW Dialog_="FilesInUse" Control="ProductNameTitle" Type="Text" X="137" Y="29" Width="108" Height="50" Attributes="196611" Text="[ProductName]" TextStyle="[ProductNameForSplash]" Order="900" TextLocId="Metro.Control.Text.ProductName"/>
     <ROW Dialog_="FilesInUse" Control="CompanyText" Type="Text" X="138" Y="24" Width="191" Height="12" Attributes="196611" Text="[Manufacturer]" TextStyle="[ManufacturerFont]" Order="1000" TextLocId="Metro.Control.Text.Manufacturer"/>
@@ -248,7 +248,7 @@
     <ROW Dialog_="InstallDlg" Control="Text_2" Type="Text" X="17" Y="144" Width="307" Height="32" Attributes="65539" Property="TEXT_2_PROP" Text="Please, check if hardware virtualization support (Vt-X/AMD-V) is allowed in BIOS!" TextStyle="Manufacturer" Order="1600"/>
     <ROW Dialog_="InstallDlg" Control="Text_3" Type="Text" X="17" Y="219" Width="290" Height="19" Attributes="65539" Property="TEXT_3_PROP" Text="Setup requires ~10 GB of free disk space" Order="1700"/>
     <ROW Dialog_="InstallDlg" Control="Text_5" Type="Text" X="17" Y="171" Width="307" Height="24" Attributes="65539" Property="TEXT_2_PROP_1" Text="We recommend You to turn off antivirus/firewalls for installation time! " TextStyle="Manufacturer" Order="1800"/>
-    <ROW Dialog_="InstallDlg" Control="Hyperlink_1" Type="Hyperlink" X="17" Y="111" Width="180" Height="16" Attributes="65539" Property="HYPERLINK_1_PROP" Text="&lt;a href=&quot;https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual&quot;&gt;Read Istallation Manual &lt;/a&gt;" Order="1900"/>
+    <ROW Dialog_="InstallDlg" Control="Hyperlink_1" Type="Hyperlink" X="17" Y="111" Width="180" Height="16" Attributes="65539" Property="HYPERLINK_1_PROP" Text="&lt;a href=&quot;https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual&quot;&gt;Read Installation Manual &lt;/a&gt;" TextStyle="MetroLinkDark" Order="1900"/>
     <ROW Dialog_="InstallDlg" Control="Text_4" Type="Text" X="17" Y="128" Width="307" Height="32" Attributes="65539" Property="TEXT_2_PROP_2" Text="Please, turn off all subutai* virtual machines (if any)." TextStyle="Manufacturer" Order="2000"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="ProductNameTitle" Type="Text" X="100" Y="22" Width="245" Height="50" Attributes="196611" Text="[ProductName]" TextStyle="[ProductNameForSplash]" Order="700" TextLocId="Metro.Control.Text.ProductName" MsiKey="LicenseAgreementDlg#ProductNameTitle"/>
     <ROW Dialog_="LicenseAgreementDlg" Control="CompanyText" Type="Text" X="103" Y="16" Width="191" Height="12" Attributes="196611" Text="[Manufacturer]" TextStyle="[ManufacturerFont]" Order="800" TextLocId="Metro.Control.Text.Manufacturer" MsiKey="LicenseAgreementDlg#CompanyText"/>

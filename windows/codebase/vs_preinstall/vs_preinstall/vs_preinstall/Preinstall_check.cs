@@ -60,7 +60,7 @@ namespace vs_preinstall
                 l_Proc.ForeColor = Color.Green;
             }
 
-            if ((long)hostRam < 2000) //4000
+            if ((long)hostRam < 4000) //2000
             {
                 l_RAM.ForeColor = Color.Red;
                 res =  false;
@@ -93,7 +93,7 @@ namespace vs_preinstall
                     tb_Info.Text = "Please turn off SmartScreen, Antivirus/Firewall software for installation time!";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text = "DHCP server need to be running on the local network.";
+                    tb_Info.Text = "DHCP server needs to be running on the local network.";
                 }
                 else {
                     label5.Text = "Impossible to check if VT-x is enabled.";
@@ -108,7 +108,7 @@ namespace vs_preinstall
                 }
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "If installation fails or interrupted, please properly uninstall Subutai from Control Panel.";
+                tb_Info.Text += "If installation fails or interrupted, please run Start->All Applications->Subutai folder->Uninstall or uninstall from Control Panel.";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += "Press Next button to proceed.";

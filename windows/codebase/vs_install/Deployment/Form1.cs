@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using System.Net;
 using System.Net.Sockets;
@@ -367,10 +368,10 @@ namespace Deployment
             var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
             //ulong vmRam = 3072;
             ulong vmRam = 2048;
-            if (hostRam < 4100)
-            {
-                vmRam = 1024;
-            }
+            //if (hostRam < 4100)
+            //{
+            //    vmRam = 1024;
+            //}
             if ((hostRam < 16200) && (hostRam > 8500))
             {
                 vmRam = hostRam / 2;
@@ -488,7 +489,8 @@ namespace Deployment
             }
 
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
-
+            //StageReporter("", "Sleeping ");
+            Thread.Sleep(4000);
             vm_reconfigure_nic();
 
             // prepare NIC
@@ -541,53 +543,55 @@ namespace Deployment
             logger.Info("Enable hostonly. {0}", res);
         }
 
-        private void vm_bridged()
-        {
-            //stop VM
-            //Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
-            //get default routing interface
-            string netif = gateway_if();
-            logger.Info("Gateway interface: {0}", netif);
+        //private void vm_bridged()
+        //{
+        //    //stop VM
+        //    //Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
+        //    //get default routing interface
+        //    string netif = gateway_if();
+        //    logger.Info("Gateway interface: {0}", netif);
 
-            //change nic1 type
-            string br_cmd = $"modifyvm {_cloneName} --nic3 bridged --bridgeadapter3 \"{netif}\"";
-            logger.Info("br_cmd: {0}", br_cmd);
-            Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
-            // start VM
-            //Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-            //logger.Info("vm: {0}started", _cloneName);
+        //    //change nic1 type
+        //    string br_cmd = $"modifyvm {_cloneName} --nic3 bridged --bridgeadapter3 \"{netif}\"";
+        //    logger.Info("br_cmd: {0}", br_cmd);
+        //    Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
+        //    // start VM
+        //    //Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+        //    //logger.Info("vm: {0}started", _cloneName);
 
-        }
+        //}
 
-        private void  vm_bridged_()
-        {
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null");
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
+        ////private void  vm_bridged_()
+        ////{
+        ////    Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null");
+        ////    Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
             
-            //stop VM
-            Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
-            //get default routing interface
-            string netif = gateway_if();
-            logger.Info("Gateway interface: {0}", netif);
+        ////    //stop VM
+        ////    Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
+        ////    //get default routing interface
+        ////    string netif = gateway_if();
+        ////    logger.Info("Gateway interface: {0}", netif);
   
-            //change nic1 type
-            string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
-            logger.Info("br_cmd: {0}", br_cmd);
-            Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
-            Deploy.LaunchCommandLineApp("vboxmanage",
-                $"modifyvm {_cloneName} --nic4 nat --cableconnected4 on --natpf4 'ssh-fwd,tcp,,4567,,22' --natpf4 'mgt-fwd,tcp,,9999,,8443\'");//mgt-fwd
+        ////    //change nic1 type
+        ////    string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
+        ////    logger.Info("br_cmd: {0}", br_cmd);
+        ////    Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
+        ////    Deploy.LaunchCommandLineApp("vboxmanage",
+        ////        $"modifyvm {_cloneName} --nic4 nat --cableconnected4 on --natpf4 'ssh-fwd,tcp,,4567,,22' --natpf4 'mgt-fwd,tcp,,9999,,8443\'");//mgt-fwd
 
-             // start VM
-            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-            logger.Info("vm: {0}started", _cloneName);
+        ////     // start VM
+        ////    Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+        ////    logger.Info("vm: {0}started", _cloneName);
  
-        }
+        ////}
 
         private void vm_reconfigure_nic()
         {
             //stop VM
+            //StageReporter("S", "Stopping machine");
             Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
-
+            //Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo shutdown -P now");
+            Thread.Sleep(15000);
             StageReporter("Setting network interfaces", "");
             StageReporter("", "Setting nic1 bridged");
             //get default routing interface
@@ -613,9 +617,10 @@ namespace Deployment
             vm_vbox0();
 
             // start VM
+            StageReporter("", "Starting VM");
             Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+            Thread.Sleep(25000);
             logger.Info("vm: {0}started", _cloneName);
-
         }
 
         private string gateway_if()
@@ -661,7 +666,6 @@ namespace Deployment
                }
             return null;
           }
-       
 
         private IPAddress GetNetworkAddress(IPAddress address, IPAddress subnetMask)
         {
@@ -678,7 +682,6 @@ namespace Deployment
             }
             return new IPAddress(broadcastAddress);
         }
-
 
         private bool IsInSameSubnet(IPAddress address2, IPAddress address1, IPAddress subnetMask)
         {
@@ -700,11 +703,24 @@ namespace Deployment
             // installing service
             StageReporter("", "Installing P2P service");
             Deploy.LaunchCommandLineApp("nssm", $"install \"{name}\" \"{binPath}\" \"{binArgument}\"");
-            //logger.Info("Installing P2P service ");
+            logger.Info("Installing P2P service ");
             // starting service
             StageReporter("", "Starting P2P service");
             Deploy.LaunchCommandLineApp("nssm", $"start \"{name}\"");
             logger.Info("Starting P2P service");
+
+            //int res = wait_mh("https://localhost:9999/rest/v1/peer/ready");
+            //logger.Info("Ready received {0}", res.ToString());
+
+            //if (res == 1)
+            //{
+            //    logger.Info("Ready not received {0}", res.ToString());
+            //    MessageBox.Show("Something wrong with machine, check if services are running", "RH initialization", MessageBoxButtons.OK);
+            //} else
+            //{
+            //    logger.Info("Ready received {0}", res.ToString());
+            //}
+            Thread.Sleep(60000);
         }
 
         #endregion
@@ -755,17 +771,16 @@ namespace Deployment
             }
         }
 
-        private async Task<int> wait_mh(string strUrl)
+        private int wait_mh(string strUrl)
         {
             HttpWebRequest webReq = (HttpWebRequest)WebRequest
                                            .Create(strUrl);
-            webReq.AllowAutoRedirect = false;
+            webReq.AllowAutoRedirect = true; //false;
             //HttpWebResponse response = (HttpWebResponse)webReq.GetResponse();
             //Returns "MovedPermanently", not 301 which is what I want.
             HttpWebResponse wResp;
             int statusCode = 0;
-
-
+            int cnt = 0;
             while (statusCode != 200) {
                 try
                 {
@@ -775,13 +790,18 @@ namespace Deployment
                 catch (WebException we)
                 {
                     statusCode = (int)((HttpWebResponse)we.Response).StatusCode;
-                    //Thread.Sleep(1000);
+                    logger.Info("Error Response = {0} ex = {1}", statusCode.ToString(), we.ToString());
                 }
-                await Task.Delay(2000);
+                //await Task.Delay(2000);
+                Thread.Sleep(5000);
+                cnt++;
                 logger.Info("Response = {0}", statusCode.ToString());
+                if (cnt > 100)
+                {
+                    return 1;
+                }
             }
-
-            return (statusCode);
+            return 0;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -802,8 +822,7 @@ namespace Deployment
             }
 
             //check_files();
-            //int x = wait_mh("http://www.gooogle.com/");
-            //MessageBox.Show("resonse returned " + x.ToString(), "info", MessageBoxButtons.OK);
+           
         }
 
         private void timer1_Tick(object sender, EventArgs e)

@@ -27,7 +27,7 @@ namespace Deployment
                 {
                     this.Opacity = i;
                 });
-                Thread.Sleep(22);
+                Thread.Sleep(50);
             }
 
             Program.form1.Invoke((MethodInvoker) delegate
