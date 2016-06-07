@@ -90,6 +90,7 @@ namespace Deployment
                 if (!dirInfo.Exists)
                 {
                     dirInfo.Create();
+                    logger.Info("Directory created: {0}", destination);
                 }
 
                 Program.form1.StageReporter("", report);
@@ -109,12 +110,11 @@ namespace Deployment
                         webClient.DownloadFile(new Uri(url), destination);
                     logger.Info("Download {0}", destination);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    logger.Info("Repository Error {0}", destination);
+                    logger.Error(ex.Message, destination);
                     Program.ShowError("Subutai repository is not available for some reason. Please try again later.",
                         "Repository Error");
-
                 }
             }
             else

@@ -13,6 +13,7 @@ using NLog;
 using Deployment.items;
 using Renci.SshNet;
 using File = System.IO.File;
+using Microsoft.Win32;
 
 namespace Deployment
 {
@@ -290,41 +291,74 @@ namespace Deployment
             // DEPLOY REDISTRIBUTABLES
             StageReporter("Installing redistributables", "");
             logger.Info("Installing redistributables");
+            string res = "";
             Deploy.ShowMarquee();
 
             StageReporter("", "TAP driver");
-            Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
-            logger.Info("TAP driver");
 
+
+            res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
+            logger.Info("TAP driver: {0}", res);
+
+            //if (!app_installed("TAP-Windows"))
+            //{
+                var pathTAPin = Path.Combine(_arguments["appDir"], "redist");
+                var pathTAPout = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TAP-Windows", "bin");
+                logger.Info("Copying {0} to {1}", pathTAPin.ToString(), pathTAPout.ToString());
+                
+                try
+                {
+                    File.Copy(Path.Combine(pathTAPin, "addtap.bat"), Path.Combine(pathTAPout, "addtap.bat"), true);
+                    logger.Info("Copying {0} to {1}", pathTAPin.ToString(), pathTAPout.ToString());
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message + " copying utility addtap");
+                }
+                try
+                {
+                    File.Copy(Path.Combine(pathTAPin, "deltapall.bat"), Path.Combine(pathTAPout, "deltapall.bat"), true);
+                    logger.Info("Copying {0} to {1}", pathTAPin.ToString(), pathTAPout.ToString());
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message + " copying utility deltapall");
+                }
+            //}
             StageReporter("", "MS Visual C++");
-            Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
-            logger.Info("MS Visual C++");
+            res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
+            logger.Info("MS Visual C++: {0}", res);
 
-            StageReporter("", "Chrome");
-            Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{_arguments["appDir"]}\\redist\\chrome.msi\"");
-            logger.Info("Chrome");
+            //if (!app_installed("Google\\Chrome"))
+            //{
+                StageReporter("", "Chrome");
+                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{_arguments["appDir"]}\\redist\\chrome.msi\"");
+                logger.Info("Chrome: {0}", res);
+            //}
 
             StageReporter("", "Virtual Box");
-            Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\virtualbox.exe", "--silent");
-            Deploy.CreateShortcut(
-                $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                "", true);
-            Deploy.CreateShortcut(
-                $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                "", true);
+            //if (!app_installed("Oracle\\VirtualBox"))
+            //{
+                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\virtualbox.exe", "--silent");
+                Deploy.CreateShortcut(
+                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
+                    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
+                    "", true);
+                Deploy.CreateShortcut(
+                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
+                    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
+                    "", true);
 
-            Deploy.CreateShortcut(
-                $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
-                "", true);
-            logger.Info("Virtual Box");
-
+                Deploy.CreateShortcut(
+                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
+                    $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
+                    "", true);
+                logger.Info("Virtual Box: {0} ", res);
+            //}
         }
 
         private void prepare_vbox()
-       {
+        {
             // PREPARE VBOX
             StageReporter("Preparing Virtual Box", "");
             logger.Info("Preparing Virtual Box");
@@ -404,11 +438,13 @@ namespace Deployment
             StageReporter("", "Setting timezone");
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
             logger.Info("vboxmanage modifyvm {0} --rtcuseutc", _cloneName);
+            Thread.Sleep(1000);
+           
             //start VM
-
             StageReporter("", "Starting VM");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
             logger.Info("vboxmanage startvm --type headless {0} ", _cloneName);
+            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
+            logger.Info("VM {0} started", _cloneName);
             // DEPLOY PEER
             StageReporter("Setting up peer", "");
             logger.Info("Setting up peer");
@@ -543,48 +579,7 @@ namespace Deployment
             logger.Info("Enable hostonly. {0}", res);
         }
 
-        //private void vm_bridged()
-        //{
-        //    //stop VM
-        //    //Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
-        //    //get default routing interface
-        //    string netif = gateway_if();
-        //    logger.Info("Gateway interface: {0}", netif);
-
-        //    //change nic1 type
-        //    string br_cmd = $"modifyvm {_cloneName} --nic3 bridged --bridgeadapter3 \"{netif}\"";
-        //    logger.Info("br_cmd: {0}", br_cmd);
-        //    Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
-        //    // start VM
-        //    //Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-        //    //logger.Info("vm: {0}started", _cloneName);
-
-        //}
-
-        ////private void  vm_bridged_()
-        ////{
-        ////    Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "echo -e 'allow-hotplug eth1\niface eth1 inet dhcp' | sudo tee /writable/system-data/etc/network/interfaces.d/eth1 > /dev/null");
-        ////    Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
-            
-        ////    //stop VM
-        ////    Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
-        ////    //get default routing interface
-        ////    string netif = gateway_if();
-        ////    logger.Info("Gateway interface: {0}", netif);
-  
-        ////    //change nic1 type
-        ////    string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
-        ////    logger.Info("br_cmd: {0}", br_cmd);
-        ////    Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
-        ////    Deploy.LaunchCommandLineApp("vboxmanage",
-        ////        $"modifyvm {_cloneName} --nic4 nat --cableconnected4 on --natpf4 'ssh-fwd,tcp,,4567,,22' --natpf4 'mgt-fwd,tcp,,9999,,8443\'");//mgt-fwd
-
-        ////     // start VM
-        ////    Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-        ////    logger.Info("vm: {0}started", _cloneName);
- 
-        ////}
-
+   
         private void vm_reconfigure_nic()
         {
             //stop VM
@@ -771,6 +766,22 @@ namespace Deployment
             }
         }
 
+        private bool app_installed(string appName)
+        {
+            var appPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string pth = Path.Combine(appPath, appName);
+            string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
+            RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
+           
+            if (rk != null && Directory.Exists(pth))
+            {
+                // rk.GetValue("Version"); 
+                var folder = new DirectoryInfo(pth);
+                if (folder.GetFileSystemInfos().Length > 0)
+                    return true;
+            }
+             return false;
+        }
         private int wait_mh(string strUrl)
         {
             HttpWebRequest webReq = (HttpWebRequest)WebRequest
