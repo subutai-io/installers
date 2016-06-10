@@ -13,7 +13,7 @@ using NLog;
 using Deployment.items;
 using Renci.SshNet;
 using File = System.IO.File;
-using Microsoft.Win32;
+
 
 namespace Deployment
 {
@@ -108,7 +108,7 @@ namespace Deployment
                        prepare_vbox();
                        //MessageBox.Show("Prepare VBox");
                    }
-               })
+               }, TaskContinuationOptions.NotOnFaulted)
                
                .ContinueWith((prevTask) =>
                {
@@ -197,6 +197,29 @@ namespace Deployment
 
         private void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
+            //if (e.Cancelled)
+            //{
+            //    logger.Error("File download cancelled");
+            //    //Environment.Exit(1);
+            //}
+
+            if (e.Error != null && _prerequisitesDownloaded > 0)
+            {
+                if (e.Error is WebException)
+                {
+                    WebException we = (WebException)e.Error;
+                    logger.Error(we.Message);
+                    Program.ShowError(we.Message, "File Download error, please uninstall partially installed Subutai Social");
+                    Environment.Exit(1);
+                 } else
+                {
+                    Exception ne = (Exception)e.Error;
+                    logger.Error(ne.Message);
+                    Program.ShowError(ne.Message, "Download error, please uninstall partially installed Subutai Social");
+                    Environment.Exit(1);
+                }
+            }
+  
             var rows = File.ReadAllLines($"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}");
 
             var row = rows[_prerequisitesDownloaded];
@@ -208,7 +231,7 @@ namespace Deployment
             {
                 file = file.Replace("tray.", "tray-dev.");
             }
-                       
+                                   
             logger.Info("Downloading prerequisites: {0}.", $"{_arguments["appDir"]}/{folder}/{file}");
 
             if (_prerequisitesDownloaded < rows.Length - 3) //.snap? (_prerequisitesDownloaded != rows.Length - 3) 
@@ -274,7 +297,7 @@ namespace Deployment
                     logger.Fatal("Verification of MD5 checksums for {0} failed. Interrupting installation.", filename);
                     Program.ShowError(
                         $"Verification of MD5 checksums for {filename} failed. Interrupting installation.", "MD5 checksums mismatch");
-                       }
+                 }
             }
         }
         private void unzip_extracted()
@@ -282,7 +305,6 @@ namespace Deployment
             // UNZIP FILES
 
             Deploy.HideMarquee();
-
             _deploy.unzip_files(_arguments["appDir"]);
         }
 
@@ -293,23 +315,27 @@ namespace Deployment
             logger.Info("Installing redistributables");
             string res = "";
             Deploy.ShowMarquee();
-
             StageReporter("", "TAP driver");
+            if (_deploy.app_installed("TAP-Windows") == 0)
+            {
+                
+                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
+                logger.Info("TAP driver: {0}", res);
+            } else
+            {
+                StageReporter("", "TAP driver already installed");
+                logger.Info("TAP driver is already installed: {0}", res);
+            }
 
-
-            res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
-            logger.Info("TAP driver: {0}", res);
-
-            //if (!app_installed("TAP-Windows"))
-            //{
+            if (_deploy.app_installed("TAP-Windows") == 1)
+            {
                 var pathTAPin = Path.Combine(_arguments["appDir"], "redist");
                 var pathTAPout = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TAP-Windows", "bin");
-                logger.Info("Copying {0} to {1}", pathTAPin.ToString(), pathTAPout.ToString());
-                
+           
                 try
                 {
                     File.Copy(Path.Combine(pathTAPin, "addtap.bat"), Path.Combine(pathTAPout, "addtap.bat"), true);
-                    logger.Info("Copying {0} to {1}", pathTAPin.ToString(), pathTAPout.ToString());
+                    logger.Info("Copying {0}\\addtap.bat to {1}\\addtap.bat", pathTAPin.ToString(), pathTAPout.ToString());
                 }
                 catch (Exception ex)
                 {
@@ -318,27 +344,33 @@ namespace Deployment
                 try
                 {
                     File.Copy(Path.Combine(pathTAPin, "deltapall.bat"), Path.Combine(pathTAPout, "deltapall.bat"), true);
-                    logger.Info("Copying {0} to {1}", pathTAPin.ToString(), pathTAPout.ToString());
+                    logger.Info("Copying {0}\\deltapall.bat to {1}", pathTAPin.ToString(), pathTAPout.ToString());
                 }
                 catch (Exception ex)
                 {
                     logger.Error(ex.Message + " copying utility deltapall");
                 }
-            //}
+            }
+           
             StageReporter("", "MS Visual C++");
             res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
             logger.Info("MS Visual C++: {0}", res);
 
-            //if (!app_installed("Google\\Chrome"))
-            //{
+            if (_deploy.app_installed("Google\\Chrome") == 0)
+            {
                 StageReporter("", "Chrome");
                 res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{_arguments["appDir"]}\\redist\\chrome.msi\"");
                 logger.Info("Chrome: {0}", res);
-            //}
+            }
+            else
+            {
+                StageReporter("", "Google\\Chrome is already installed");
+                logger.Info("Google\\Chrome is already installed: {0}", res);
+            }
 
             StageReporter("", "Virtual Box");
-            //if (!app_installed("Oracle\\VirtualBox"))
-            //{
+            if (_deploy.app_installed("Oracle\\VirtualBox") == 0)
+            {
                 res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\virtualbox.exe", "--silent");
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
@@ -354,7 +386,12 @@ namespace Deployment
                     $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
                     "", true);
                 logger.Info("Virtual Box: {0} ", res);
-            //}
+            }
+            else
+            {
+                StageReporter("", "Oracle\\VirtualBox is already installed");
+                logger.Info("Oracle\\VirtualBox is already installed: {0}", res);
+            }
         }
 
         private void prepare_vbox()
@@ -406,7 +443,7 @@ namespace Deployment
             //{
             //    vmRam = 1024;
             //}
-            if ((hostRam < 16200) && (hostRam > 8500))
+            if ((hostRam <= 16500) && (hostRam > 8100))
             {
                 vmRam = hostRam / 2;
             }
@@ -438,7 +475,7 @@ namespace Deployment
             StageReporter("", "Setting timezone");
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
             logger.Info("vboxmanage modifyvm {0} --rtcuseutc", _cloneName);
-            Thread.Sleep(1000);
+            Thread.Sleep(4000);
            
             //start VM
             StageReporter("", "Starting VM");
@@ -473,10 +510,21 @@ namespace Deployment
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Running installation scripts");
             // deploying peer options
+            Thread.Sleep(30000);
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Thread.Sleep(4000);
+            vm_reconfigure_nic();
+
+            StageReporter("", "Waiting for SSH");
+            Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
+            logger.Info("Waiting for SSH");
+
             StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
             if (_arguments["peer"] != "rh-only")
             {
+                StageReporter("Preparing management host", "");
+                logger.Info("Preparing management host");
                 logger.Info("trial");
                 if (_arguments["peer"] == "trial")
                 {
@@ -524,10 +572,10 @@ namespace Deployment
                 }
             }
 
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync");
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
             //StageReporter("", "Sleeping ");
-            Thread.Sleep(4000);
-            vm_reconfigure_nic();
+            //Thread.Sleep(4000);
+            //vm_reconfigure_nic();
 
             // prepare NIC
 
@@ -614,7 +662,7 @@ namespace Deployment
             // start VM
             StageReporter("", "Starting VM");
             Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-            Thread.Sleep(25000);
+            Thread.Sleep(5000);
             logger.Info("vm: {0}started", _cloneName);
         }
 
@@ -715,7 +763,7 @@ namespace Deployment
             //{
             //    logger.Info("Ready received {0}", res.ToString());
             //}
-            Thread.Sleep(60000);
+            Thread.Sleep(5000);
         }
 
         #endregion
@@ -766,22 +814,6 @@ namespace Deployment
             }
         }
 
-        private bool app_installed(string appName)
-        {
-            var appPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string pth = Path.Combine(appPath, appName);
-            string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
-            RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
-           
-            if (rk != null && Directory.Exists(pth))
-            {
-                // rk.GetValue("Version"); 
-                var folder = new DirectoryInfo(pth);
-                if (folder.GetFileSystemInfos().Length > 0)
-                    return true;
-            }
-             return false;
-        }
         private int wait_mh(string strUrl)
         {
             HttpWebRequest webReq = (HttpWebRequest)WebRequest
@@ -833,6 +865,8 @@ namespace Deployment
             }
 
             //check_files();
+
+            //_deploy.app_installed("TAP-Windows");
            
         }
 

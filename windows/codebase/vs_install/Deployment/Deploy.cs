@@ -19,6 +19,7 @@ using MonoTorrent.Client.Encryption;
 using MonoTorrent.Common;
 using Renci.SshNet;
 using File = System.IO.File;
+using Microsoft.Win32;
 
 
 namespace Deployment
@@ -37,12 +38,62 @@ namespace Deployment
 
         public void SetEnvironmentVariables()
         {
-            Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox;{_arguments["appDir"]}\\bin"
+            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("VirtualBox"))
+            {
+                Environment.SetEnvironmentVariable("PATH",
+                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox"
                 );
-            logger.Info("Path changed.");
+            }
+
+            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("TAP-Windows"))
+            {
+                Environment.SetEnvironmentVariable("PATH",
+                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\TAP-Windows\\bin"
+                );
+            }
+
+            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("Subutai"))
+            {
+                Environment.SetEnvironmentVariable("PATH",
+                $"{Environment.GetEnvironmentVariable("PATH")};{_arguments["appDir"]}\\bin"
+                );
+            }
+            logger.Info("Path changed: ", $"{Environment.GetEnvironmentVariable("PATH")}");
+            //Environment.SetEnvironmentVariable("PATH",
+            //    $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox;{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\TAP-Windows\\bin;{_arguments["appDir"]}\\bin"
+            //    );
+            //logger.Info("Path changed");
         }
 
+        class DownloadFileByWebClientArg
+        {
+            private string m_url;
+            private string m_destination;
+            private WebClient m_webClient;
+
+            public DownloadFileByWebClientArg(string url, string destination, WebClient webClient)
+            {
+                m_url = url;
+                m_destination = destination;
+                m_webClient = webClient;
+            }
+
+            public string Url
+            {
+                get { return m_url; }
+            }
+
+            public string Destination
+            {
+                get { return m_destination; }
+            }
+
+            public WebClient WebClient
+            {
+                get { return m_webClient; }
+            }
+        }
+       
         #region HELPERS: Download
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)
         {
@@ -52,6 +103,11 @@ namespace Deployment
             {
                 var filename = Path.GetFileName(destination);
                 var info = request_kurjun_fileInfo(url, RestFileinfoURL, filename);
+                if (info == null)
+                {
+                    Program.ShowError("File doe nor exist", "File error");
+                    Environment.Exit(1);
+                }
                 url = url + RestFileURL + info.id;
                 md5 = info.id.Replace("raw.", "");
              
@@ -69,6 +125,11 @@ namespace Deployment
             if (destination.Contains("-master"))
             {
                 destination = destination.Remove(destination.IndexOf('-'), 7);
+            }
+
+            if (destination.Contains("-test") && !destination.Contains("repomd5"))
+            {
+                destination = destination.Remove(destination.IndexOf('-'), 5);
             }
 
             var fileInfo = new FileInfo(destination);
@@ -253,7 +314,19 @@ namespace Deployment
         private KurjunFileInfo request_kurjun_fileInfo(string url, string restURL, string filename)
         {
             var json = rest_api_request(url + restURL + filename);
-            return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
+            KurjunFileInfo kfi;
+            try
+            {
+                kfi = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
+                //return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
+                return kfi;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "{0} info error", filename);
+                Program.ShowError("File does not exist: " + filename, "File error");
+                return null;
+            }
         }
         #endregion
 
@@ -428,6 +501,44 @@ namespace Deployment
                     return result.ToString();
                 }
          }
+        }
+        #endregion
+
+        #region UTILITIES
+
+        public int app_installed(string appName)
+        {
+            logger.Info("app _installed");
+            string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
+            logger.Info("subkey: {0}",  subkey);
+            string subkey86 = Path.Combine("SOFTWARE\\", appName);
+            logger.Info("subkey86: {0}", subkey86);
+            RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
+            RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
+            if (rk == null && rk86 == null)
+            {
+                logger.Info("app_istalled returns 0");
+                return 0;
+            }
+            logger.Info("app_istalled returns 1");
+            return 1;
+            //var appPath = rk.GetValue("InstallDir");
+
+            //appPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            //string pth = Path.Combine(appPath.ToString(), appName);
+
+            //if ( Directory.Exists(pth))
+            //{
+            //    // rk.GetValue("Version"); 
+            //    var folder = new DirectoryInfo(pth);
+            //    if (folder.GetFileSystemInfos().Length > 0)
+            //        return true;
+            //}
+
+            //appPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+            //pth = Path.Combine(appPath, appName);
+            //if (Directory.Exists(pth))
+            //    return true;
         }
         #endregion
 
