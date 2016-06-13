@@ -96,6 +96,11 @@ if [ -e "/Applications/Google Chrome.app" ]; then :
 else get_chrome
 fi
 
+function get_cpuvm {
+	totalcpu=$(sysctl -n hw.ncpu)
+	cpuvm=$((totalcpu/2))
+}
+
 function get_memvm {
 totalmem=`sysctl hw.memsize | LC_NUMERIC=POSIX awk '{print \$2}'`
 if [ $totalmem -ge 8000000000 ]; then 
@@ -107,7 +112,7 @@ fi
 
 function import_vm {
 sudo -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
-sudo -u $(users) $vboxmanage modifyvm snappy --cpus 4
+sudo -u $(users) $vboxmanage modifyvm snappy --cpus $cpuvm
 sudo -u $(users) $vboxmanage modifyvm snappy --memory $memvm
 sudo -u $(users) $vboxmanage modifyvm snappy --nic1 nat
 sudo -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
@@ -193,6 +198,7 @@ sudo -u $(users) open /Applications/Subutai/SubutaiTray.app
 }
 
 get_memvm
+get_cpuvm
 
 if [ "`sudo -u $(users) $vboxmanage list vms | grep subutai`" ]; then
 	sudo -u $(users) $vboxmanage controlvm subutai poweroff
