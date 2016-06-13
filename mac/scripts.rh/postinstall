@@ -197,6 +197,8 @@ get_memvm
 if [ "`sudo -u $(users) $vboxmanage list vms | grep subutai`" ]; then
 	sudo -u $(users) $vboxmanage controlvm subutai poweroff
 	sudo -u $(users) $vboxmanage unregistervm subutai --delete
+	sudo -u $(users) rm -rf "~/VirtualBox VMs/snappy"
+	sudo -u $(users) rm -rf "~/VirtualBox VMs/subutai"
 	import_vm
 else
 	import_vm
