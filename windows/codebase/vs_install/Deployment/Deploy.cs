@@ -59,11 +59,7 @@ namespace Deployment
                 );
             }
             logger.Info("Path changed: ", $"{Environment.GetEnvironmentVariable("PATH")}");
-            //Environment.SetEnvironmentVariable("PATH",
-            //    $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox;{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\TAP-Windows\\bin;{_arguments["appDir"]}\\bin"
-            //    );
-            //logger.Info("Path changed");
-        }
+         }
 
         class DownloadFileByWebClientArg
         {
@@ -105,7 +101,7 @@ namespace Deployment
                 var info = request_kurjun_fileInfo(url, RestFileinfoURL, filename);
                 if (info == null)
                 {
-                    Program.ShowError("File doe nor exist", "File error");
+                    Program.ShowError("File does not exist", "File error");
                     Environment.Exit(1);
                 }
                 url = url + RestFileURL + info.id;
@@ -116,7 +112,7 @@ namespace Deployment
                 logger.Info("Getting file {0} from kurjun, md5sum:{1}.", destination, md5);
             }
 
-            var shouldWeDownload = false;
+            var shouldWeDownload = true;//will download in any case now
             if (destination.Contains("-dev") )
             {
                 destination = destination.Remove(destination.IndexOf('-'), 4);
@@ -136,17 +132,20 @@ namespace Deployment
             if (fileInfo.Exists)
             {
                 var calculatedMd5 = Calc_md5(destination, false);
-
-                if (calculatedMd5 != md5) { shouldWeDownload = true; }
+                if (calculatedMd5 != md5)
+                {
+                    shouldWeDownload = true;
+                }
             }
             else
             {
                 shouldWeDownload = true;
             }
 
+            logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
+
             if (shouldWeDownload)
             {
-
                 var dirInfo = new DirectoryInfo(path: Path.GetDirectoryName(destination));
                 if (!dirInfo.Exists)
                 {
@@ -372,14 +371,19 @@ namespace Deployment
 
         #region UTILITIES: Send SSH command
 
-        public static void SendSshCommand(string hostname, int port, string username, string password, string command)
+        public static string SendSshCommand(string hostname, int port, string username, string password, string command)
         {
             using (var client = new SshClient(hostname, port, username, password))
             {
+              
                 client.Connect();
-                client.RunCommand(command);
+                SshCommand scmd = client.RunCommand(command);
+                int sresult = scmd.ExitStatus;
+                string serror = scmd.Error;
+                //Stream soutput = scmd.ExtendedOutputStream;
                 client.Disconnect();
                 client.Dispose();
+                return sresult.ToString() + "|" + serror;
             }
         }
 

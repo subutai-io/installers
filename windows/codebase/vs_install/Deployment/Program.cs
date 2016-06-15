@@ -25,6 +25,10 @@ namespace Deployment
             SkinManager.EnableFormSkins();
             UserLookAndFeel.Default.SetSkinStyle("DevExpress Style");
 
+            //AppDomain current_domain = AppDomain.CurrentDomain;
+            //Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
+            //AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
             form1 = new Form1();
             form2 = new InstallationFinished();
 
@@ -41,5 +45,9 @@ namespace Deployment
                 Application.Exit();
             }
         }
+
+        //public event UnhandledExceptionEventHandler CurrentDomain_UnhandledException()
+        //    {
+        //    }
     }
 }

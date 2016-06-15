@@ -34,7 +34,7 @@ namespace Deployment
             foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
             {
                 _arguments[splitted[0]] = splitted[1];
-                //logger.Info("Parsing arguments {0}.", _arguments["repo_tgt"]);
+                logger.Info("Parsing arguments:  {0} =  {1}.", splitted[0], splitted[1] );
             }
         }
 
@@ -80,7 +80,7 @@ namespace Deployment
                        //unzip_repo();
                        //MessageBox.Show("Unzip repo");
                    }
-               })
+               }, TaskContinuationOptions.NotOnFaulted)
 
                .ContinueWith((prevTask) =>
                {
@@ -117,7 +117,7 @@ namespace Deployment
                        prepare_rh();
                        //MessageBox.Show("Prepare RH");
                    }
-               })
+               }, TaskContinuationOptions.NotOnFaulted)
 
                .ContinueWith((prevTask) =>
                {
@@ -126,14 +126,7 @@ namespace Deployment
                        deploy_p2p();
                        //MessageBox.Show("Deploy P2P");
                    }
-               })
-
-
-               .ContinueWith((prevTask) =>
-               {
-                   //wait_mh("https:////localhost:9999/rest/v1/peer/mhpresent");
-                   //wait_mh("https:////localhost:9999/rest/v1/peer/inited");
-               })
+               }, TaskContinuationOptions.NotOnFaulted)
 
                .ContinueWith((prevTask) =>
                {
@@ -160,20 +153,20 @@ namespace Deployment
             StageReporter("Downloading prerequisites", "");
 
             Deploy.HideMarquee();
-            download_description_file("repo_descriptor");
             logger.Info("Downloading repo_descriptor");
+            download_description_file("repo_descriptor");
+            
         }
 
         private void download_description_file(String arg_name)
         {
-            //StageReporter("", "Getting description file");
-
+            StageReporter("", "Getting description file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"], 
                 destination: $"{_arguments["appDir"]}/{_arguments[arg_name]}", 
                 onComplete: download_prerequisites, 
                 report: "Getting repo descriptor",
-                async: true, 
+                async: true, //true
                 kurjun: true);
             
         }
@@ -197,27 +190,39 @@ namespace Deployment
 
         private void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
-            //if (e.Cancelled)
-            //{
-            //    logger.Error("File download cancelled");
-            //    //Environment.Exit(1);
-            //}
-
-            if (e.Error != null && _prerequisitesDownloaded > 0)
+            logger.Info("_prerequisitesDownloaded = {0}", _prerequisitesDownloaded.ToString());
+            if (e != null)
             {
-                if (e.Error is WebException)
+                //logger.Info("AsyncCompletedEventArgs e is not null");
+                if (e.Cancelled)
                 {
-                    WebException we = (WebException)e.Error;
-                    logger.Error(we.Message);
-                    Program.ShowError(we.Message, "File Download error, please uninstall partially installed Subutai Social");
-                    Environment.Exit(1);
-                 } else
-                {
-                    Exception ne = (Exception)e.Error;
-                    logger.Error(ne.Message);
-                    Program.ShowError(ne.Message, "Download error, please uninstall partially installed Subutai Social");
+                    logger.Error("File download cancelled");
                     Environment.Exit(1);
                 }
+
+                if (e.Error != null && _prerequisitesDownloaded > 0)
+                {
+                    if (e.Error is WebException)
+                    {
+                        WebException we = (WebException)e.Error;
+                        logger.Error(we.Message);
+                        Program.ShowError(we.Message, "File Download error, please uninstall partially installed Subutai Social");
+                        Environment.Exit(1);
+                    }
+                    else
+                    {
+                        Exception ne = (Exception)e.Error;
+                        logger.Error(ne.Message);
+                        Program.ShowError(ne.Message, "Download error, please uninstall partially installed Subutai Social");
+                        Environment.Exit(1);
+                    }
+                }
+            } else //  no exception 
+            {
+                if (_prerequisitesDownloaded != 0 && sender == null) //file was not downloaded
+                    _prerequisitesDownloaded++;
+                //logger.Info("Sender is: {0}", sender.ToString());
+                logger.Info("AsyncCompletedEventArgs e is null");
             }
   
             var rows = File.ReadAllLines($"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}");
