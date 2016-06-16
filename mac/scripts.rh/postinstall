@@ -180,19 +180,19 @@ scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-ser
 ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepare-server"
 }
 
-function set_path {
-sudo -u "${USER}" echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
-}
+# function set_path {
+# sudo -u "${USER}" echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
+# }
 
 # function create_config {
 # mkdir -p /usr/local/etc/p2p
 # echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
 # }
 
-function install_plugin {
-sudo -u "${USER}" mkdir -p /Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions
-sudo -u "${USER}" printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
-}
+# function install_plugin {
+# sudo -u "${USER}" mkdir -p /Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions
+# sudo -u "${USER}" printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+# }
 
 # function run_services {
 # launchctl load /Library/LaunchDaemons/io.subutai.p2p.daemon.plist
@@ -223,7 +223,7 @@ fi
 install_subutai
 reconfigure_nic
 
-if [ "`sudo -u "${USER}" grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
+# if [ "`sudo -u "${USER}" grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
 # if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
 # if [ -e plugin_path ]; then :; else install_plugin; fi
 # if [ -e /Applications/Subutai ]; then run_services; fi
