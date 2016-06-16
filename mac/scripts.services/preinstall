@@ -1,1 +1,17 @@
 #!/bin/bash
+
+if [ -e "/Library/LaunchDaemons/io.subutai.p2p.daemon.plist" ]; then
+	launchctl unload /Library/LaunchDaemons/io.subutai.p2p.daemon.plist
+fi
+
+if [ -e "/Applications/Subutai/" ]; then
+	if [ -e "/Applications/Subutai/SubutaiTray.app" ]; then
+		/usr/bin/osascript -e 'quit app "SubutaiTray.app"'
+		rm -rf /Applications/Subutai/SubutaiTray.app
+	fi
+	if [ -e "/Applications/Subutai/p2p" ]; then
+		rm /Applications/Subutai/p2p
+	fi
+else
+	mkdir /Applications/Subutai/
+fi
