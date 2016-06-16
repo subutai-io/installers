@@ -202,17 +202,22 @@ ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepa
 get_memvm
 get_cpuvm
 
+if [ "`sudo -u "${USER}" $vboxmanage list vms | grep snappy`" ]; then
+	sudo -u "${USER}" $vboxmanage controlvm snappy poweroff
+	sudo -u "${USER}" $vboxmanage unregistervm snappy --delete
+fi
+rm -rf "/Users/"${USER}"/VirtualBox VMs/snappy"
+
 if [ "`sudo -u "${USER}" $vboxmanage list vms | grep subutai`" ]; then
-	sudo -u "${USER}" $vboxmanage controlvm subutai poweroff
+	sudo -u "${USER}" $vboxmanage controlvm subutai poweroff	
 	sudo -u "${USER}" $vboxmanage unregistervm subutai --delete
-	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/snappy"
-	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/subutai"
+	rm -rf "/Users/"${USER}"/VirtualBox VMs/subutai"
 	import_vm
 else
-	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/snappy"
-	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/subutai"
+	rm -rf "/Users/"${USER}"/VirtualBox VMs/subutai"
 	import_vm
 fi
+
 wait_ssh
 if [ -f "/var/root/.ssh/id_rsa.pub" ]; then
 	copy_key
