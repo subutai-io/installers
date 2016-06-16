@@ -5,6 +5,7 @@
     <choices-outline>
         <line choice="installer_choice_1"/>
         <line choice="installer_choice_2"/>
+        <line choice="installer_choice_3"/>
     </choices-outline>
     <choice id="installer_choice_1" start_enabled="false" start_selected="true" title="Resource host" description="">
         <pkg-ref id="io.subutai.pkg.rh"/>
@@ -12,6 +13,10 @@
     <choice id="installer_choice_2" title="Management host" description="">
         <pkg-ref id="io.subutai.pkg.mh"/>
     </choice>
-    <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="337416">#rh.pkg</pkg-ref>
+    <choice id="installer_choice_3" title="Tools (p2p daemon / Tray Application)" description="">
+        <pkg-ref id="io.subutai.pkg.services"/>
+    </choice>
+    <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="243577">#rh.pkg</pkg-ref>
     <pkg-ref id="io.subutai.pkg.mh" version="1.0" auth="Root" installKBytes="287940">#mh.pkg</pkg-ref>
+    <pkg-ref id="io.subutai.pkg.services" version="1.0" auth="Root" installKBytes="93839">#mh.pkg</pkg-ref>
 </installer-script>

@@ -3,7 +3,7 @@
 mkdir /tmp/Subutai
 
 vboxmanage="/usr/local/bin/VBoxManage"
-plugin_path=/Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+# plugin_path=/Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
 
 ssh-keygen -R "[localhost]:4567"
 
@@ -33,25 +33,25 @@ function get_snap {
 	target="/Applications/Subutai/snap/subutai_4.0.0_amd64.snap"; filename="subutai_4.0.0_amd64.snap"; download
 }
 
-function install_tuntap {
-	target="/tmp/Subutai/tuntap_20150118.pkg"; filename="tuntap_20150118_osx.pkg"; download
-	installer -pkg /tmp/Subutai/tuntap_20150118.pkg -target /
-}
+# function install_tuntap {
+# 	target="/tmp/Subutai/tuntap_20150118.pkg"; filename="tuntap_20150118_osx.pkg"; download
+# 	installer -pkg /tmp/Subutai/tuntap_20150118.pkg -target /
+# }
 
-function install_libssh2 {
-	target="/tmp/Subutai/libssh2-1.6.0-0.pkg"; filename="libssh2-1.6.0-0_osx.pkg"; download
-	installer -pkg /tmp/Subutai/libssh2-1.6.0-0.pkg -target /
-}
+# function install_libssh2 {
+# 	target="/tmp/Subutai/libssh2-1.6.0-0.pkg"; filename="libssh2-1.6.0-0_osx.pkg"; download
+# 	installer -pkg /tmp/Subutai/libssh2-1.6.0-0.pkg -target /
+# }
 
-function get_tray {
-	target="/tmp/Subutai/SubutaiTray.tar.gz"; filename="SubutaiTray.app_osx.tar.gz"; download
-	/usr/bin/tar -xf /tmp/Subutai/SubutaiTray.tar.gz -C /Applications/Subutai
-}
+# function get_tray {
+# 	target="/tmp/Subutai/SubutaiTray.tar.gz"; filename="SubutaiTray.app_osx.tar.gz"; download
+# 	/usr/bin/tar -xf /tmp/Subutai/SubutaiTray.tar.gz -C /Applications/Subutai
+# }
 
-function get_p2p {
-	target="/Applications/Subutai/p2p"; filename="p2p_osx"; download
-	chmod a+x /Applications/Subutai/p2p
-}
+# function get_p2p {
+# 	target="/Applications/Subutai/p2p"; filename="p2p_osx"; download
+# 	chmod a+x /Applications/Subutai/p2p
+# }
 
 function install_vbox {
 	# stop all VM
@@ -62,18 +62,18 @@ function install_vbox {
 	installer -pkg /tmp/Subutai/VirtualBox.pkg -target /
 }
 
-function get_chrome {
-	target="/tmp/Subutai/GoogleChrome.tar.gz"; filename="GoogleChrome_osx.tar.gz"; download
-	/usr/bin/tar -xf /tmp/Subutai/GoogleChrome.tar.gz -C /Applications
-}
+# function get_chrome {
+# 	target="/tmp/Subutai/GoogleChrome.tar.gz"; filename="GoogleChrome_osx.tar.gz"; download
+# 	/usr/bin/tar -xf /tmp/Subutai/GoogleChrome.tar.gz -C /Applications
+# }
 
-get_tray
-get_p2p
+# get_tray
+# get_p2p
 get_ova
 get_snap
 
 if [ -e /Applications/VirtualBox.app ]; then
-	vboxmanage_version=`sudo -u $(users) $vboxmanage --version | cut -d 'r' -f 1`
+	vboxmanage_version=`sudo -u "${USER}" $vboxmanage --version | cut -d 'r' -f 1`
 	virtualbox_version=$(echo $vboxmanage_version | cut -d '.' -f 1)\
 $(echo $vboxmanage_version | cut -d '.' -f 2 | xargs printf "%02d")\
 $(echo $vboxmanage_version | cut -d '.' -f 3 | xargs printf "%02d")
@@ -84,17 +84,17 @@ $(echo $vboxmanage_version | cut -d '.' -f 3 | xargs printf "%02d")
 else install_vbox
 fi
 
-if [ -e /dev/tap0 ]; then :
-else install_tuntap
-fi
+# if [ -e /dev/tap0 ]; then :
+# else install_tuntap
+# fi
 
-if [ -e /usr/local/lib/libssh2.dylib ]; then :
-else install_libssh2
-fi
+# if [ -e /usr/local/lib/libssh2.dylib ]; then :
+# else install_libssh2
+# fi
 
-if [ -e "/Applications/Google Chrome.app" ]; then :
-else get_chrome
-fi
+# if [ -e "/Applications/Google Chrome.app" ]; then :
+# else get_chrome
+# fi
 
 function get_cpuvm {
 	totalcpu=$(sysctl -n hw.ncpu)
@@ -111,49 +111,49 @@ fi
 }
 
 function import_vm {
-sudo -u $(users) $vboxmanage import /Applications/Subutai/snappy.ova
-sudo -u $(users) $vboxmanage modifyvm snappy --cpus $cpuvm
-sudo -u $(users) $vboxmanage modifyvm snappy --memory $memvm
-sudo -u $(users) $vboxmanage modifyvm snappy --nic1 nat
-sudo -u $(users) $vboxmanage modifyvm snappy --cableconnected1 on
-sudo -u $(users) $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
-sudo -u $(users) $vboxmanage modifyvm snappy --rtcuseutc on
-sudo -u $(users) $vboxmanage modifyvm snappy --name subutai
-sudo -u $(users) $vboxmanage startvm --type headless subutai
+sudo -u "${USER}" $vboxmanage import /Applications/Subutai/snappy.ova
+sudo -u "${USER}" $vboxmanage modifyvm snappy --cpus $cpuvm
+sudo -u "${USER}" $vboxmanage modifyvm snappy --memory $memvm
+sudo -u "${USER}" $vboxmanage modifyvm snappy --nic1 nat
+sudo -u "${USER}" $vboxmanage modifyvm snappy --cableconnected1 on
+sudo -u "${USER}" $vboxmanage modifyvm snappy --natpf1 "ssh-fwd,tcp,,4567,,22" --natpf1 "https-fwd,tcp,,9999,,8443"
+sudo -u "${USER}" $vboxmanage modifyvm snappy --rtcuseutc on
+sudo -u "${USER}" $vboxmanage modifyvm snappy --name subutai
+sudo -u "${USER}" $vboxmanage startvm --type headless subutai
 }
 
 # new networking v2
 function reconfigure_nic {
 #stop VM
-sudo -u $(users) $vboxmanage controlvm subutai poweroff soft
+sudo -u "${USER}" $vboxmanage controlvm subutai poweroff soft
 
 # Bridge (eth0)
 # get default routing interface
 local netif=$(netstat -rn | grep default | head -1 | awk '{print $6}')
 # get VBox name of interface
-local vboxif=$(sudo -u $(users) $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
+local vboxif=$(sudo -u "${USER}" $vboxmanage list bridgedifs | grep $netif | head -1 | sed -e 's/Name:[ \t]*//g')
 # enable bridged
-sudo -u $(users) $vboxmanage modifyvm subutai --nic1 bridged --bridgeadapter1 "$vboxif"
+sudo -u "${USER}" $vboxmanage modifyvm subutai --nic1 bridged --bridgeadapter1 "$vboxif"
 
 # NAT (eth1)
 #enable NAT on nic4
-sudo -u $(users) $vboxmanage modifyvm subutai --nic2 nat
-sudo -u $(users) $vboxmanage modifyvm subutai --cableconnected2 on
-sudo -u $(users) $vboxmanage modifyvm subutai --natpf2 "ssh-fwd,tcp,,4567,,22" --natpf2 "https-fwd,tcp,,9999,,8443"
+sudo -u "${USER}" $vboxmanage modifyvm subutai --nic2 nat
+sudo -u "${USER}" $vboxmanage modifyvm subutai --cableconnected2 on
+sudo -u "${USER}" $vboxmanage modifyvm subutai --natpf2 "ssh-fwd,tcp,,4567,,22" --natpf2 "https-fwd,tcp,,9999,,8443"
 
 # Host-only (eth2)
 # create vboxnet0
-if [ "$(sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1 >/dev/null; echo $?)" == "1" ]; then
-	sudo -u $(users) $vboxmanage hostonlyif create
-	sudo -u $(users) $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1
-	sudo -u $(users) $vboxmanage dhcpserver add --ifname vboxnet0 --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200
-	sudo -u $(users) $vboxmanage dhcpserver modify --ifname vboxnet0 --enable
+if [ "$(sudo -u "${USER}" $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1 >/dev/null; echo $?)" == "1" ]; then
+	sudo -u "${USER}" $vboxmanage hostonlyif create
+	sudo -u "${USER}" $vboxmanage hostonlyif ipconfig vboxnet0 --ip 192.168.56.1
+	sudo -u "${USER}" $vboxmanage dhcpserver add --ifname vboxnet0 --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200
+	sudo -u "${USER}" $vboxmanage dhcpserver modify --ifname vboxnet0 --enable
 fi
 # enable hostonly
-sudo -u $(users) $vboxmanage modifyvm subutai --nic3 hostonly --hostonlyadapter3 vboxnet0
+sudo -u "${USER}" $vboxmanage modifyvm subutai --nic3 hostonly --hostonlyadapter3 vboxnet0
 
 #start VM
-sudo -u $(users) $vboxmanage startvm --type headless subutai
+sudo -u "${USER}" $vboxmanage startvm --type headless subutai
 }
 
 function wait_ssh {
@@ -179,32 +179,32 @@ ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepa
 }
 
 function set_path {
-sudo -u $(users) echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
+sudo -u "${USER}" echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
 }
 
-function create_config {
-mkdir -p /usr/local/etc/p2p
-echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
-}
+# function create_config {
+# mkdir -p /usr/local/etc/p2p
+# echo "iptool: /sbin/ifconfig" > /usr/local/etc/p2p/config.yaml
+# }
 
 function install_plugin {
-sudo -u $(users) mkdir -p /Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions
-sudo -u $(users) printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /Users/$(users)/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
+sudo -u "${USER}" mkdir -p /Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions
+sudo -u "${USER}" printf '{\n\t"external_update_url": "https://clients2.google.com/service/update2/crx"\n}' > /Users/"${USER}"/Library/Application\ Support/Google/Chrome/External\ Extensions/kpmiofpmlciacjblommkcinncmneeoaa.json
 }
 
-function run_services {
-launchctl load /Library/LaunchDaemons/io.subutai.p2p.daemon.plist
-sudo -u $(users) open /Applications/Subutai/SubutaiTray.app
-}
+# function run_services {
+# launchctl load /Library/LaunchDaemons/io.subutai.p2p.daemon.plist
+# #sudo -u "${USER}" open /Applications/Subutai/SubutaiTray.app
+# }
 
 get_memvm
 get_cpuvm
 
-if [ "`sudo -u $(users) $vboxmanage list vms | grep subutai`" ]; then
-	sudo -u $(users) $vboxmanage controlvm subutai poweroff
-	sudo -u $(users) $vboxmanage unregistervm subutai --delete
-	sudo -u $(users) rm -rf "~/VirtualBox VMs/snappy"
-	sudo -u $(users) rm -rf "~/VirtualBox VMs/subutai"
+if [ "`sudo -u "${USER}" $vboxmanage list vms | grep subutai`" ]; then
+	sudo -u "${USER}" $vboxmanage controlvm subutai poweroff
+	sudo -u "${USER}" $vboxmanage unregistervm subutai --delete
+	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/snappy"
+	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/subutai"
 	import_vm
 else
 	import_vm
@@ -219,11 +219,11 @@ fi
 install_subutai
 reconfigure_nic
 
-if [ "`sudo -u $(users) grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
-if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
-if [ -e plugin_path ]; then :; else install_plugin; fi
-if [ -e /Applications/Subutai ]; then run_services; fi
+if [ "`sudo -u "${USER}" grep Subutai ~/.bash_profile`" ];then :; else set_path; fi
+# if [ -e /usr/local/etc/p2p/config.yaml ]; then :; else create_config; fi
+# if [ -e plugin_path ]; then :; else install_plugin; fi
+# if [ -e /Applications/Subutai ]; then run_services; fi
 
 #clean
-chown -R $(users) /Applications/Subutai/
+chown -R "${USER}" /Applications/Subutai/
 /bin/rm -rf /tmp/Subutai
