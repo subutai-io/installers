@@ -209,6 +209,8 @@ if [ "`sudo -u "${USER}" $vboxmanage list vms | grep subutai`" ]; then
 	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/subutai"
 	import_vm
 else
+	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/snappy"
+	sudo -u "${USER}" rm -rf "~/VirtualBox VMs/subutai"
 	import_vm
 fi
 wait_ssh
