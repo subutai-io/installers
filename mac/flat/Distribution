@@ -18,5 +18,5 @@
     </choice>
     <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="243577">#rh.pkg</pkg-ref>
     <pkg-ref id="io.subutai.pkg.mh" version="1.0" auth="Root" installKBytes="287940">#mh.pkg</pkg-ref>
-    <pkg-ref id="io.subutai.pkg.services" version="1.0" auth="Root" installKBytes="93839">#mh.pkg</pkg-ref>
+    <pkg-ref id="io.subutai.pkg.services" version="1.0" auth="Root" installKBytes="93839">#services.pkg</pkg-ref>
 </installer-script>
