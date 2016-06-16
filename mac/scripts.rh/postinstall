@@ -55,7 +55,9 @@ function get_snap {
 
 function install_vbox {
 	# stop all VM
-	$vboxmanage list runningvms | sed -E 's/.*\{(.*)\}/\1/' | xargs -L1 -I {} $vboxmanage controlvm {} savestate
+	if [ -e /Applications/VirtualBox.app ]; then
+		$vboxmanage list runningvms | sed -E 's/.*\{(.*)\}/\1/' | xargs -L1 -I {} $vboxmanage controlvm {} savestate
+	fi
 	# stop VBox App
 	pkill -9 VirtualBox
 	target="/tmp/Subutai/VirtualBox.pkg"; filename="VirtualBox_osx.pkg"; download
