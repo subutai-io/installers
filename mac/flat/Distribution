@@ -13,7 +13,7 @@
     <choice id="installer_choice_2" title="Management host" description="">
         <pkg-ref id="io.subutai.pkg.mh"/>
     </choice>
-    <choice id="installer_choice_3" title="Tools (p2p daemon / Tray Application)" description="">
+    <choice id="installer_choice_3" title="Tray Application" description="">
         <pkg-ref id="io.subutai.pkg.services"/>
     </choice>
     <pkg-ref id="io.subutai.pkg.rh" version="1.0" auth="Root" installKBytes="243577">#rh.pkg</pkg-ref>
