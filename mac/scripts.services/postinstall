@@ -21,9 +21,9 @@ function download {
 		fi
 	else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
 	fi
-	if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
-		download
-	fi
+	# if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
+	# 	download
+	# fi
 } 
 
 function install_tuntap {
