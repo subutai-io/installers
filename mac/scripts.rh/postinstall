@@ -114,9 +114,8 @@ fi
 
 function import_vm {
 rm -rf /Applications/Subutai/snappy
-sudo -u "${USER}" mkdir /Applications/Subutai/snappy
-sudo -u "${USER}" mkdir /Applications/Subutai/snappy
-sudo -u "${USER}" tar  zxf /Applications/Subutai/snappy.ova -C /Applications/Subutai/snappy
+mkdir /Applications/Subutai/snappy
+tar  zxf /Applications/Subutai/snappy.ova -C /Applications/Subutai/snappy
 sudo -u "${USER}" $vboxmanage import /Applications/Subutai/snappy/snappy.ovf
 sudo -u "${USER}" $vboxmanage modifyvm snappy --cpus $cpuvm
 sudo -u "${USER}" $vboxmanage modifyvm snappy --memory $memvm
