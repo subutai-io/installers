@@ -113,7 +113,11 @@ fi
 }
 
 function import_vm {
-sudo -u "${USER}" $vboxmanage import /Applications/Subutai/snappy.ova
+rm -rf /Applications/Subutai/snappy
+sudo -u "${USER}" mkdir /Applications/Subutai/snappy
+sudo -u "${USER}" mkdir /Applications/Subutai/snappy
+sudo -u "${USER}" tar  zxf /Applications/Subutai/snappy.ova -C /Applications/Subutai/snappy
+sudo -u "${USER}" $vboxmanage import /Applications/Subutai/snappy/snappy.ovf
 sudo -u "${USER}" $vboxmanage modifyvm snappy --cpus $cpuvm
 sudo -u "${USER}" $vboxmanage modifyvm snappy --memory $memvm
 sudo -u "${USER}" $vboxmanage modifyvm snappy --nic1 nat
