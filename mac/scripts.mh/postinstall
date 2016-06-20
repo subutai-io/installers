@@ -9,10 +9,10 @@ done
 }
 
 function install_management {
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sed -i 's/cdn.subut.ai/eu0.cdn.subut.ai/' /apps/subutai/current/etc/agent.gcfg"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sed -i 's/allowinsecure = false/allowinsecure = true/' /apps/subutai/current/etc/agent.gcfg"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo sed -i 's/cdn.subut.ai/eu0.cdn.subut.ai/' /apps/subutai/current/etc/agent.gcfg"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo sed -i 's/allowinsecure = false/allowinsecure = true/' /apps/subutai/current/etc/agent.gcfg"
 # ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import master"
-ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai import -d management"
+ssh -i /var/root/.ssh/id_rsa -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo subutai -d import management"
 }
 
 wait_ssh
