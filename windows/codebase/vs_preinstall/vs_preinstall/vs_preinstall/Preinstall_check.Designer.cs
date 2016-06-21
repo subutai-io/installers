@@ -43,13 +43,15 @@
             this.l_OS = new System.Windows.Forms.Label();
             this.l_VT = new System.Windows.Forms.Label();
             this.tb_Info = new System.Windows.Forms.TextBox();
+            this.l_VB = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(14, 42);
+            this.label1.Location = new System.Drawing.Point(14, 21);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(204, 18);
             this.label1.TabIndex = 1;
@@ -59,7 +61,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label2.Location = new System.Drawing.Point(14, 81);
+            this.label2.Location = new System.Drawing.Point(14, 56);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(192, 18);
             this.label2.TabIndex = 3;
@@ -69,7 +71,7 @@
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label3.Location = new System.Drawing.Point(14, 120);
+            this.label3.Location = new System.Drawing.Point(14, 91);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(46, 18);
             this.label3.TabIndex = 5;
@@ -79,7 +81,7 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label4.Location = new System.Drawing.Point(14, 159);
+            this.label4.Location = new System.Drawing.Point(14, 126);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(82, 18);
             this.label4.TabIndex = 7;
@@ -89,7 +91,7 @@
             // 
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label5.Location = new System.Drawing.Point(13, 238);
+            this.label5.Location = new System.Drawing.Point(13, 248);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(181, 18);
             this.label5.TabIndex = 8;
@@ -98,7 +100,7 @@
             // button1
             // 
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button1.Location = new System.Drawing.Point(595, 233);
+            this.button1.Location = new System.Drawing.Point(594, 240);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(112, 31);
             this.button1.TabIndex = 10;
@@ -121,7 +123,7 @@
             // 
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label7.Location = new System.Drawing.Point(14, 198);
+            this.label7.Location = new System.Drawing.Point(14, 161);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(228, 18);
             this.label7.TabIndex = 14;
@@ -130,7 +132,7 @@
             // l_Proc
             // 
             this.l_Proc.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.l_Proc.Location = new System.Drawing.Point(244, 43);
+            this.l_Proc.Location = new System.Drawing.Point(244, 19);
             this.l_Proc.Name = "l_Proc";
             this.l_Proc.Size = new System.Drawing.Size(123, 23);
             this.l_Proc.TabIndex = 16;
@@ -140,7 +142,7 @@
             // l_RAM
             // 
             this.l_RAM.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.l_RAM.Location = new System.Drawing.Point(244, 82);
+            this.l_RAM.Location = new System.Drawing.Point(244, 54);
             this.l_RAM.Name = "l_RAM";
             this.l_RAM.Size = new System.Drawing.Size(123, 23);
             this.l_RAM.TabIndex = 17;
@@ -150,7 +152,7 @@
             // l_S64
             // 
             this.l_S64.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.l_S64.Location = new System.Drawing.Point(244, 121);
+            this.l_S64.Location = new System.Drawing.Point(244, 89);
             this.l_S64.Name = "l_S64";
             this.l_S64.Size = new System.Drawing.Size(123, 23);
             this.l_S64.TabIndex = 18;
@@ -160,7 +162,7 @@
             // l_OS
             // 
             this.l_OS.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.l_OS.Location = new System.Drawing.Point(244, 160);
+            this.l_OS.Location = new System.Drawing.Point(244, 124);
             this.l_OS.Name = "l_OS";
             this.l_OS.Size = new System.Drawing.Size(123, 23);
             this.l_OS.TabIndex = 19;
@@ -170,7 +172,7 @@
             // l_VT
             // 
             this.l_VT.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.l_VT.Location = new System.Drawing.Point(244, 199);
+            this.l_VT.Location = new System.Drawing.Point(244, 159);
             this.l_VT.Name = "l_VT";
             this.l_VT.Size = new System.Drawing.Size(123, 23);
             this.l_VT.TabIndex = 20;
@@ -184,19 +186,41 @@
             this.tb_Info.BackColor = System.Drawing.Color.Gainsboro;
             this.tb_Info.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tb_Info.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.tb_Info.Location = new System.Drawing.Point(376, 37);
+            this.tb_Info.Location = new System.Drawing.Point(386, 37);
             this.tb_Info.Multiline = true;
             this.tb_Info.Name = "tb_Info";
-            this.tb_Info.Size = new System.Drawing.Size(331, 179);
+            this.tb_Info.Size = new System.Drawing.Size(321, 195);
             this.tb_Info.TabIndex = 21;
             this.tb_Info.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            // 
+            // l_VB
+            // 
+            this.l_VB.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.l_VB.Location = new System.Drawing.Point(245, 194);
+            this.l_VB.Name = "l_VB";
+            this.l_VB.Size = new System.Drawing.Size(123, 23);
+            this.l_VB.TabIndex = 23;
+            this.l_VB.Text = "l_VB";
+            this.l_VB.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label9.Location = new System.Drawing.Point(14, 196);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(174, 18);
+            this.label9.TabIndex = 22;
+            this.label9.Text = "Oracle VirtualBox version";
             // 
             // Preinstall_check
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.AutoScroll = true;
             this.BackColor = System.Drawing.Color.Gainsboro;
-            this.ClientSize = new System.Drawing.Size(719, 276);
+            this.ClientSize = new System.Drawing.Size(719, 292);
+            this.Controls.Add(this.l_VB);
+            this.Controls.Add(this.label9);
             this.Controls.Add(this.tb_Info);
             this.Controls.Add(this.l_VT);
             this.Controls.Add(this.l_OS);
@@ -238,5 +262,7 @@
         private System.Windows.Forms.Label l_OS;
         private System.Windows.Forms.Label l_VT;
         private System.Windows.Forms.TextBox tb_Info;
+        private System.Windows.Forms.Label l_VB;
+        private System.Windows.Forms.Label label9;
     }
 }

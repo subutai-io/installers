@@ -108,7 +108,10 @@ namespace Deployment
                 md5 = info.id.Replace("raw.", "");
              
                 if (!Program.form1.PrerequisiteFilesInfo.ContainsKey(destination))
+                {
                     Program.form1.PrerequisiteFilesInfo.Add(destination, info);
+                    //logger.Info("Adding {0} into PrerequisiteFilesInfo", destination);
+                }
                 logger.Info("Getting file {0} from kurjun, md5sum:{1}.", destination, md5);
             }
 
@@ -227,9 +230,9 @@ namespace Deployment
             foreach (var filename in filenames)
             {
                 var fileinfo = new FileInfo(filename);
+                logger.Info("Unzipping file {0}", filename);
                 unzip_file(filename, fileinfo.DirectoryName, true);
             }
-
         }
 
         public void unzip_file(string source, string dest, bool remove)
@@ -375,26 +378,35 @@ namespace Deployment
         {
             using (var client = new SshClient(hostname, port, username, password))
             {
-              
                 client.Connect();
                 SshCommand scmd = client.RunCommand(command);
-                int sresult = scmd.ExitStatus;
+                int exitstatus = scmd.ExitStatus;
+                string sresult = scmd.Result;
                 string serror = scmd.Error;
                 //Stream soutput = scmd.ExtendedOutputStream;
                 client.Disconnect();
                 client.Dispose();
-                return sresult.ToString() + "|" + serror;
-            }
+                return exitstatus.ToString() + "|" + sresult + "|" + serror;
+             }
         }
 
-        public static void SendSshCommand(string hostname, int port, string username, PrivateKeyFile[] keys, string command)
+        public static string SendSshCommand(string hostname, int port, string username, PrivateKeyFile[] keys, string command)
         {
             using (var client = new SshClient(hostname, port, username, keys))
             {
                 client.Connect();
-                client.RunCommand(command);
+                SshCommand scmd = client.RunCommand(command);
+                int exitstatus = scmd.ExitStatus;
+                string sresult = scmd.Result;
+                if (sresult == null || sresult == "")
+                    sresult = "Empty";
+                string serror = scmd.Error;
+                if (serror == null || serror == "")
+                    serror = "Empty";
+                //Stream soutput = scmd.ExtendedOutputStream;
                 client.Disconnect();
                 client.Dispose();
+                return "Status:" + exitstatus.ToString() + "|Result:" + sresult + "|Error:" + serror;
             }
         }
 
@@ -420,8 +432,9 @@ namespace Deployment
             }
         }
 
-        public static void WaitSsh(string hostname, int port, string username, string password)
+        public static bool  WaitSsh(string hostname, int port, string username, string password)
         {
+            int cnt = 0;
             using (var client = new SshClient(hostname, port, username, password))
             {
                 while (true)
@@ -435,8 +448,12 @@ namespace Deployment
                     {
                         Thread.Sleep(2000);
                     }
+                    cnt++;
+                    if (cnt > 300)
+                        return false;
                 }
                 client.Disconnect();
+                return true;
             }
         }
         #endregion

@@ -9,9 +9,15 @@ namespace Deployment
     {
         bool opacityChanging = false;
 
-        public InstallationFinished()
+        public InstallationFinished(string status)
         {
             InitializeComponent();
+            label3.Text = status;
+            if (status.Contains("failed"))
+            {
+                label4.Visible = true;
+                //Deploy.LaunchCommandLineApp("", "");
+            }
         }
 
         private void InstallationFinished_Load(object sender, EventArgs e)
@@ -27,7 +33,7 @@ namespace Deployment
                 {
                     this.Opacity = i;
                 });
-                Thread.Sleep(50);
+                Thread.Sleep(20);
             }
 
             Program.form1.Invoke((MethodInvoker) delegate

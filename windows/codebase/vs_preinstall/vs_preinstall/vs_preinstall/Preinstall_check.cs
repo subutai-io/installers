@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Management;
 using System.Management.Instrumentation;
+using Microsoft.Win32;
 
 namespace vs_preinstall
 {
@@ -18,10 +19,11 @@ namespace vs_preinstall
     {
         public int hostCores; //number of logical processors
         public Boolean host64;
-        public String hostOSversion;
+        public string hostOSversion;
         private long hostRam;
-        private String hostVT;
-        private String shortVersion;
+        private string hostVT;
+        private string shortVersion;
+        private string vboxVersion;
 
         public Preinstall_check()
         {
@@ -35,6 +37,7 @@ namespace vs_preinstall
             shortVersion = hostOSversion.Substring(0, 3);
             hostCores = Environment.ProcessorCount; //number of logical processors
             host64 = Environment.Is64BitOperatingSystem;
+            vboxVersion = vbox_version();
 
             hostRam = (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
             hostVT = check_vt();
@@ -44,6 +47,7 @@ namespace vs_preinstall
             l_S64.Text = host64.ToString();
             l_OS.Text = shortVersion;//hostOSversion.ToString();
             l_VT.Text = hostVT;
+            l_VB.Text = vboxVersion;
 
             tb_Info.Text = "* This value may need to be checked in BIOS. If installation fails, check if  hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS. \n\nPress Check button to check if Subutai can be installed";
             checking();
@@ -83,6 +87,13 @@ namespace vs_preinstall
                 res = false;
             }
 
+           if (!vbox_version_fit("5.0.16", l_VB.Text))
+            {
+                l_VB.ForeColor = Color.Red;
+                res = false;
+            }
+            
+
             if (res)
             {
                 if (shortVersion != "6.1")
@@ -94,6 +105,10 @@ namespace vs_preinstall
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text = "DHCP server needs to be running on the local network.";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Subutai needs Oracle Virtual Box version 5.0.16 or higher. Please update or uninstall old verdion";
+
                 }
                 else {
                     label5.Text = "Impossible to check if VT-x is enabled.";
@@ -119,10 +134,13 @@ namespace vs_preinstall
                 tb_Info.Text = "Please check Subutai system requirements.";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
+                tb_Info.Text += "Subutai needs Oracle Virtual Box version 5.0.16 or higher. Please update or uninstall old version.";
+                tb_Info.Text += Environment.NewLine;
+                tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += "Press Next button to exit.";
              }
-            
-        }
+         }
+
         private String check_vt()
         {
             ManagementClass managClass = new ManagementClass("win32_processor");
@@ -154,6 +172,46 @@ namespace vs_preinstall
                 this.Close();
             }
               
+        }
+
+        public string vbox_version()
+        {
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Oracle\VirtualBox
+            string subkey86 = "SOFTWARE\\Oracle\\VirtualBox";
+            RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
+            if (rk86 == null)
+            {
+                return "0";
+            }
+            var vers = rk86.GetValue("Version");
+            return vers.ToString();
+        }
+
+        public bool vbox_version_fit(string versFit, string versCheck)
+        {
+            string[] vb = versFit.Split('.');
+            string[] vb_check = versCheck.Split('.');
+            if (versCheck == "0")
+            {
+                return true;
+            }
+            if (versCheck.Equals(versFit, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            int bound = Math.Min(vb.Length, vb_check.Length);
+            for (int i = 0; i < bound; ++i)
+            {
+                int v1, v2;
+                if (Int32.TryParse(vb[i], out v1) && Int32.TryParse(vb_check[i], out v2))
+                {
+                    if (v2 < v1)
+                    {
+                        return false;
+                    }
+                }
+             }
+            return true;
         }
 
         private void Preinstall_check_Load(object sender, EventArgs e)
