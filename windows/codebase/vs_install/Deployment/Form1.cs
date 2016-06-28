@@ -49,17 +49,17 @@ namespace Deployment
 
             timer1.Start();
         }
-        public void StageReporter(string stageName, string subStageName)
+        public static void StageReporter(string stageName, string subStageName)
         {
             Program.form1.Invoke((MethodInvoker)delegate
             {
                 if (stageName != "")
                 {
-                    this.labelControl1.Text = stageName;
+                    Program.form1.labelControl1.Text = stageName;
                 }
                 if (subStageName != "")
                 {
-                    this.progressPanel1.Description = subStageName;
+                    Program.form1.progressPanel1.Description = subStageName;
                 }
             });
         }
@@ -116,7 +116,7 @@ namespace Deployment
                {
                    check_files();
                    stage_counter++;
-                   logger.Info("Stagecheck_files: {0}", stage_counter);
+                   logger.Info("Stage check_files: {0}", stage_counter);
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
 ///////////////////////
@@ -133,7 +133,6 @@ namespace Deployment
                    {
                        deploy_redist();
                        logger.Info("Stage deploy-redist: {0}", "deploy-redist");
-                       //MessageBox.Show("Deploy redist
                    }
                    stage_counter++;
                    logger.Info("Stage: {0}", stage_counter);
@@ -152,7 +151,6 @@ namespace Deployment
                    {
                        prepare_vbox();
                        logger.Info("Stage: {0}", "prepare-vbox");
-                       //MessageBox.Show("Prepare VBox");
                    }
                    stage_counter++;
                    logger.Info("Stage prepate-vbox: {0}", stage_counter);
@@ -170,7 +168,7 @@ namespace Deployment
                    if (_arguments["params"].Contains("prepare-rh"))
                    {
                        prepare_rh();
-                       logger.Info("Stage: {0}", "prepare-rh");
+                       //logger.Info("Stage: {0}", "prepare-rh");
                        //MessageBox.Show("Prepare RH");
                    }
                    stage_counter++;
@@ -190,7 +188,7 @@ namespace Deployment
                    {
                        deploy_p2p();
                        logger.Info("Stage: {0}", "deploy-p2p");
-                       //MessageBox.Show("Deploy P2P");
+                       
                    }
                    stage_counter++;
                    logger.Info("Stage deploy-p2p: {0}", stage_counter);
@@ -215,22 +213,7 @@ namespace Deployment
                    Program.form2.Invoke((MethodInvoker) delegate
                    {
                        logger.Info("form2.invoke");
-                       string st = "complete";
-                       switch (finished)
-                       {
-                           case 0:
-                               st = "failed";
-                               //clean();
-                               break;
-                           case 1:
-                               st = "complete";
-                               break;
-                           case 2:
-                               st = "cancelled";
-                               break;
-                       }
-                       InstallationFinished form2 = new InstallationFinished(st);
-                       Program.form2.Show();
+                       show_finished();
                    });
                }, TaskContinuationOptions.NotOnFaulted)
                .ContinueWith((prevTask) =>
@@ -284,7 +267,7 @@ namespace Deployment
 
         private void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
-            logger.Info("_prerequisitesDownloaded = {0}", _prerequisitesDownloaded.ToString());
+            //logger.Info("_prerequisitesDownloaded = {0}", _prerequisitesDownloaded.ToString());
             if (e != null)
             {
                 //logger.Info("AsyncCompletedEventArgs e is not null");
@@ -314,17 +297,19 @@ namespace Deployment
                         Environment.Exit(1);
                     }
                 }
-            } else //  no exception 
+            } else // e == null
             {
-                if (_prerequisitesDownloaded != 0 && sender == null) //file was not downloaded
-                    _prerequisitesDownloaded++;
+                //if (_prerequisitesDownloaded != 0 && sender == null) //file was not downloaded
+                //    _prerequisitesDownloaded++;
                 //logger.Info("Sender is: {0}", sender.ToString());
-                logger.Info("AsyncCompletedEventArgs e is null");
+                logger.Info("File not downloaded");
             }
-  
+
             var rows = File.ReadAllLines($"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}");
 
             var row = rows[_prerequisitesDownloaded];
+            //logger.Info("_prerequisitesDownloaded = {0}, row: {1}", _prerequisitesDownloaded, row);
+
             var folderFile = row.Split(new[] {"|"}, StringSplitOptions.None);
 
             var folder = folderFile[0].Trim();
@@ -338,6 +323,7 @@ namespace Deployment
 
             if (_prerequisitesDownloaded < rows.Length - 3) //.snap? (_prerequisitesDownloaded != rows.Length - 3) 
             {
+                _prerequisitesDownloaded++;
                 _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
                     destination: $"{_arguments["appDir"]}/{folder}/{file}",
@@ -346,7 +332,7 @@ namespace Deployment
                     async: true,
                     kurjun: true
                     );
-                _prerequisitesDownloaded++;
+                //_prerequisitesDownloaded++;
             }
             else //if (_prerequisitesDownloaded == rows.Length - 3) //snap
             {
@@ -365,7 +351,6 @@ namespace Deployment
                     folder = folderFile[0].Trim();
                     file = folderFile[1].Trim();
                 }
-                //MessageBox.Show("file:" + folder + "\\" + file + "destfile:" + destfile);
                  _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
                     destination: $"{_arguments["appDir"]}/{folder}/{file}",
@@ -402,7 +387,7 @@ namespace Deployment
                     Program.form1.Visible = false;
                 }
             }
-            logger.Info("md5 checked");
+            //logger.Info("md5 checked");
         }
         private void unzip_extracted()
         {
@@ -423,7 +408,6 @@ namespace Deployment
             StageReporter("", "TAP driver");
             if (_deploy.app_installed("TAP-Windows") == 0)
             {
-                
                 res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
                 logger.Info("TAP driver: {0}", res);
             } else
@@ -520,20 +504,22 @@ namespace Deployment
             // PREPARE RH
             StageReporter("Preparing resource host", "");
             logger.Info("Preparing resource host");
-
+            string ssh_res = "";
+            string res = "";
             Deploy.ShowMarquee();
 
             // clone VM
             StageReporter("", "Cloning VM");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {_cloneName} snappy");
-            logger.Info("vboxmanage clone vm --register --name {0} snappy ", _cloneName);
-            Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
-            logger.Info("vboxmanage unregistervm --delete snappy");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {_cloneName} snappy");
+            logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", _cloneName, res);
+            ssh_res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
+            logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
 
             StageReporter("", "Preparing NIC - NAT");
             logger.Info("Preparing NIC-NAT");
-            Deploy.LaunchCommandLineApp("vboxmanage",
+            res = Deploy.LaunchCommandLineApp("vboxmanage",
                 $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
+            logger.Info("nic 1 --nat: {0}", res);
             Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
 
             // set RAM
@@ -554,8 +540,8 @@ namespace Deployment
             {
                 vmRam = 8124;
             }
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --memory {vmRam}");
-            logger.Info("vboxmanage modifyvm {0} --memory {1}", _cloneName, vmRam);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --memory {vmRam}");
+            logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", _cloneName, vmRam, res);
 
             //number of cores
             StageReporter("", "Setting number of processors");
@@ -572,63 +558,84 @@ namespace Deployment
             }
 
             //textBox1.Text = "vmCores=" + vmCores.ToString();
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --cpus {vmCores}");
-            logger.Info("vboxmanage modifyvm {0} --cpus {1}", _cloneName, vmCores.ToString());
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --cpus {vmCores}");
+            logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", _cloneName, vmCores.ToString(), res);
             // time settings
             StageReporter("", "Setting timezone");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
-            logger.Info("vboxmanage modifyvm {0} --rtcuseutc", _cloneName);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
+            logger.Info("vboxmanage modifyvm {0} --rtcuseutc: {1}", _cloneName, res);
             Thread.Sleep(4000);
            
             //start VM
             StageReporter("", "Starting VM");
-            logger.Info("vboxmanage startvm --type headless {0} ", _cloneName);
-            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
-            logger.Info("VM {0} started", _cloneName);
-            // DEPLOY PEER
+            //res = Deploy.LaunchCommandLineApp("vboxmanage",
+            //    $"startvm --type headless {_cloneName} ");
+            //logger.Info("vboxmanage startvm --type headless {0}: {1}", _cloneName, res);
+
+            if (!VMs.start_vm(_cloneName))
+            {
+                VMs.stop_vm(_cloneName);
+                Thread.Sleep(10000);
+                if (!VMs.start_vm(_cloneName))
+                {
+                    Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
+                    Program.form1.Visible = false;
+                }
+            }
+
+            //res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName}");
+            //logger.Info("VM {0} starting res: {1}", _cloneName, res);
             StageReporter("Setting up peer", "");
             logger.Info("Setting up peer");
             // waiting SSH session
             StageReporter("", "Waiting for SSH ");
-            Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
             logger.Info("Waiting for SSH 1");
+            bool res_b = VMs.waiting_4ssh(_cloneName);
+            if (!res_b)
+            {
+                logger.Info("SSH 1 false");
+                Program.ShowError("Can not open ssh, please check VM state manually and report error", "Waiting for SSH");
+                Program.form1.Visible = false;
+            }
+            // DEPLOY PEER
+   
             // creating tmpfs folder
             StageReporter("", "Creating tmps folder");
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
-            logger.Info("Creating tmpfs folder");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
+            logger.Info("Creating tmpfs folder: {0}", ssh_res);
             // copying snap
             StageReporter("", "Copying Subutai SNAP");
-            logger.Info("Copying Subutai SNAP, prepare-server.sh");
+            
             Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
                 $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
                 }, "/home/ubuntu/tmpfs");
+            logger.Info("Copying Subutai SNAP, prepare-server.sh");
 
-            string ssh_res = "";
             // adopting prepare-server.sh
             StageReporter("", "Adapting installation scripts");
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
-            logger.Info("Adapting installation scripts");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
+            logger.Info("Adapting installation scripts: {0}", ssh_res);
             // running prepare-server.sh script
             StageReporter("", "Running installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Running installation scripts: {0}", ssh_res);
             // deploying peer options
-            Thread.Sleep(30000);
+            Thread.Sleep(20000);
             //logger.Info("Before sync");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
             //logger.Info("Before poweroff: {0}", ssh_res);
             Thread.Sleep(5000);
-
-            vm_reconfigure_nic();
-            StageReporter("", "Waiting for SSH");
-            bool res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
+            res_b = vm_reconfigure_nic();//stop and start machine
             logger.Info("Waiting for SSH - 2");
+            res_b = VMs.waiting_4ssh(_cloneName);
             if (!res_b)
             {
-                logger.Info("SSH false");
+                logger.Info("SSH 2 false");
+                Program.ShowError("Can not open ssh, please check VM state manually and report error", "Waiting for SSH");
+                Program.form1.Visible = false;
             }
-
+                     
             StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
             
@@ -636,9 +643,10 @@ namespace Deployment
             {
                 StageReporter("Preparing management host", "");
                 logger.Info("Preparing management host");
-                logger.Info("trial - installing management host");
+                
                 if (_arguments["peer"] == "trial")
                 {
+                    logger.Info("trial - installing management host");
                     if (_arguments["network-installation"].ToLower() != "true")
                     {
                         // setting iptables rules
@@ -649,58 +657,50 @@ namespace Deployment
 
                     if (_arguments["network-installation"].ToLower() == "true")
                     {
-                        // installing master template
+                        //installing master template
                         StageReporter("", "Importing master");
                         logger.Info("Importing master");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import master > master_log");
-                        logger.Info("Import master:", ssh_res);
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "bash ls -l master_log| wc -l");
-                        logger.Info("Import master log: ", ssh_res);
-                        //if (ssh_res != "")
-                        //{
-                        //    Program.ShowError("Master template was not installed, instllation failed, please uninstall and try to install later", "Master template was not imported");
-                        //}
+                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import master 2>&1 > master_log");
+                        logger.Info("Import master: {0}", ssh_res);
+                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l master_log| wc -l");
+                        logger.Info("Import master log: {0} ", ssh_res);
 
                         // installing management template
-                        logger.Info("Importing management");
                         StageReporter("", "Importing management");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import management  > management_log");
-                        logger.Info("Import management:", ssh_res);
+                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import management  2>&1 > management_log");
+                        logger.Info("Import management: {0}", ssh_res);
                         ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "bash ls -l management_log");
-                        logger.Info("Import management log:", ssh_res);
+                        logger.Info("Import management log: {0}", ssh_res);
                         ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash subutai management_network detect");
-                        logger.Info("Import management address:", ssh_res);
-                        //if (ssh_res != "")
-                        //{
-                        //    Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
-                        //}
+                        logger.Info("Import management address: {0}", ssh_res);
+
+                        if (Deploy.com_out(ssh_res, 0) != "0")
+                        {
+                            Program.ShowError("Management template was not installed, installation failed, please uninstall and try to install later", "Management template was not imported");
+                            Program.form1.Visible = false;
+                        }
                     }
                     else
                     {
-                        // installing master template
+                        //installing master template
                         StageReporter("", "Importing master");
                         logger.Info("Importing master");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import master  > master_log");
-                        logger.Info("Import master: ", ssh_res);
+                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
+                        logger.Info("Import master: {0}", ssh_res);
                         ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l master_log| wc -l");
-                        logger.Info("Import master log: ", ssh_res);
-                        //if (ssh_res != "")
-                        //{
-                        //    Program.ShowError("Master template was not installed, instllation failed, please uninstall and try to install later", "Master template was not imported");
-                        //}
-
+                        logger.Info("Import master log: {0}", ssh_res);
 
                         // installing management template
                         StageReporter("", "Importing management");
-                        logger.Info("Importing management");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import management  > management_log ");
+                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
                         logger.Info("Import management: {0}", ssh_res);
                         ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l management_log");
                         logger.Info("Import management log: {0}", ssh_res);
-                        //if (ssh_res != "")
-                        //{
-                        //    Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
-                        //}
+                        if (Deploy.com_out(ssh_res, 0) != "0")
+                        {
+                            Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
+                            Program.form1.Visible = false;
+                        }
                     }
 
                     if (_arguments["network-installation"].ToLower() != "true")
@@ -712,202 +712,54 @@ namespace Deployment
                     }
                 }
             }
-
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
          }
 
-        private string vm_vbox0_ifname()
-        {
-            int cnt = 0;
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface adapter in interfaces)
-            {
-                logger.Info("adapter: {0}", adapter.Name);
-                foreach (UnicastIPAddressInformation unicast_address_info in adapter.GetIPProperties().UnicastAddresses)
-                {
-                    //logger.Info("uucast address: {0}", unicast_address_info.Address.ToString());
-                    if ((unicast_address_info.Address.AddressFamily == AddressFamily.InterNetwork) &&
-                        (adapter.Description.ToString().Contains("Host-Only") ||
-                         adapter.Name.ToString().Contains("Host-Only")))
-                    {
-                        cnt++;
-                        logger.Info("vbox0 Name = {0}, cnt = {1}", adapter.Description.ToString(), cnt);
-                        if (unicast_address_info.Address.ToString() == "192.168.56.1")
-                        {
-                            return (adapter.Description.ToString());
-                        } 
-                    }
-                }
-            }
-            string netif_vbox0 = "VirtualBox Host-Only Ethernet Adapter";
-            if (cnt > 0)
-            {
-                cnt++;
-                netif_vbox0 += " #" + cnt.ToString();
-            }
-               
-            logger.Info("New host-only if name: {0}", netif_vbox0);
-            //Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"");
-            string res = Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif create ");
-            if (res.Contains("successfully created"))
-            {
-                int start = res.IndexOf("'") + 1;
-                int end = res.IndexOf("'", start);
-                netif_vbox0 = res.Substring(start, end - start);
-                logger.Info("/Host-Only interface created name: {0}/", netif_vbox0);
-            }
-            logger.Info("Host-Only interface created: {0}", res);
-            Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif ipconfig \"{netif_vbox0}\" --ip 192.168.56.1  --netmask 255.255.255.0");
-            Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
-            Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
-            return netif_vbox0;
-        }
-
-        private string vm_vbox0()
-        {
-            string netif_vbox0 = vm_vbox0_ifname();
-            logger.Info("Hostonly interface name: {0}", netif_vbox0);
-            //enable hostonly 
-            string res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"");
-            logger.Info("Enable hostonly. {0}", res);
-            return netif_vbox0;
-        }
-
-   
-        private void vm_reconfigure_nic()
+        private bool vm_reconfigure_nic()
         {
             //stop VM
+            string res = "";
             StageReporter("Stopping machine","");
-            logger.Info("Stopping machine");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"controlvm {_cloneName} poweroff soft");
-            //Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo shutdown -P now");
+            VMs.stop_vm(_cloneName);
             Thread.Sleep(5000);
-            StageReporter("Setting network interfaces", "");
-            StageReporter("", "Setting nic1 bridged");
-            //get default routing interface
-            string netif = gateway_if();
-            logger.Info("Gateway interface: {0}", netif);
-            if (netif == "No Gateway")
-            {
-                Program.ShowError("Can not find default gateway interface", "Network settings error");
-                Program.form1.Visible = false;
-            }
-            //Bridge eth0
-            string br_cmd = $"modifyvm {_cloneName} --nic1 bridged --bridgeadapter1 \"{netif}\"";
-            logger.Info("br_cmd: {0}", br_cmd);
-            Deploy.LaunchCommandLineApp("vboxmanage", br_cmd);
-            //string res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic1 bridged --bridgedadapter1 \"{netif}\"");
-            logger.Info("Enable bridged nic1. {0}", "eth0");
-  
-            //NAT (eth1) 
-            //NAT on nic2
-            StageReporter("", "Setting nic2 NAT");
-            Deploy.LaunchCommandLineApp("vboxmanage",
-               $"modifyvm {_cloneName} --nic2 nat --cableconnected2 on --natpf2 \"ssh-fwd,tcp,,4567,,22\" --natpf2 \"https-fwd,tcp,,9999,,8443\"");//
-            logger.Info("Enable NAT nic2. {0}", "eth1");
 
+            StageReporter("Setting network interfaces", "");
+            VMs.set_bridged(_cloneName);
+            //NAT on nic2
+            VMs.set_nat(_cloneName);
             //Hostonly eth2 on nic 3
             StageReporter("", "Setting nic3 hostonly");
-            string if_name = vm_vbox0();
-
+            string if_name = VMs.set_hostonly(_cloneName);
             // start VM
             StageReporter("", "Starting VM");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-            logger.Info("vm: {0}started", _cloneName);
-        }
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+            logger.Info("vm 1: {0} starting: {1}", _cloneName, Deploy.com_out(res, 0));
+            logger.Info("vm 1: {0} stdout: {1}", _cloneName, Deploy.com_out(res, 1));
+            
+            string err = Deploy.com_out(res, 2);
+            logger.Info("vm 1: {0} stdout: {1}", _cloneName, err);
 
-        private string gateway_if()
-        {
-            logger.Info("gateway_if");
-            var gateway_address = NetworkInterface.GetAllNetworkInterfaces()
-                .Where(e => e.OperationalStatus == OperationalStatus.Up 
-                )
-                .SelectMany(e => e.GetIPProperties().GatewayAddresses)
-                .FirstOrDefault();
-
-            var gateway_if_address = gw_from_netstat();
-            //IPAddress gateway_address = System.Net.IPAddress.Parse("192.168.0.1");
-            logger.Info("Gateway address: {0}", gateway_address.Address.ToString());
-            logger.Info("Gateway 1 address: {0}", gateway_if_address.ToString());
-            IPHostEntry host;
-            host = Dns.GetHostEntry(Dns.GetHostName());
-            NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
-
-            foreach (NetworkInterface adapter in interfaces)
+            if (err != null && err.Contains(" error:") && err.Contains(if_name))
             {
-                if (adapter.OperationalStatus.ToString() != "Up")
-                    continue;
-                foreach (UnicastIPAddressInformation unicast_address_info in adapter.GetIPProperties().UnicastAddresses)
+                StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
+                //Program.ShowError("Trying to turn off Host-Only adapter","VBox Host-Only adapter problem");
+                Thread.Sleep(10000);
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic3 none");
+                logger.Info("nic3 none: {0}", res);
+                StageReporter("", "Trying to turn off Host-Only adapter");
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
+                logger.Info("vm 2: {0} starting: {1}", _cloneName, res);
+                err = Deploy.com_out(res, 2);
+                if (err != null || err != "")
                 {
-                    if ((unicast_address_info.Address.AddressFamily == AddressFamily.InterNetwork) &&
-                        !(
-                            adapter.Description.ToString().Contains("Virtual") ||
-                            adapter.Description.ToString().Contains("Pseudo") ||
-                            adapter.Description.ToString().Contains("Software") ||
-                            adapter.Description.ToString().Contains("VMWare") ||
-                            adapter.Description.ToString().Contains("TAP") ||
-                            adapter.Name.ToString().Contains("VMWare") ||
-                            adapter.Name.ToString().Contains("Software") ||
-                            adapter.Name.ToString().Contains("TAP") ||
-                            adapter.Name.ToString().Contains("Virtual")
-                            )
-                        )
-
-                    {
-                        IPAddress mask = unicast_address_info.IPv4Mask;
-                        logger.Info("adapter checking: {0}", unicast_address_info.Address.ToString());
-
-                        //MessageBox.Show("ip=" + unicast_address_info.Address.ToString() + "gw=" + adapter.GetIPProperties().GatewayAddresses.FirstOrDefault().Address.ToString(), adapter.Name.ToString(), MessageBoxButtons.OK);
-                        //if (IsInSameSubnet(unicast_address_info.Address, gateway_address.Address, mask) &&
-                        //    adapter.GetIPProperties().GatewayAddresses.FirstOrDefault().Address.ToString() == gateway_address.Address.ToString())
-                        if (unicast_address_info.Address.ToString() == gateway_if_address.ToString())
-                        {
-                            //MessageBox.Show("return ip=" + unicast_address_info.Address.ToString(), adapter.Description.ToString(), MessageBoxButtons.OK);
-                            logger.Info("adapter found: {0}", adapter.Description.ToString());
-                            return adapter.Description.ToString();
-                        }
-                    }
-                  }
-               }
-            return "No Gateway";
-          }
-
-        private IPAddress GetNetworkAddress(IPAddress address, IPAddress subnetMask)
-        {
-            byte[] ipAdressBytes = address.GetAddressBytes();
-            byte[] subnetMaskBytes = subnetMask.GetAddressBytes();
-
-            if (ipAdressBytes.Length != subnetMaskBytes.Length)
-                throw new ArgumentException("Lengths of IP address and subnet mask do not match.");
-
-            byte[] broadcastAddress = new byte[ipAdressBytes.Length];
-            for (int i = 0; i < broadcastAddress.Length; i++)
-            {
-                broadcastAddress[i] = (byte)(ipAdressBytes[i] & (subnetMaskBytes[i]));
+                    return false;
+                    //Program.ShowError("Virtual machine can not start, try to start manually and report error", "Virtual machine can not start");
+                    //Program.form1.Visible = false;
+                }
             }
-            return new IPAddress(broadcastAddress);
+            return true;
         }
 
-        private bool IsInSameSubnet(IPAddress address2, IPAddress address1, IPAddress subnetMask)
-        {
-            IPAddress network1 = GetNetworkAddress(address1, subnetMask);
-            IPAddress network2 = GetNetworkAddress(address2, subnetMask);
-
-            return network1.Equals(network2);
-        }
-
-        private string gw_from_netstat()
-        {
-            string res = Deploy.LaunchCommandLineApp("cmd.exe"," /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0");
-            logger.Info("netstat = {0}", res);
-            while (res.Contains("  "))
-                res = res.Replace("  ", " ");
-            res = res.Replace(" 0.0.0.0 0.0.0.0 ", "");
-            res = res.Remove(0, res.IndexOf(':') + 1);
-            logger.Info("removed  = {0}", res);
-            string[] splitted = res.Split(' ');
-            return splitted[1];//to do splitted[1]
-        }
         private void deploy_p2p()
         {
             // DEPLOYING P2P SERVICE
@@ -923,11 +775,6 @@ namespace Deployment
             StageReporter("", "Installing P2P service");
             res = Deploy.LaunchCommandLineApp("nssm", $"install \"{name}\" \"{binPath}\" \"{binArgument}\"");
             logger.Info("Installing P2P service: {0}", res);
-
-            //configuring service
-            //StageReporter("", "Configuring P2P service");
-            //res = Deploy.LaunchCommandLineApp("sc", $"failure \"{name}\" actions=restart/10000/restart/15000/restart/18000 reset=86400");
-            //logger.Info("Configuring P2P service {0}", $"failure \"{name}\" actions=restart/10000/restart/15000/restart/18000 reset=86400: {0}", res);
 
             // starting service
             StageReporter("", "Starting P2P service");
@@ -954,7 +801,6 @@ namespace Deployment
             String pth = $"{_arguments["appDir"]}/{_arguments["repo_tgt"]}";
             var rows = File.ReadAllLines(pth);
             logger.Info("Read rows = {0}", rows.ToString());
-            //MessageBox.Show(pth + ": " + rows.ToString(), "rows", MessageBoxButtons.OK);
             foreach (var row in rows)
             {
                 var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
@@ -962,10 +808,9 @@ namespace Deployment
                 var filename = folderFile[1].Trim();
                 String fullFolderPath = $"{_arguments["appDir"]}/{folderpath.ToString()}";
                 String fullFileName = $"{_arguments["appDir"]}/{folderpath.ToString()}/{filename.ToString()}";
-                //StageReporter("", folderpath.ToString() + "/" + filename.ToString());
+                StageReporter("", folderpath.ToString() + "/" + filename.ToString());
                 logger.Info("Checking file {0}/{1}", fullFolderPath, filename);
-                MessageBox.Show(folderpath.ToString() + "/" + filename.ToString(), "file-folder", MessageBoxButtons.OK);
-
+ 
                 if (!Directory.Exists(fullFolderPath))
                 {
                     Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFolder" +  fullFolderPath + "does not exist. \nUninstall Subutai from Control Panel, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
@@ -998,12 +843,6 @@ namespace Deployment
 
                 download_repo();
             }
-
-            //check_files();
-            //gateway_if();
-
-            //_deploy.app_installed("TAP-Windows");
-
         }
 
         private void timer1_Tick(object sender, EventArgs e)

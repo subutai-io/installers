@@ -102,7 +102,8 @@ namespace Deployment
                 if (info == null)
                 {
                     Program.ShowError("File does not exist", "File error");
-                    Environment.Exit(1);
+                    Program.form1.Visible = false;
+                    //Environment.Exit(1);
                 }
                 url = url + RestFileURL + info.id;
                 md5 = info.id.Replace("raw.", "");
@@ -139,12 +140,20 @@ namespace Deployment
                 {
                     shouldWeDownload = true;
                 }
-            }
-            else
-            {
-                shouldWeDownload = true;
+                else
+                {
+                    shouldWeDownload = false;
+                }
             }
 
+            if (destination.Contains("chrome") && app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
+            {
+                shouldWeDownload = false;
+            }
+            if (destination.Contains("virtualbox") && app_installed("Oracle\\VirtualBox") == 1)
+            {
+                shouldWeDownload = false;
+            }
             logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
 
             if (shouldWeDownload)
@@ -156,8 +165,7 @@ namespace Deployment
                     logger.Info("Directory created: {0}", destination);
                 }
 
-                Program.form1.StageReporter("", report);
-
+                Form1.StageReporter("", report);
                 var webClient = new WebClient();
 
                 if (onComplete != null)
@@ -168,9 +176,16 @@ namespace Deployment
                 try
                 {
                     if (async)
+                    {
+
                         webClient.DownloadFileAsync(new Uri(url), destination);
+                        
+                    }
                     else
+                    {
                         webClient.DownloadFile(new Uri(url), destination);
+
+                    }
                     logger.Info("Download {0}", destination);
                 }
                 catch (Exception ex)
@@ -183,6 +198,7 @@ namespace Deployment
             else
             {
                 onComplete?.Invoke(null, null);
+                //onComplete?.Invoke(null, AsyncCompletedEventArgs.Empty);
             }
         }
 
@@ -360,7 +376,7 @@ namespace Deployment
                     output = exeProcess.StandardOutput.ReadToEnd();
                     err  = exeProcess.StandardError.ReadToEnd();
                     exeProcess?.WaitForExit();
-                    return ("executing " + filename +  " \nstdout: " + output + " \nstderr: " + err);
+                    return ("executing " + filename +  "|" + output + "|" + err);
                 }
             }
             catch (Exception)
@@ -382,7 +398,11 @@ namespace Deployment
                 SshCommand scmd = client.RunCommand(command);
                 int exitstatus = scmd.ExitStatus;
                 string sresult = scmd.Result;
+                if (sresult == null || sresult == "")
+                    sresult = "Empty";
                 string serror = scmd.Error;
+                if (serror == null || serror == "")
+                    serror = "Empty";
                 //Stream soutput = scmd.ExtendedOutputStream;
                 client.Disconnect();
                 client.Dispose();
@@ -406,8 +426,14 @@ namespace Deployment
                 //Stream soutput = scmd.ExtendedOutputStream;
                 client.Disconnect();
                 client.Dispose();
-                return "Status:" + exitstatus.ToString() + "|Result:" + sresult + "|Error:" + serror;
+                return exitstatus.ToString() + "|" + sresult + "|" + serror;
             }
+        }
+
+        public static string com_out(string outstr, int ind)
+        {
+            string[] sa = outstr.Split('|');
+            return sa[ind];
         }
 
         public static void SendFileSftp(string hostname, int port, string username, string password, List<string> localFilesPath, string remotePath)
@@ -446,11 +472,12 @@ namespace Deployment
                     }
                     catch(Exception)
                     {
+                        cnt++;
+                        if (cnt > 300)
+                        return false;
                         Thread.Sleep(2000);
                     }
-                    cnt++;
-                    if (cnt > 300)
-                        return false;
+                   
                 }
                 client.Disconnect();
                 return true;
@@ -529,19 +556,19 @@ namespace Deployment
 
         public int app_installed(string appName)
         {
-            logger.Info("app _installed");
+            //logger.Info("app _installed");
             string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
-            logger.Info("subkey: {0}",  subkey);
+            //logger.Info("subkey: {0}",  subkey);
             string subkey86 = Path.Combine("SOFTWARE\\", appName);
-            logger.Info("subkey86: {0}", subkey86);
+            //logger.Info("subkey86: {0}", subkey86);
             RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
             RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
             if (rk == null && rk86 == null)
             {
-                logger.Info("app_istalled returns 0");
+                //logger.Info("app_istalled returns 0");
                 return 0;
             }
-            logger.Info("app_istalled returns 1");
+            //logger.Info("app_istalled returns 1");
             return 1;
             //var appPath = rk.GetValue("InstallDir");
 
