@@ -89,11 +89,11 @@
             // 
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("Tahoma", 11F);
-            this.label4.Location = new System.Drawing.Point(156, 122);
+            this.label4.Location = new System.Drawing.Point(146, 115);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(298, 23);
+            this.label4.Size = new System.Drawing.Size(185, 23);
             this.label4.TabIndex = 6;
-            this.label4.Text = "Please uninstall and try again later";
+            this.label4.Text = "Please try again later";
             this.label4.Visible = false;
             // 
             // InstallationFinished

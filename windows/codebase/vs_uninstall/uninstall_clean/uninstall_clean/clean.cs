@@ -59,10 +59,11 @@ namespace uninstall_clean
         {
             string mess = stop_process("p2p");
             //logger.Info("Stopping p2p process: {0}", mess);
+            mess = "";
             mess = stop_service("Subutai Social P2P", 5000);
-
+            mess = "";
             mess = remove_service("Subutai Social P2P");
-
+            mess = "";
             //logger.Info("Removing p2p service: {0}", mess);
             //MessageBox.Show(mess + " Service was not running.", "Stopping P2P service", MessageBoxButtons.OK);
 
@@ -71,33 +72,41 @@ namespace uninstall_clean
             mess = stop_process("SubutaiTray");
             //logger.Info("Stopping SubutaiTray process: {0}", mess);
             //MessageBox.Show(mess + " Application was not running.", "Stopping SubutaiTray", MessageBoxButtons.OK);
-
+            mess = "";
+            delete_from_reg();
+            delete_Shortcuts("Subutai");
+            remove_vm();
+ 
             var SubutaiDir = Environment.GetEnvironmentVariable("Subutai");
             //logger.Info("Subutai directory: {0}", SubutaiDir);
             //var SubutaiDir = "c:\\4delete";
-            //MessageBox.Show("Subutai Social P2P service stopped. Deleting " + SubutaiDir.ToString() + " folder", "Deleting Subutai folder", MessageBoxButtons.OK);
             if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
             {
-                mess = delete_dir(SubutaiDir);
+                DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai Virtual Machines",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question,
+                                MessageBoxDefaultButton.Button1);
+                mess = "";
+                if (drs == DialogResult.Yes)
+                {
+                    mess = delete_dir(SubutaiDir);
+                }
                 //logger.Info("Deleting Subutai directory: {0}", mess);
                 if (mess.Contains("Can not"))
                 {
-                    MessageBox.Show($"Folder {SubutaiDir} can not be removed. Please delete it manually", 
-                        "Attention", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                   
+                    MessageBox.Show($"Folder {SubutaiDir} can not be removed. Please delete it manually",
+                        "Removing Subutai folder", MessageBoxButtons.OK);
                 }
             }
-            //Environment.SetEnvironmentVariable("Subutai", null);
-            delete_from_reg();
-            Environment.SetEnvironmentVariable("Subutai", "");
-        
-            delete_Shortcuts("Subutai");
-            remove_vm();
             remove_env();
+            //Environment.SetEnvironmentVariable("Subutai", null);
+            Environment.SetEnvironmentVariable("Subutai", "");
             progressBar1.Visible = false;
-            MessageBox.Show("Subutai Social uninstalled, please wait", "Information", MessageBoxButtons.OK);
-            label2.Visible = true;
-            label2.Text = " Please, close this window";
+            LaunchCommandLineApp("regedit.exe", "/s c:\\temp\\subutai-clean-registry.reg");
+            MessageBox.Show("Subutai Social uninstalled", "Information", MessageBoxButtons.OK);
+            
+            //label2.Visible = true;
+            //label2.Text = " Please, close this window";
             //logger.Info("Uninstalled");
             Environment.Exit(0);
         }
@@ -177,7 +186,8 @@ namespace uninstall_clean
                 //timer1.Interval = 1000;
                 //progressBar1.Maximum = 10;
                 label1.Text = "Deleting " + dirName + " folder";
-                Directory.Delete(dirName, true);
+                if (Directory.Exists(dirName))
+                    Directory.Delete(dirName, true);
                 //timer1.Stop();
                 //timer1.Enabled = false;
                 //deleteDirectory(dirName, true);

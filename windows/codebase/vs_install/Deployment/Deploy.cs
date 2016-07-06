@@ -55,10 +55,10 @@ namespace Deployment
             if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("Subutai"))
             {
                 Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{_arguments["appDir"]}\\bin"
+                $"{Environment.GetEnvironmentVariable("PATH")};{_arguments["appDir"]}bin"
                 );
             }
-            logger.Info("Path changed: ", $"{Environment.GetEnvironmentVariable("PATH")}");
+            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("PATH"));
          }
 
         class DownloadFileByWebClientArg
@@ -94,7 +94,6 @@ namespace Deployment
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)
         {
             var md5 = "";
-
             if (kurjun)
             {
                 var filename = Path.GetFileName(destination);
@@ -103,7 +102,6 @@ namespace Deployment
                 {
                     Program.ShowError("File does not exist", "File error");
                     Program.form1.Visible = false;
-                    //Environment.Exit(1);
                 }
                 url = url + RestFileURL + info.id;
                 md5 = info.id.Replace("raw.", "");
@@ -113,7 +111,7 @@ namespace Deployment
                     Program.form1.PrerequisiteFilesInfo.Add(destination, info);
                     //logger.Info("Adding {0} into PrerequisiteFilesInfo", destination);
                 }
-                logger.Info("Getting file {0} from kurjun, md5sum:{1}.", destination, md5);
+                logger.Info("Getting file {0} from kurjun, md5sum:{1}", destination, md5);
             }
 
             var shouldWeDownload = true;//will download in any case now
@@ -154,7 +152,7 @@ namespace Deployment
             {
                 shouldWeDownload = false;
             }
-            logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
+            //logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
 
             if (shouldWeDownload)
             {
@@ -177,16 +175,13 @@ namespace Deployment
                 {
                     if (async)
                     {
-
                         webClient.DownloadFileAsync(new Uri(url), destination);
-                        
                     }
                     else
                     {
                         webClient.DownloadFile(new Uri(url), destination);
-
                     }
-                    logger.Info("Download {0}", destination);
+                    //logger.Info("Download {0}", destination);
                 }
                 catch (Exception ex)
                 {
@@ -343,6 +338,7 @@ namespace Deployment
             {
                 logger.Error(ex, "{0} info error", filename);
                 Program.ShowError("File does not exist: " + filename, "File error");
+
                 return null;
             }
         }
@@ -353,7 +349,7 @@ namespace Deployment
         public static string LaunchCommandLineApp(string filename, string arguments)
         {
             // Use ProcessStartInfo class
-            var startInfo = new ProcessStartInfo
+           var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
                 UseShellExecute = false,
@@ -363,10 +359,9 @@ namespace Deployment
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
-
             string output;
-            string err; 
-
+            string err;
+            logger.Info("trying to exe {0} {1}", filename, arguments);
             try
             {
                 // Start the process with the info we specified.
@@ -379,12 +374,13 @@ namespace Deployment
                     return ("executing " + filename +  "|" + output + "|" + err);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Thread.Sleep(2000);
+                logger.Error(ex.Message, "can not run process");
+                Thread.Sleep(5000);
                 LaunchCommandLineApp(filename, arguments);
             }
-            return (filename + " was not executed");
+            return (filename + " was not executed");//never
         }
         #endregion
 
@@ -537,6 +533,8 @@ namespace Deployment
         {
             using (var md5 = MD5.Create())
             {
+                if (!File.Exists(filepath))
+                    return "-1";
                 using (var stream = File.OpenRead(filepath))
                 {
                     var bytes = md5.ComputeHash(stream);
@@ -545,7 +543,7 @@ namespace Deployment
 
                     foreach (var t in bytes)
                         result.Append(t.ToString(upperCase ? "X2" : "x2"));
-                    logger.Info("Calculated md5sum:{0}.", result.ToString());
+                    //logger.Info("Calculated md5sum:{0}", result.ToString());
                     return result.ToString();
                 }
          }

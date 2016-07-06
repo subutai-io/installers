@@ -30,23 +30,25 @@ namespace Deployment
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private static int stage_counter = 0;
-        private static int finished = 0;
+        public  int finished = 0;
 
         private void ParseArguments()
         {
             foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
             {
                 _arguments[splitted[0]] = splitted[1];
-                logger.Info("Parsing arguments:  {0} =  {1}.", splitted[0], splitted[1] );
+                logger.Info("Parsing arguments:  {0} =  {1}", splitted[0], splitted[1] );
             }
         }
 
         public Form1()
         {
+            logger.Info("version = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}-002");
+            //MessageBox.Show("Form before Initialize", "Form Events Order", MessageBoxButtons.OK);
             InitializeComponent();
+            //MessageBox.Show("Form after Initialize", "Form Events Order", MessageBoxButtons.OK);
             ParseArguments();
             _deploy = new Deploy(_arguments);
-
             timer1.Start();
         }
         public static void StageReporter(string stageName, string subStageName)
@@ -88,6 +90,7 @@ namespace Deployment
                {
                    Exception ne = (Exception)e.Error;
                    logger.Error(ne.Message, "checkmd5");
+                   finished = 3;
                    Program.ShowError(ne.Message, "checkmd5");
                }, TaskContinuationOptions.OnlyOnFaulted)
 
@@ -96,113 +99,118 @@ namespace Deployment
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
                        unzip_extracted();
-                       logger.Info("Stage unzip: {0} {1}", _arguments["network-installation"].ToLower(), "unzip-extracted");
-
-                       //MessageBox.Show("Unzip extracted");
-                   }
-                   stage_counter++;
-                   logger.Info("Stage: {0}", stage_counter);
-               })
-
-//////////////////////
-               .ContinueWith((prevTask) =>
-               {
-                   Exception ne = (Exception)e.Error;
-                   logger.Error(ne.Message, "unzipping");
-                   Program.ShowError(ne.Message, "unzipping");
-               }, TaskContinuationOptions.OnlyOnFaulted)
-
-               .ContinueWith((prevTask) =>
-               {
-                   check_files();
-                   stage_counter++;
-                   logger.Info("Stage check_files: {0}", stage_counter);
-               }, TaskContinuationOptions.OnlyOnRanToCompletion)
-
-///////////////////////
-               .ContinueWith((prevTask) =>
-               {
-                   Exception ne = (Exception)e.Error;
-                   logger.Error(ne.Message, "check files");
-                   Program.ShowError(ne.Message, "check files");
-               }, TaskContinuationOptions.OnlyOnFaulted)
-
-               .ContinueWith((prevTask) =>
-               {
-                   if (_arguments["params"].Contains("deploy-redist"))
-                   {
-                       deploy_redist();
-                       logger.Info("Stage deploy-redist: {0}", "deploy-redist");
+                       logger.Info("Stage unzip: {0}", "unzip-extracted");
                    }
                    stage_counter++;
                    logger.Info("Stage: {0}", stage_counter);
                }, TaskContinuationOptions.NotOnFaulted)
 
-                .ContinueWith((prevTask) =>
-                {
-                    Exception ne = (Exception)e.Error;
-                    logger.Error(ne.Message, "deploy-redist");
-                    Program.ShowError(ne.Message, "deploy-redist");
-                }, TaskContinuationOptions.OnlyOnFaulted)
+                              //
+                              .ContinueWith((prevTask) =>
+                              {
+                                  Exception ne = (Exception)e.Error;
+                                  logger.Error(ne.Message, "unzipping");
+                                  //finished = 3;
+                                  Program.ShowError(ne.Message, "unzipping");
+                              }, TaskContinuationOptions.OnlyOnFaulted)
 
+                              //               .ContinueWith((prevTask) =>
+                              //               {
+                              //                   check_files();
+                              //                   stage_counter++;
+                              //                   logger.Info("Stage check_files: {0}", stage_counter);
+                              //               }, TaskContinuationOptions.NotOnFaulted)
+
+                              /////////////////////////
+                              //               .ContinueWith((prevTask) =>
+                              //               {
+                              //                   Exception ne = (Exception)e.Error;
+                              //                   logger.Error(ne.Message, "check files");
+                              //                   finished = 3;
+                              //                   Program.ShowError(ne.Message, "check files");
+                              //               }, TaskContinuationOptions.OnlyOnFaulted)
+
+                              .ContinueWith((prevTask) =>
+                              {
+                                  if (_arguments["params"].Contains("deploy-redist"))
+                                  {
+                                      deploy_redist();
+                                      logger.Info("Stage deploy-redist: {0}", "deploy-redist");
+                                  }
+                                  stage_counter++;
+                                  logger.Info("Stage: {0}", stage_counter);
+                              }, TaskContinuationOptions.NotOnFaulted)
+
+                               .ContinueWith((prevTask) =>
+                               {
+                                   Exception ne = (Exception)e.Error;
+                                   logger.Error(ne.Message, "deploy-redist");
+                                   //finished = 3;
+                                   Program.ShowError(ne.Message, "deploy-redist");
+                               }, TaskContinuationOptions.OnlyOnFaulted)
+
+                              .ContinueWith((prevTask) =>
+                              {
+                                  if (_arguments["params"].Contains("prepare-vbox"))
+                                  {
+                                      prepare_vbox();
+                                      logger.Info("Stage: {0}", "prepare-vbox");
+                                  }
+                                  stage_counter++;
+                                  logger.Info("Stage prepate-vbox: {0}", stage_counter);
+                              }, TaskContinuationOptions.NotOnFaulted)
+
+                               .ContinueWith((prevTask) =>
+                               {
+                                   Exception ne = (Exception)e.Error;
+                                   logger.Error(ne.Message, "prepare-vbox");
+                                   //finished = 3;
+                                   Program.ShowError(ne.Message, "prepare-vbox");
+                               }, TaskContinuationOptions.OnlyOnFaulted)
+
+                              .ContinueWith((prevTask) =>
+                              {
+                                  if (_arguments["params"].Contains("prepare-rh"))
+                                  {
+                                      prepare_rh();
+                                      //logger.Info("Stage: {0}", "prepare-rh");
+                                  }
+                                  stage_counter++;
+                                  logger.Info("Stage prepare-rh: {0}", stage_counter);
+                              }, TaskContinuationOptions.NotOnFaulted)
+
+                               .ContinueWith((prevTask) =>
+                               {
+                                   Exception ne = (Exception)e.Error;
+                                   logger.Error(ne.Message, "prepare-rh");
+                                   //finished = 3;
+                                   Program.ShowError(ne.Message, "prepare-rh");
+                               }, TaskContinuationOptions.OnlyOnFaulted)
+
+                              .ContinueWith((prevTask) =>
+                              {
+                                  if (_arguments["params"].Contains("deploy-p2p"))
+                                  {
+                                      deploy_p2p();
+                                      logger.Info("Stage: {0}", "deploy-p2p");
+                                  }
+
+                                  stage_counter++;
+                                  logger.Info("Stage deploy-p2p: {0}", stage_counter);
+                              }, TaskContinuationOptions.NotOnFaulted)
+
+                               .ContinueWith((prevTask) =>
+                               {
+                                   Exception ne = (Exception)e.Error;
+                                   logger.Error(ne.Message, "deploy-p2p");
+                                   //finished = 3;
+                                   Program.ShowError(ne.Message, "deploy-p2p");
+                               }, TaskContinuationOptions.OnlyOnFaulted)
+//
                .ContinueWith((prevTask) =>
                {
-                   if (_arguments["params"].Contains("prepare-vbox"))
-                   {
-                       prepare_vbox();
-                       logger.Info("Stage: {0}", "prepare-vbox");
-                   }
-                   stage_counter++;
-                   logger.Info("Stage prepate-vbox: {0}", stage_counter);
-               }, TaskContinuationOptions.NotOnFaulted)
-
-                .ContinueWith((prevTask) =>
-                {
-                    Exception ne = (Exception)e.Error;
-                    logger.Error(ne.Message, "prepare-vbox");
-                    Program.ShowError(ne.Message, "prepare-vbox");
-                }, TaskContinuationOptions.OnlyOnFaulted)
-
-               .ContinueWith((prevTask) =>
-               {
-                   if (_arguments["params"].Contains("prepare-rh"))
-                   {
-                       prepare_rh();
-                       //logger.Info("Stage: {0}", "prepare-rh");
-                       //MessageBox.Show("Prepare RH");
-                   }
-                   stage_counter++;
-                   logger.Info("Stage prepare-rh: {0}", stage_counter);
-               }, TaskContinuationOptions.NotOnFaulted)
-
-                .ContinueWith((prevTask) =>
-                {
-                    Exception ne = (Exception)e.Error;
-                    logger.Error(ne.Message, "prepare-rh");
-                    Program.ShowError(ne.Message, "prepare-rh");
-                }, TaskContinuationOptions.OnlyOnFaulted)
-
-               .ContinueWith((prevTask) =>
-               {
-                   if (_arguments["params"].Contains("deploy-p2p"))
-                   {
-                       deploy_p2p();
-                       logger.Info("Stage: {0}", "deploy-p2p");
-                       
-                   }
-                   stage_counter++;
-                   logger.Info("Stage deploy-p2p: {0}", stage_counter);
-               }, TaskContinuationOptions.NotOnFaulted)
-
-                .ContinueWith((prevTask) =>
-                {
-                    Exception ne = (Exception)e.Error;
-                    logger.Error(ne.Message, "deploy-p2p");
-                    Program.ShowError(ne.Message, "deploy-p2p");
-                }, TaskContinuationOptions.OnlyOnFaulted)
-
-               .ContinueWith((prevTask) =>
-               {
+                   stage_counter = 1;
+                   finished = 1;
                    logger.Info("stage_counter = {0}", stage_counter);
                    Program.form1.Invoke((MethodInvoker) delegate
                    {
@@ -210,16 +218,19 @@ namespace Deployment
                        Program.form1.Visible = false;
                    });
 
-                   Program.form2.Invoke((MethodInvoker) delegate
+                   Program.form2.Invoke((MethodInvoker)delegate
                    {
-                       logger.Info("form2.invoke");
-                       show_finished();
-                   });
+                      //logger.Info("show finished = {0}", finished);
+                      InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
+                      form2.Show();
+                      //show_finished();
+                    });
                }, TaskContinuationOptions.NotOnFaulted)
                .ContinueWith((prevTask) =>
                {
-                   if (finished == 1)
-                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}/bin/tray/SubutaiTray.exe", "");
+                   logger.Info("finished = {0}", finished);
+                   if (finished == 1 || finished == 11)
+                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "");
                });
         }
         #endregion
@@ -233,7 +244,7 @@ namespace Deployment
             Deploy.HideMarquee();
             logger.Info("Downloading repo_descriptor");
             download_description_file("repo_descriptor");
-            download_file("c:/temp/subutai-clean-registry.reg");
+            download_file("c:\\temp\\subutai-clean-registry.reg");
             
         }
 
@@ -242,23 +253,22 @@ namespace Deployment
             StageReporter("", "Getting description file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"], 
-                destination: $"{_arguments["appDir"]}/{_arguments[arg_name]}", 
+                destination: $"{_arguments["appDir"]}{_arguments[arg_name]}", 
                 onComplete: download_prerequisites, 
                 report: "Getting repo descriptor",
                 async: true, //true
                 kurjun: true);
-            
         }
 
         private void download_file(String file_name)
         {
-            StageReporter("", "Getting description file");
-            logger.Info("Getting description file");
+            StageReporter("", "Getting file");
+            logger.Info("Getting  file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"],
                 destination: $"{file_name}",
                 onComplete: null,
-                report: "Getting target descriptor",
+                report: "Getting file subutai-clean-registry.reg",
                 async: true,
                 kurjun: true);
         }
@@ -274,8 +284,8 @@ namespace Deployment
                 if (e.Cancelled)
                 {
                     logger.Error("File download cancelled");
+                    //Program.form1.Close();
                     Program.form1.Visible = false;
-                    Environment.Exit(1);
                 }
 
                 if (e.Error != null && _prerequisitesDownloaded > 0)
@@ -283,19 +293,22 @@ namespace Deployment
                     if (e.Error is WebException)
                     {
                         WebException we = (WebException)e.Error;
-                        logger.Error(we.Message);
-                        Program.ShowError(we.Message, "File Download error, please uninstall partially installed Subutai Social");
+                        logger.Error(we.Message, "File download error");
+                        //finished = 3;
+                        Program.ShowError("File Download error, please uninstall partially installed Subutai Social", 
+                            we.Message);
+                        //Program.form1.Close();
                         Program.form1.Visible = false;
-                        Environment.Exit(1);
                     }
                     else
                     {
                         Exception ne = (Exception)e.Error;
                         logger.Error(ne.Message);
-                        Program.ShowError(ne.Message, "Download error, please uninstall partially installed Subutai Social");
+                        //finished = 3;
+                        Program.ShowError("Download error, please uninstall partially installed Subutai Social", 
+                            ne.Message);
                         Program.form1.Visible = false;
-                        Environment.Exit(1);
-                    }
+                     }
                 }
             } else // e == null
             {
@@ -304,8 +317,11 @@ namespace Deployment
                 //logger.Info("Sender is: {0}", sender.ToString());
                 logger.Info("File not downloaded");
             }
-
-            var rows = File.ReadAllLines($"{_arguments["appDir"]}/{_arguments["repo_descriptor"]}");
+            if (!File.Exists($"{_arguments["appDir"]}{_arguments["repo_descriptor"]}"))
+            {
+                Environment.Exit(1);
+            }
+            var rows = File.ReadAllLines($"{_arguments["appDir"]}{_arguments["repo_descriptor"]}");
 
             var row = rows[_prerequisitesDownloaded];
             //logger.Info("_prerequisitesDownloaded = {0}, row: {1}", _prerequisitesDownloaded, row);
@@ -319,14 +335,14 @@ namespace Deployment
                 file = file.Replace("tray.", "tray-dev.");
             }
                                    
-            logger.Info("Downloading prerequisites: {0}.", $"{_arguments["appDir"]}/{folder}/{file}");
+            logger.Info("Downloading prerequisites: {0}.", $"{_arguments["appDir"]}{folder}/{file}");
 
             if (_prerequisitesDownloaded < rows.Length - 3) //.snap? (_prerequisitesDownloaded != rows.Length - 3) 
             {
                 _prerequisitesDownloaded++;
                 _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}/{folder}/{file}",
+                    destination: $"{_arguments["appDir"]}{folder}/{file}",
                     onComplete: download_prerequisites,
                     report: $"Getting {file}",
                     async: true,
@@ -353,7 +369,7 @@ namespace Deployment
                 }
                  _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}/{folder}/{file}",
+                    destination: $"{_arguments["appDir"]}{folder}/{file}",
                     onComplete: TaskFactory,
                     report: $"Getting {file}",
                     async: true,
@@ -364,27 +380,31 @@ namespace Deployment
 
         private void check_md5()
         {
-            //UNZIP REPO
+            //verify downloaded 
             StageReporter("Verifying MD5", "");
-
             Deploy.HideMarquee();
-            logger.Info("PrerequisiteFilesInfo: {0}", PrerequisiteFilesInfo.Count);
+            //logger.Info("PrerequisiteFilesInfo: {0}", PrerequisiteFilesInfo.Count);
             foreach (var info in PrerequisiteFilesInfo)
             {
                 var filepath = info.Key;
                 var filename = Path.GetFileName(info.Key);
+                //logger.Info("Checking md5: {0}", filepath);
+                StageReporter("", $"Checking {filepath}");
                 var kurjunFileInfo = info.Value;
                 var calculatedMd5 = Deploy.Calc_md5(filepath, upperCase: false);
-                logger.Info("Checking md5: {0}//{1}", filepath, filename);
-                StageReporter("", "Checking " + filename);
-               
+                if (calculatedMd5 == "-1")
+                {
+                    logger.Info("File {0} does not exist: {1}", filepath, calculatedMd5);
+                    continue;
+                }
+                
                 //if (calculatedMd5 != kurjunFileInfo.id.Split(new [] {"."}, StringSplitOptions.None)[1])
                 if (calculatedMd5 != kurjunFileInfo.id.Replace("raw.", ""))
                 {
-                    logger.Error("Verification of MD5 checksums for {0} failed. Interrupting installation.", filename);
-                    Program.ShowError(
-                        $"Verification of MD5 checksums for {filename} failed. Interrupting installation.", "MD5 checksums mismatch");
-                    Program.form1.Visible = false;
+                    logger.Error("Verification of MD5 checksums for {0} failed: calc = {1}", filepath, calculatedMd5);
+                    //Program.ShowError(
+                    //    $"Verification of MD5 checksums for {filename} failed. Interrupting installation", "MD5 checksums mismatch");
+                    //Program.form1.Visible = false;
                 }
             }
             //logger.Info("md5 checked");
@@ -487,10 +507,12 @@ namespace Deployment
         {
             // PREPARE VBOX
             StageReporter("Preparing Virtual Box", "");
+            StageReporter("", "Configuring network");
             logger.Info("Preparing Virtual Box");
             Deploy.ShowMarquee();
+            logger.Info("Marqee");
             // prepare NAT network
-            Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
+            Deploy.LaunchCommandLineApp("VboxManage.exe", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
             logger.Info("vboxmanage natnetwork add --netname natnet1 --network '10.0.5.0/24 --enable --dhcp on");
 
             // import OVAs
@@ -578,6 +600,8 @@ namespace Deployment
                 Thread.Sleep(10000);
                 if (!VMs.start_vm(_cloneName))
                 {
+                    logger.Error("Can not start VM, please try to start manualy", "Waiting for SSH");
+                    finished = 3;
                     Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
                     Program.form1.Visible = false;
                 }
@@ -593,7 +617,8 @@ namespace Deployment
             bool res_b = VMs.waiting_4ssh(_cloneName);
             if (!res_b)
             {
-                logger.Info("SSH 1 false");
+                logger.Error("SSH 1 false","Can not open ssh, please check VM state manually and report error");
+                finished = 3;
                 Program.ShowError("Can not open ssh, please check VM state manually and report error", "Waiting for SSH");
                 Program.form1.Visible = false;
             }
@@ -631,8 +656,8 @@ namespace Deployment
             res_b = VMs.waiting_4ssh(_cloneName);
             if (!res_b)
             {
-                logger.Info("SSH 2 false");
-                Program.ShowError("Can not open ssh, please check VM state manually and report error", "Waiting for SSH");
+                logger.Info("SSH 2 false", "Can not open ssh, please check VM state manually and report error");
+                finished = 3;
                 Program.form1.Visible = false;
             }
                      
@@ -660,23 +685,32 @@ namespace Deployment
                         //installing master template
                         StageReporter("", "Importing master");
                         logger.Info("Importing master");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import master 2>&1 > master_log");
-                        logger.Info("Import master: {0}", ssh_res);
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l master_log| wc -l");
-                        logger.Info("Import master log: {0} ", ssh_res);
+                        VMs.import_templ("master");
 
                         // installing management template
                         StageReporter("", "Importing management");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo subutai -d import management  2>&1 > management_log");
-                        logger.Info("Import management: {0}", ssh_res);
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "bash ls -l management_log");
-                        logger.Info("Import management log: {0}", ssh_res);
+                        bool b_res = VMs.import_templ("management");
+                        if (!b_res)
+                        {
+                            logger.Info("trying import management again");
+                            b_res = VMs.import_templ("management");
+                            if (!b_res)
+                            {
+                                logger.Info("import management failed second time");
+                                //finished = 3;
+                                Program.ShowError("Management template was not installed, installation failed, please uninstall and try to install later", "Management template was not imported");
+                                Program.form1.Visible = false;
+                            }
+                        }
+                             
                         ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash subutai management_network detect");
                         logger.Info("Import management address: {0}", ssh_res);
 
                         if (Deploy.com_out(ssh_res, 0) != "0")
                         {
-                            Program.ShowError("Management template was not installed, installation failed, please uninstall and try to install later", "Management template was not imported");
+                            logger.Error("import management failed second time", "Management template was not installed");
+                            //finished = 3;
+                            Program.ShowError("Management template was not installed, installation failed, removing", "Management template was not imported");
                             Program.form1.Visible = false;
                         }
                     }
@@ -694,10 +728,12 @@ namespace Deployment
                         StageReporter("", "Importing management");
                         ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
                         logger.Info("Import management: {0}", ssh_res);
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l management_log");
-                        logger.Info("Import management log: {0}", ssh_res);
+                        //ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l management_log");
+                        //logger.Info("Import management log: {0}", ssh_res);
                         if (Deploy.com_out(ssh_res, 0) != "0")
                         {
+                            logger.Error("Management template was not installed");
+                            //finished = 3;
                             Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
                             Program.form1.Visible = false;
                         }
@@ -769,6 +805,7 @@ namespace Deployment
             string res = "";
             var name = "Subutai Social P2P";
             var binPath = $"{_arguments["appDir"]}bin\\p2p.exe";
+            //var binPath = "C:\\Subutai\\bin\\p2p.exe";
             const string binArgument = "daemon";
 
             // installing service
@@ -785,50 +822,84 @@ namespace Deployment
             //configuring service
             StageReporter("", "Configuring P2P service");
             res = Deploy.LaunchCommandLineApp("sc", $"failure \"{name}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400");
-            logger.Info("Configuring P2P service {0}", $"failure \"{name}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400: {0}", res);
+            logger.Info("Configuring P2P service {0}", res);
+
+            StageReporter("", "Adding P2P service to firewall exceptions");
+            res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"p2p_s_in\" dir=in action=allow service=\"Subutai Social P2P\"  enable=yes");
+            logger.Info("Adding P2P service to to firewall exceptions {0}: {1}", _arguments["appDir"], res);
+
+            res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"p2p_s_out\" dir=out action=allow service=\"Subutai Social P2P\" enable=yes");
+            logger.Info("Adding P2P service to to firewall exceptions {0}: {1}", _arguments["appDir"], res);
+
+            res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"p2p_in\" dir=in action=allow program=\"{_arguments["appDir"]}bin\\p2p.exe\"  enable=yes");
+            logger.Info("Adding P2P service to to firewall exceptions {0}: {1}", _arguments["appDir"], res);
+
+            res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"p2p_out\" dir=out action=allow  program=\"{_arguments["appDir"]}bin\\p2p.exe\" enable=yes");
+            logger.Info("Adding P2P service to to firewall exceptions {0}: {1}", _arguments["appDir"], res);
+
+
+            res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"SubutaiTray_in\" dir=in action=allow program=\"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe\" enable=yes");
+            logger.Info("Adding SubutaiTray to to firewall exceptions {0}: {1}", _arguments["appDir"], res);
+
+            res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"SubutaiTray_out\" dir=out action=allow  program=\"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe\" enable=yes");
+            logger.Info("Adding SubutaiTray to to firewall exceptions {0}: {1}", _arguments["appDir"], res);
+
+
+            //res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"p2p_in_allow\" dir=in program=\"C:\\Subutai\\bin\\p2p.exe\" action=allow");
+            //logger.Info("Adding P2P service to to firewall exceptions {0}: {1}", $"netsh advfirewall firewall add rule name=\"p2p_in_allow\" dir=in program=\"C:\\Subutai\\bin\\p2p.exe\" action=allow", res);
+
 
             finished = 1;
-        }
+            //this.Hide();
+           }
 
         #endregion
 
         private void check_files()
         {
             StageReporter("", "Performing file check");
-            logger.Info("Performing file check");
-            download_file($"{ _arguments["appDir"]}/repo_tgt");
+            download_file($"{ _arguments["appDir"]}{_arguments["repo_tgt"]}");
             //var rows = File.ReadAllLines("C:\\Subutai\\repotgt");
-            String pth = $"{_arguments["appDir"]}/{_arguments["repo_tgt"]}";
-            var rows = File.ReadAllLines(pth);
-            logger.Info("Read rows = {0}", rows.ToString());
-            foreach (var row in rows)
+            string pth = $"{_arguments["appDir"]}{_arguments["repo_tgt"]}";
+            //logger.Info("Performing file check, description is {0}", pth);
+            try
             {
-                var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
-                var folderpath = folderFile[0].Trim();
-                var filename = folderFile[1].Trim();
-                String fullFolderPath = $"{_arguments["appDir"]}/{folderpath.ToString()}";
-                String fullFileName = $"{_arguments["appDir"]}/{folderpath.ToString()}/{filename.ToString()}";
-                StageReporter("", folderpath.ToString() + "/" + filename.ToString());
-                logger.Info("Checking file {0}/{1}", fullFolderPath, filename);
- 
-                if (!Directory.Exists(fullFolderPath))
+                var rows = File.ReadAllLines(pth);
+                foreach (var row in rows)
                 {
-                    Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFolder" +  fullFolderPath + "does not exist. \nUninstall Subutai from Control Panel, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
-                    logger.Info("Directory {0} not found.", fullFolderPath);
-                    Environment.Exit(1);
+                    var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
+                    var folderpath = folderFile[0].Trim();
+                    var filename = folderFile[1].Trim();
+                    String fullFolderPath = $"{_arguments["appDir"]}/{folderpath.ToString()}";
+                    String fullFileName = $"{_arguments["appDir"]}/{folderpath.ToString()}/{filename.ToString()}";
+                    StageReporter("", folderpath.ToString() + "/" + filename.ToString());
+                    //logger.Info("Checking file {0}/{1}", fullFolderPath, filename);
+
+                    if (!Directory.Exists(fullFolderPath))
+                    {
+                        logger.Info("Directory {0} not found.", fullFolderPath);
+                        finished = 3;
+                        Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFolder" + fullFolderPath + "does not exist. \n Please uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
+                        Program.form1.Visible = false;
+                    }
+                    if (!File.Exists(fullFileName))
+                    {
+                        logger.Info("file {0}/{1} not found.", fullFolderPath, filename);
+                        finished = 3;
+                        Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFile " + fullFileName + " does not exist. \n\nPlease uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "File not exist");
+                        Program.form1.Visible = false;
+                    }
                 }
-                if (!File.Exists(fullFileName))
-                {
-                    Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFile " + fullFileName + " does not exist. \n\nUninstall Subutai from Control Panel, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
-                    logger.Info("file {0}/{1} not found.", fullFolderPath, filename);
-                    
-                    Environment.Exit(2);
-                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
             }
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //MessageBox.Show("Form_Load","Form Events Order", MessageBoxButtons.OK);
             DevExpress.Skins.SkinManager.EnableFormSkins();
             DevExpress.LookAndFeel.LookAndFeelHelper.ForceDefaultLookAndFeelChanged();
 
@@ -839,42 +910,23 @@ namespace Deployment
                 //DOWNLOAD REPO
                 StageReporter("Downloading prerequisites", "");
                 Deploy.HideMarquee();
-                //Deploy.ShowMarquee();//
 
+                //Deploy.ShowMarquee();//
                 download_repo();
             }
-        }
+            //deploy_p2p();
+         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
             Invoke((MethodInvoker) Refresh);
         }
 
-        private void clean()
-        {
-            string res = "";
-            logger.Info("Cleaning failed installation");
-            Program.ShowError("Cleaning failed installation", "Cleaning");
-            res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}/bin/uninstall-clean","");
-            logger.Info("uninstall-clean: {0}", res);
-            res = Deploy.LaunchCommandLineApp("regedit.exe", "/s c:/temp/subutai-clean-registry.reg");
-            logger.Info("Cleaning registry: {0}", res);
-            
-            //try
-            //{
-            //    Directory.Delete($"{_arguments["appDir"]}", true);
-            //    logger.Info("Deleting dir");
-            //}
-            //catch (Exception ex)
-            //{
-            //    logger.Error(ex.Message, "Deleting directory");
-            //}
-        }
-
+        
         private void show_finished()
         {
             string st = " finished";
-            logger.Info("show finished = {0}", finished);
+            //logger.Info("show finished = {0}", finished);
             switch (finished)
             {
                 case 0:
@@ -886,25 +938,58 @@ namespace Deployment
                 case 2:
                     st = "cancelled";
                     break;
+                case 3:
+                    st = "failed";
+                    break;
             }
+            
             logger.Info("show finished = {0}", finished);
-            InstallationFinished form2 = new InstallationFinished(st);
-            form2.Show();
+            //this.Hide();
+            Program.form1.Visible = false;
+            InstallationFinished form2 = new InstallationFinished(st, _arguments["appDir"]);
+            if (finished != 11 )//&& finished !=1)
+            {
+                if (finished == 1)
+                {
+                    finished = 11;
+                    //form2.Show();
+                    form2.Show();
+                } else
+                {
+                    finished = 11;
+                    //form2.Show();
+                    form2.ShowDialog();
+                    Application.Exit();
+                    //Environment.Exit(1);
+                }
+            }
         }
 
         private void Form1_VisibleChanged(object sender, EventArgs e)
         {
-            logger.Info("Visible changed, finished = {0}", finished);
-            
+            int Vis = -1;
             if (((Form1)sender).Visible == false)
             {
+                Vis = 0;
+            } else
+            {
+                Vis = 1;
+            }
+            //MessageBox.Show($"Form visible = " + Vis.ToString() + " finished = " + finished, "Form Events Order", MessageBoxButtons.OK);
+
+            logger.Info("Visible changed - check changes, visible = {0}, finished = {1}", Vis, finished);
+            if (((Form1)sender).Visible == false && (finished == 0 || finished == 1))
+            {
+                //MessageBox.Show($"Form show finished = " + finished, "Form Events Order", MessageBoxButtons.OK);
                 logger.Info("Visible false");
+                //finished = 11;
                 show_finished();
             }
-        }
+         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason == CloseReason.UserClosing ) 
+            //MessageBox.Show($"Form Closing finished={finished}", "Form Events Order", MessageBoxButtons.OK);
+            if (e.CloseReason == CloseReason.UserClosing) 
             {
                 logger.Info("Closed by user");
                 switch (finished)
@@ -913,9 +998,16 @@ namespace Deployment
                         {
                             finished = 2;
                             logger.Info("FormClosing: Installation cancelled");
-                            Program.ShowError("Installation cancelled, please uninstall partially installed Subutai Social", "Installation cancelled");
-                            //clean();
-                            //show_finished();
+                            //Program.ShowError("Installation cancelled, please uninstall partially installed Subutai Social", "Installation cancelled");
+                            //Program.ShowError("Installation cancelled, remove partially installed Subutai Social", "Installation cancelled");
+                            e.Cancel = false;
+                            //MessageBox.Show("closed show finished", "Installation cancelled", MessageBoxButtons.OK);
+                            //Program.form2.Invoke((MethodInvoker)delegate
+                            //{
+                            //    logger.Info("form2.invoke on close");
+                            //    show_finished();
+                            //});
+                            show_finished();
                         }
                         break;
                     case 1:
@@ -923,6 +1015,12 @@ namespace Deployment
                         break;
                     case 2:
                         logger.Info("FormClosing: Installation cancelled");
+                        break;
+                    case 3:
+                        logger.Info("FormClosing: Installation error");
+                        break;
+                    case 11:
+                        logger.Info("FormClosing: Installation finished");
                         break;
                 }
             }
