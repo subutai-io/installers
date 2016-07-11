@@ -18,6 +18,6 @@
     <string>/var/log/p2p.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/var/log/p2p.err.log</string>
+    <string>/var/log/p2p.log</string>
 </dict>
 </plist>
