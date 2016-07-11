@@ -16,5 +16,8 @@
 
     <key>StandardOutPath</key>
     <string>/var/log/p2p.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/var/log/p2p.err.log</string>
 </dict>
 </plist>
