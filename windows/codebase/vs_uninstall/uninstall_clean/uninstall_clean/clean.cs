@@ -57,6 +57,9 @@ namespace uninstall_clean
         }
         private void clean_all()
         {
+            var SubutaiDir = Environment.GetEnvironmentVariable("Subutai");
+
+            remove_fw_rules(SubutaiDir);
             string mess = stop_process("p2p");
             //logger.Info("Stopping p2p process: {0}", mess);
             mess = "";
@@ -76,10 +79,10 @@ namespace uninstall_clean
             delete_from_reg();
             delete_Shortcuts("Subutai");
             remove_vm();
- 
-            var SubutaiDir = Environment.GetEnvironmentVariable("Subutai");
+
             //logger.Info("Subutai directory: {0}", SubutaiDir);
             //var SubutaiDir = "c:\\4delete";
+
             if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
             {
                 DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai Virtual Machines",
@@ -654,6 +657,19 @@ namespace uninstall_clean
                 }
              }
             Environment.SetEnvironmentVariable("PATH", strPath);
+        }
+
+        public void remove_fw_rules(string appdir)
+        {
+            LaunchCommandLineApp("netsh", " advfirewall firewall delete rule name=all service=\"Subutai Social P2P\"");
+            LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=all program=\"{appdir}bin\\p2p.exe\"");
+            LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=all program=\"{appdir}bin\\tray\\SubutaiTray.exe\"");
+
+            LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"vboxheadless_in\"");
+            LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"vboxheadless_out\"");
+
+            LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_in\"");
+            LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_out\"");
         }
 
     }

@@ -172,8 +172,6 @@ namespace Deployment
             {
                 return false;
             }
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"bash ls -l {tname}_log");
-            logger.Info("Import {0} log: {1} ", tname, ssh_res);
             return true;
         }
     }

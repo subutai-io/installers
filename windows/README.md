@@ -3,15 +3,14 @@
 # How to install
 Run installer w/Administrative privileges on fresh Windows 7/8/10 x64 machine </br>
 Wait until installation process and shell scripts finish installation </br>
-Now you can go to Chrome browser and open management dashbord https://localhost:9999</br>
+After installation finished You will see SubutaiTray login form, log in with Your Hub account, SubutaiTray icon will appera in Windows tray. </br> 
+Right click on the SubutaiTray icon to open menu. Now You can open management dashbord with Launch->Launch to SS console menu.</br>
 
 
 # Setup environment
 You need the following tools to build the installer:
 	<ul>
-		<li> Advanced Installer 12 </li>
 		<li> Visual Studio 2015 </li>
-		<li> DevExpress 2016 </li>
 	</ul>
 
 # Build the installer
@@ -22,16 +21,6 @@ Build Visual Studio project and copy Deployment.exe to \bin folder of Advanced I
 You can Build and Run the installer inside VM right from Advanced installer
 
 # Overview
-## Advanced Installer
-We use Advanced Installer as wrapper - it packs all required files (scripts, utilities) into single installer which is delivering to an end-user.
-### Features:
-<ul>
-	<li> Check environment compatibility </li>
-	<li> Deploy required system components if required </li>
-	<li> Copy installation files i.e. scripts, etc. </li>
-	<li> Initialization of autorun </li>
-</ul>
-
 ## Deployment tool
 And we use Deployment.exe tool developed under Visual Studio to handle the second part of installation.
 ### Features:

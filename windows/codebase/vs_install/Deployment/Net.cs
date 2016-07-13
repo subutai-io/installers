@@ -8,10 +8,11 @@ using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Threading;
 using NLog;
+using Microsoft.Win32;
 
 namespace Deployment
 {
-    
+   
     class Net
     { 
         static NLog.Logger logger = LogManager.GetCurrentClassLogger();
@@ -49,7 +50,6 @@ namespace Deployment
  
         public static string gateway_if()
         {
-            //logger.Info("gateway_if");
             var gateway_address = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(e => e.OperationalStatus == OperationalStatus.Up
                 )
@@ -57,7 +57,6 @@ namespace Deployment
                 .FirstOrDefault();
 
             var gateway_if_address = gw_from_netstat();
-            //logger.Info("Gateway address: {0}", gateway_address.Address.ToString());
             logger.Info("Gateway 1 address: {0}", gateway_if_address.ToString());
             IPHostEntry host;
             host = Dns.GetHostEntry(Dns.GetHostName());
@@ -137,6 +136,52 @@ namespace Deployment
             string[] splitted = res.Split(' ');
             logger.Info("removed  = {0}", res);
             return splitted[1];
+        }
+
+        public static void set_fw_rules(string ppath, string rname, bool is_service)
+        {
+            string res = "";
+            if (is_service)
+            {
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_in\" dir=in action=allow service=\"{ppath}\"  enable=yes");
+                logger.Info("Adding {0} service to to firewall exceptions {1}: {2}", rname, ppath, res);
+
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow service=\"{ppath}\" enable=yes");
+                logger.Info("Adding {0} service to to firewall exceptions {1}: {2}", rname, ppath, res);
+            }
+            else
+            {
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_in\" dir=in action=allow program=\"{ppath}\" enable=yes");
+                logger.Info("Adding {0}_in rule to to firewall exceptions {1}: {2}", rname, ppath, res);
+
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow  program=\"{ppath}\" enable=yes");
+                logger.Info("Adding {0}_out rule to to firewall exceptions {1}: {2}", rname, ppath, res);
+            }
+        }
+
+        public static void p2p_logs_config(string sname, string filepath)
+        {
+            //Create Registry keys for parameters
+            string sPath = $"System\\CurrentControlSet\\Services\\{sname}\\Parameters";
+            string ksPath = $"HKEY_LOCAL_MACHINE\\{sPath}";
+            logger.Info("Registry key", sPath);
+            RegistryKey kPath = Registry.LocalMachine.OpenSubKey(sPath);
+
+            if (kPath != null)
+            {
+                //Path to logs
+                Registry.SetValue(ksPath, "AppStdout", filepath, RegistryValueKind.ExpandString);
+                logger.Info("AppStdout: {0}", filepath);
+                Registry.SetValue(ksPath, "AppStderr", filepath, RegistryValueKind.ExpandString);
+                logger.Info("AppStderr: {0}", filepath);
+                //Logs rotation
+                //kPath.SetValue("AppRotateSeconds", 86400, RegistryValueKind.DWord);
+                //Registry.SetValue(sPath, "AppRotateSeconds", filepath, RegistryValueKind.ExpandString);
+                int maxBytes = 5242880;
+                Registry.SetValue(ksPath, "AppRotate", maxBytes, RegistryValueKind.ExpandString);
+                logger.Info("AppRotateBytes: {0}", maxBytes);
+                kPath.Close();
+            }
         }
     }
 }

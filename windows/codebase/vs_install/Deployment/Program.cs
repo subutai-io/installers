@@ -42,32 +42,24 @@ namespace Deployment
         {
             if (Program.form1.Visible == true)
                 Program.form1.Hide();
-            //Program.form1.Visible = false;
             var result = XtraMessageBox.Show(Text, Caption, MessageBoxButtons.OK);
             if (result == DialogResult.OK)
                   Program.form1.Close();
-            //Application.Exit();
-           
+          
         }
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            //ShowError(e.Exception.Message + " Installation failed. Please uninstall with Start->All Applications->Subutai(folder)->Uninstall and try to install later", "Thread Exception");
             MessageBox.Show(e.Exception.Message, "Unhandled Thread Exception");
             logger.Error(e.Exception.Message, "Thread Exception");
-            //Application.Exit();
             form1.Close();
-            //form1.Visible = false;
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            //ShowError((e.ExceptionObject as Exception).Message + " Installation failed. Please uninstall with Start->All Applications->Subutai(folder)->Uninstall and try to install later", 
-            //    "Application Exception");
             MessageBox.Show((e.ExceptionObject as Exception).Message, "Unhandled UI Exception");
             logger.Error((e.ExceptionObject as Exception).Message, "Application Exception");
             form1.Close();
-            //form1.Visible = false;
         }
     }
 }

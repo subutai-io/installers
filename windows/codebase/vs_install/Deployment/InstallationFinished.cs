@@ -32,21 +32,8 @@ namespace Deployment
         private void clean(string appdir)
         {
             string res = "";
-            //MessageBox.Show("Cleaning failed installation", "Cleaning",MessageBoxButtons.OK);
             res = Deploy.LaunchCommandLineApp($"{appdir}bin\\uninstall-clean", "");
-            //logger.Info("uninstall-clean: {0}", res);
             res = Deploy.LaunchCommandLineApp("regedit.exe", "/s c:\\temp\\subutai-clean-registry.reg");
-            //logger.Info("Cleaning registry: {0}", res);
-
-            //try
-            //{
-            //    Directory.Delete($"{_arguments["appDir"]}", true);
-            //    logger.Info("Deleting dir");
-            //}
-            //catch (Exception ex)
-            //{
-            //    logger.Error(ex.Message, "Deleting directory");
-            //}
         }
 
 
@@ -68,7 +55,6 @@ namespace Deployment
 
             if (need2clean && dir2clean!="")
             {
-                //Program.ShowError("Installation was interrupted, please wait while removing partially installed Subutai Social", "Installation cancelled");
                 MessageBox.Show("Installation was interrupted, removing partially installed Subutai Social", "Installation failed", MessageBoxButtons.OK);
                 clean(dir2clean);
                 this.Close();
@@ -80,10 +66,6 @@ namespace Deployment
                     Program.form1.Close();
                 });
             }
-
-            //Application.Exit();    
-            //Environment.Exit(0);
- 
         }
      
 

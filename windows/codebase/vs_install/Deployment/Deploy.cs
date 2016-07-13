@@ -344,7 +344,6 @@ namespace Deployment
         }
         #endregion
 
-
         #region UTILITIES: Launch commandline application
         public static string LaunchCommandLineApp(string filename, string arguments)
         {
@@ -399,7 +398,6 @@ namespace Deployment
                 string serror = scmd.Error;
                 if (serror == null || serror == "")
                     serror = "Empty";
-                //Stream soutput = scmd.ExtendedOutputStream;
                 client.Disconnect();
                 client.Dispose();
                 return exitstatus.ToString() + "|" + sresult + "|" + serror;
@@ -485,9 +483,7 @@ namespace Deployment
 
         public static void CreateShortcut(string binPath, string destination, string arguments, bool runAsAdmin)
         {
-            //string shortcutPath = Path.Combine(shortCutFolder, string.Format("{0} {1}{2}.lnk", arch, flavor, extra));
-            //string arguments = string.Format("{0} {1} {2} {3}{4} {5}", "/k", clrEnvPath, arch, flavor, extra, precmd);
-
+ 
             var shell = new WshShell();
 
 
@@ -543,7 +539,6 @@ namespace Deployment
 
                     foreach (var t in bytes)
                         result.Append(t.ToString(upperCase ? "X2" : "x2"));
-                    //logger.Info("Calculated md5sum:{0}", result.ToString());
                     return result.ToString();
                 }
          }
@@ -554,37 +549,26 @@ namespace Deployment
 
         public int app_installed(string appName)
         {
-            //logger.Info("app _installed");
             string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
-            //logger.Info("subkey: {0}",  subkey);
             string subkey86 = Path.Combine("SOFTWARE\\", appName);
-            //logger.Info("subkey86: {0}", subkey86);
             RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
             RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
             if (rk == null && rk86 == null)
             {
-                //logger.Info("app_istalled returns 0");
                 return 0;
             }
-            //logger.Info("app_istalled returns 1");
             return 1;
-            //var appPath = rk.GetValue("InstallDir");
+         }
 
-            //appPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            //string pth = Path.Combine(appPath.ToString(), appName);
-
-            //if ( Directory.Exists(pth))
-            //{
-            //    // rk.GetValue("Version"); 
-            //    var folder = new DirectoryInfo(pth);
-            //    if (folder.GetFileSystemInfos().Length > 0)
-            //        return true;
-            //}
-
-            //appPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-            //pth = Path.Combine(appPath, appName);
-            //if (Directory.Exists(pth))
-            //    return true;
+        public static void install_ext()
+        {
+            RegistryKey kPath = Registry.LocalMachine.OpenSubKey($"Software\\Google\\Chrome\\Extentions");
+            if (kPath != null)
+            {
+                //Path to logs
+                Registry.SetValue("kpmiofpmlciacjblommkcinncmneeoaa", "update_url", "http://clients2.google.com/service/update2/crx", RegistryValueKind.String);
+                kPath.Close();
+            }
         }
         #endregion
 
