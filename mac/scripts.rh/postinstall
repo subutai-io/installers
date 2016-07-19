@@ -183,7 +183,7 @@ EOF
 }
 
 function install_subutai {
-scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-server /Applications/Subutai/snap/subutai_4.0.0_amd64.snap ubuntu@localhost:~/
+scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-server /Applications/Subutai/snap/subutai_4.0.1_amd64.snap ubuntu@localhost:~/
 ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepare-server"
 }
 
