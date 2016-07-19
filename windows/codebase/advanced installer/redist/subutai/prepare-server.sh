@@ -1,12 +1,12 @@
 #!/bin/bash
+
 echo -e "\nGatewayPorts yes" >> /etc/ssh/sshd_config
 bash -c "echo 180 > /sys/block/sda/device/timeout"
 bash -c "echo 180 > /sys/block/sdb/device/timeout"
 if [ "$(grep "gw.intra.lan" -c /etc/writable/hostname)" == "0" ]; then
-        echo "rh`date +%s`.gw.intra.lan" > /etc/writable/hostname
-	hostname -F /etc/writable/hostname
-fi 
-snappy install --allow-unauthenticated /home/ubuntu/tmpfs/subutai_4.0.0_amd64.snap 
+        hostnamectl set-hostname "rh`date +%s`.gw.intra.lan" 
+fi
+snappy install --allow-unauthenticated /home/ubuntu/tmpfs/subutai_4.0.*_amd64*.snap
 if [ -e "/dev/sdc" ]; then 
 	disk="/dev/sdc";
 else 
@@ -32,3 +32,4 @@ echo "alias vim='vim.tiny'" >> /home/ubuntu/.bashrc
 echo "alias vi='vim.tiny'" >> /root/.bashrc
 echo "alias vim='vim.tiny'" >> /root/.bashrc
 sync
+

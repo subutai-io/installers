@@ -50,7 +50,7 @@ namespace Deployment
         public static bool waiting_4ssh(string name)
         {
             //Form1.StageReporter("", "Waiting for SSH ");
-            logger.Info("starting to waiting for SSH");
+            logger.Info("starting to wait for SSH");
             bool res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
             if (!res_b)
             {

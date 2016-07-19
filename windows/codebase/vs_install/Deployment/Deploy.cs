@@ -61,34 +61,7 @@ namespace Deployment
             logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("PATH"));
          }
 
-        class DownloadFileByWebClientArg
-        {
-            private string m_url;
-            private string m_destination;
-            private WebClient m_webClient;
-
-            public DownloadFileByWebClientArg(string url, string destination, WebClient webClient)
-            {
-                m_url = url;
-                m_destination = destination;
-                m_webClient = webClient;
-            }
-
-            public string Url
-            {
-                get { return m_url; }
-            }
-
-            public string Destination
-            {
-                get { return m_destination; }
-            }
-
-            public WebClient WebClient
-            {
-                get { return m_webClient; }
-            }
-        }
+   
        
         #region HELPERS: Download
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)
@@ -115,15 +88,15 @@ namespace Deployment
             }
 
             var shouldWeDownload = true;//will download in any case now
-            if (destination.Contains("-dev") )
+            if (destination.Contains("tray-dev") )
             {
                 destination = destination.Remove(destination.IndexOf('-'), 4);
             }
 
-            if (destination.Contains("-master"))
-            {
-                destination = destination.Remove(destination.IndexOf('-'), 7);
-            }
+            //if (destination.Contains("-master"))
+            //{
+            //    destination = destination.Remove(destination.IndexOf('-'), 7);
+            //}
 
             if (destination.Contains("-test") && !destination.Contains("repomd5"))
             {
@@ -376,7 +349,7 @@ namespace Deployment
             catch (Exception ex)
             {
                 logger.Error(ex.Message, "can not run process");
-                Thread.Sleep(5000);
+                Thread.Sleep(15000);
                 LaunchCommandLineApp(filename, arguments);
             }
             return (filename + " was not executed");//never
@@ -558,7 +531,7 @@ namespace Deployment
 
         public static void install_ext()
         {
-            RegistryKey kPath = Registry.LocalMachine.OpenSubKey($"Software\\Google\\Chrome\\Extentions", true);
+            RegistryKey kPath = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\Google\\Chrome\\Extentions", true);
             if (kPath != null)
             {
                 Registry.SetValue("kpmiofpmlciacjblommkcinncmneeoaa", "update_url", "http://clients2.google.com/service/update2/crx", RegistryValueKind.String);
@@ -566,7 +539,7 @@ namespace Deployment
                 kPath.Close();
             } else
             {
-                kPath = Registry.LocalMachine.OpenSubKey($"Software\\Google\\Chrome", true);
+                kPath = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\Google\\Chrome", true);
                 if (kPath != null)
                 {
                     kPath.CreateSubKey("Extentions");

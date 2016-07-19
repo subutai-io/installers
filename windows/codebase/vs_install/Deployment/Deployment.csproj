@@ -87,7 +87,6 @@
     <Compile Include="InstallationFinished.Designer.cs">
       <DependentUpon>InstallationFinished.cs</DependentUpon>
     </Compile>
-    <Compile Include="items\File.cs" />
     <Compile Include="items\KurjunFileInfo.cs" />
     <Compile Include="Net.cs" />
     <Compile Include="Program.cs" />

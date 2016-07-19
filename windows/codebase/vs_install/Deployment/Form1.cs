@@ -30,6 +30,7 @@ namespace Deployment
 
         private static int stage_counter = 0;
         public  int finished = 0;
+        public string snapFile = "";
 
         private void ParseArguments()
         {
@@ -180,7 +181,6 @@ namespace Deployment
                                {
                                    Exception ne = (Exception)e.Error;
                                    logger.Error(ne.Message, "prepare-rh");
-                                   //finished = 3;
                                    Program.ShowError(ne.Message, "prepare-rh");
                                }, TaskContinuationOptions.OnlyOnFaulted)
 
@@ -200,7 +200,6 @@ namespace Deployment
                                {
                                    Exception ne = (Exception)e.Error;
                                    logger.Error(ne.Message, "deploy-p2p");
-                                   //finished = 3;
                                    Program.ShowError(ne.Message, "deploy-p2p");
                                }, TaskContinuationOptions.OnlyOnFaulted)
 //
@@ -289,7 +288,7 @@ namespace Deployment
                     {
                         WebException we = (WebException)e.Error;
                         logger.Error(we.Message, "File download error");
-                        Program.ShowError("File Download error, please uninstall partially installed Subutai Social", 
+                        Program.ShowError("File Download error, uninstalling partially installed Subutai Social", 
                             we.Message);
                         Program.form1.Visible = false;
                     }
@@ -353,6 +352,7 @@ namespace Deployment
                     folder = folderFile[0].Trim();
                     file = folderFile[1].Trim();
                 }
+                snapFile = file;
                  _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
                     destination: $"{_arguments["appDir"]}{folder}/{file}",
@@ -453,15 +453,14 @@ namespace Deployment
             else
             {
                 StageReporter("", "Google\\Chrome is already installed");
-                logger.Info("Google\\Chrome is already installed: {0}", res);
+                logger.Info("Google\\Chrome is already installed");
             }
-
-            if (_deploy.app_installed("Google\\Chrome\\Extentions\\kpmiofpmlciacjblommkcinncmneeoaa") == 0)
-            {
-                StageReporter("", "Chrome E2E extention");
-                Deploy.install_ext();
-             }
-
+            //logger.Info("E2E extension");
+            //if (_deploy.app_installed("Google\\Chrome\\Extentions\\kpmiofpmlciacjblommkcinncmneeoaa") == 0)
+            //{
+            //    StageReporter("", "Chrome E2E extention");
+            //    Deploy.install_ext();
+            // }
 
             StageReporter("", "Virtual Box");
             
@@ -485,7 +484,7 @@ namespace Deployment
             else
             {
                 StageReporter("", "Oracle\\VirtualBox is already installed");
-                logger.Info("Oracle\\VirtualBox is already installed: {0}", res);
+                logger.Info("Oracle\\VirtualBox is already installed");
             }
 
             //Adding windows firewall rules for vboxheadless.exe and virtualbox.exe
@@ -504,7 +503,6 @@ namespace Deployment
             VBoxDir = VBoxDir.ToLower();
             Net.set_fw_rules(VBoxPath.ToLower(), "virtualbox", false);
         }
-
         private void prepare_vbox()
         {
             // PREPARE VBOX
@@ -571,7 +569,7 @@ namespace Deployment
             StageReporter("", "Setting number of processors");
             int hostCores = Environment.ProcessorCount; //number of logical processors
             ulong vmCores = 2;
-            if (hostCores > 4 && hostCores < 17) //to ensure that not > than halph phys processors will be used
+            if (hostCores > 4 && hostCores < 17) //to ensure that not > than half phys processors will be used
             {
                 vmCores = (ulong)hostCores / 2;
             }
@@ -597,7 +595,6 @@ namespace Deployment
                 if (!VMs.start_vm(_cloneName))
                 {
                     logger.Error("Can not start VM, please try to start manualy", "Waiting for SSH");
-                    finished = 3;
                     Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
                     Program.form1.Visible = false;
                 }
@@ -624,12 +621,16 @@ namespace Deployment
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             // copying snap
             StageReporter("", "Copying Subutai SNAP");
-            
+
+            //Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+            //    $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
+            //    $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
+            //    }, "/home/ubuntu/tmpfs");
             Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
-                $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
+                $"{_arguments["appDir"]}/redist/subutai/{snapFile}"
                 }, "/home/ubuntu/tmpfs");
-            logger.Info("Copying Subutai SNAP, prepare-server.sh");
+            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", snapFile);
 
             // adopting prepare-server.sh
             StageReporter("", "Adapting installation scripts");
@@ -842,6 +843,8 @@ namespace Deployment
                 Deploy.HideMarquee();
                 download_repo();
             }
+            
+
          }
 
         private void timer1_Tick(object sender, EventArgs e)
