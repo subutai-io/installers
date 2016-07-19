@@ -168,7 +168,7 @@ namespace Deployment
             logger.Info("Import {0}: {1}, code: {2}, err: {3}", 
                 tname, ssh_res, stcode, sterr);
 
-            if (stcode != "0" &&  sterr != "Empty")
+            if (stcode != "0") //&&  sterr != "Empty")
             {
                 return false;
             }

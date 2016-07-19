@@ -12,7 +12,6 @@ using System.Net.NetworkInformation;
 using NLog;
 using Deployment.items;
 using Renci.SshNet;
-using File = System.IO.File;
 
 
 namespace Deployment
@@ -242,7 +241,8 @@ namespace Deployment
             Deploy.HideMarquee();
             logger.Info("Downloading repo_descriptor");
             download_description_file("repo_descriptor");
-            download_file("c:\\temp\\subutai-clean-registry.reg");
+            string regfile = Path.Combine(FD.logDir(), "subutai-clean-registry.reg");
+            download_file(regfile);
             
         }
 
@@ -260,13 +260,13 @@ namespace Deployment
 
         private void download_file(String file_name)
         {
-            StageReporter("", "Getting file");
+            StageReporter("", $"Getting file {file_name}");
             logger.Info("Getting  file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"],
                 destination: $"{file_name}",
                 onComplete: null,
-                report: "Getting file subutai-clean-registry.reg",
+                report: $"Getting file {file_name}",
                 async: true,
                 kurjun: true);
         }
@@ -804,19 +804,9 @@ namespace Deployment
  
             Net.set_fw_rules($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "SubutaiTray", false);
 
-            string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
-            string sysDrive = Path.GetPathRoot(sysPath);
-            string logPath = Path.Combine(sysDrive, "temp");
-            if (!Directory.Exists(logPath))
-            {
-                Directory.CreateDirectory(logPath);
-            }
-            logPath = Path.Combine(logPath, "Subutai_Log");
-            if (!Directory.Exists(logPath))
-            { 
-                    Directory.CreateDirectory(logPath);
-            }
-            logPath = Path.Combine(logPath, "p2p.log");
+ 
+            string logPath = FD.logDir();
+            logPath = Path.Combine(logPath, "p2p_log.txt");
             logger.Info("Logs are in {0}", logPath);
             Net.p2p_logs_config("Subutai Social P2P", logPath);
 
@@ -837,45 +827,7 @@ namespace Deployment
 
         #endregion
 
-        private void check_files()
-        {
-            StageReporter("", "Performing file check");
-            download_file($"{ _arguments["appDir"]}{_arguments["repo_tgt"]}");
-            string pth = $"{_arguments["appDir"]}{_arguments["repo_tgt"]}";
-            try
-            {
-                var rows = File.ReadAllLines(pth);
-                foreach (var row in rows)
-                {
-                    var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
-                    var folderpath = folderFile[0].Trim();
-                    var filename = folderFile[1].Trim();
-                    String fullFolderPath = $"{_arguments["appDir"]}/{folderpath.ToString()}";
-                    String fullFileName = $"{_arguments["appDir"]}/{folderpath.ToString()}/{filename.ToString()}";
-                    StageReporter("", folderpath.ToString() + "/" + filename.ToString());
- 
-                    if (!Directory.Exists(fullFolderPath))
-                    {
-                        logger.Info("Directory {0} not found.", fullFolderPath);
-                        finished = 3;
-                        Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFolder" + fullFolderPath + "does not exist. \n Please uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
-                        Program.form1.Visible = false;
-                    }
-                    if (!File.Exists(fullFileName))
-                    {
-                        logger.Info("file {0}/{1} not found.", fullFolderPath, filename);
-                        finished = 3;
-                        Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFile " + fullFileName + " does not exist. \n\nPlease uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "File not exist");
-                        Program.form1.Visible = false;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex.Message);
-            }
-        }
-
+  
         private void Form1_Load(object sender, EventArgs e)
         {
             DevExpress.Skins.SkinManager.EnableFormSkins();

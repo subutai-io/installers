@@ -483,10 +483,7 @@ namespace Deployment
 
         public static void CreateShortcut(string binPath, string destination, string arguments, bool runAsAdmin)
         {
- 
             var shell = new WshShell();
-
-
             IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(destination);
 
             shortcut.TargetPath = binPath;
@@ -500,7 +497,6 @@ namespace Deployment
                 fs.Seek(21, SeekOrigin.Begin);
                 fs.WriteByte(0x22);
             }
-
         }
         #endregion
 
@@ -562,13 +558,23 @@ namespace Deployment
 
         public static void install_ext()
         {
-            RegistryKey kPath = Registry.LocalMachine.OpenSubKey($"Software\\Google\\Chrome\\Extentions");
+            RegistryKey kPath = Registry.LocalMachine.OpenSubKey($"Software\\Google\\Chrome\\Extentions", true);
             if (kPath != null)
             {
-                //Path to logs
                 Registry.SetValue("kpmiofpmlciacjblommkcinncmneeoaa", "update_url", "http://clients2.google.com/service/update2/crx", RegistryValueKind.String);
+                logger.Info("E2E plugin value added");
                 kPath.Close();
-            }
+            } else
+            {
+                kPath = Registry.LocalMachine.OpenSubKey($"Software\\Google\\Chrome", true);
+                if (kPath != null)
+                {
+                    kPath.CreateSubKey("Extentions");
+                    kPath.Close();
+                    logger.Info("Extentions key added");
+                    install_ext();
+                }
+             }
         }
         #endregion
 
