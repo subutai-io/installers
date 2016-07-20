@@ -20,7 +20,7 @@ namespace Deployment
     {
         private readonly string[] _args = Environment.GetCommandLineArgs();
         private readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
-        private readonly Deploy _deploy;
+        public readonly Deploy _deploy;
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
 
         private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
@@ -30,7 +30,7 @@ namespace Deployment
 
         private static int stage_counter = 0;
         public  int finished = 0;
-        public string snapFile = "";
+        public static string snapFile = "";
 
         private void ParseArguments()
         {
@@ -401,108 +401,27 @@ namespace Deployment
             // DEPLOY REDISTRIBUTABLES
             StageReporter("Installing redistributables", "");
             logger.Info("Installing redistributables");
-            string res = "";
             Deploy.ShowMarquee();
-            StageReporter("", "TAP driver");
-            if (_deploy.app_installed("TAP-Windows") == 0)
-            {
-                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\tap-driver.exe", "/S");
-                logger.Info("TAP driver: {0}", res);
-            } else
-            {
-                StageReporter("", "TAP driver already installed");
-                logger.Info("TAP driver is already installed: {0}", res);
-            }
+            string appDir = _arguments["appDir"];
 
-            if (_deploy.app_installed("TAP-Windows") == 1)
-            {
-                var pathTAPin = Path.Combine(_arguments["appDir"], "redist");
-                var pathTAPout = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TAP-Windows", "bin");
-           
-                try
-                {
-                    File.Copy(Path.Combine(pathTAPin, "addtap.bat"), Path.Combine(pathTAPout, "addtap.bat"), true);
-                    logger.Info("Copying {0}\\addtap.bat to {1}\\addtap.bat", pathTAPin.ToString(), pathTAPout.ToString());
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex.Message + " copying utility addtap");
-                }
-                try
-                {
-                    File.Copy(Path.Combine(pathTAPin, "deltapall.bat"), Path.Combine(pathTAPout, "deltapall.bat"), true);
-                    logger.Info("Copying {0}\\deltapall.bat to {1}", pathTAPin.ToString(), pathTAPout.ToString());
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex.Message + " copying utility deltapall");
-                }
-            }
-           
+            StageReporter("", "TAP driver");
+            Inst.inst_TAP(appDir);
+
+            string res = "";
             StageReporter("", "MS Visual C++");
             res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
             logger.Info("MS Visual C++: {0}", res);
 
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Clients\StartMenuInternet\Google Chrome
-            if (_deploy.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
-            {
-                StageReporter("", "Chrome");
-                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{_arguments["appDir"]}\\redist\\chrome.msi\"");
-                logger.Info("Chrome: {0}", res);
-            }
-            else
-            {
-                StageReporter("", "Google\\Chrome is already installed");
-                logger.Info("Google\\Chrome is already installed");
-            }
-            //logger.Info("E2E extension");
-            //if (_deploy.app_installed("Google\\Chrome\\Extentions\\kpmiofpmlciacjblommkcinncmneeoaa") == 0)
-            //{
-            //    StageReporter("", "Chrome E2E extention");
-            //    Deploy.install_ext();
-            // }
-
+            StageReporter("", "Chrome browser");
+            Inst.inst_Chrome(appDir);
+ 
+            StageReporter("", "Checking Chrome E2E extension");
+            Inst.inst_E2E();
+  
             StageReporter("", "Virtual Box");
-            
-            if (_deploy.app_installed("Oracle\\VirtualBox") == 0)
-            {
-                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\virtualbox.exe", "--silent");
-                Deploy.CreateShortcut(
-                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                    "", true);
-                Deploy.CreateShortcut(
-                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                    "", true);
-                Deploy.CreateShortcut(
-                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                    $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
-                    "", true);
-                logger.Info("Virtual Box: {0} ", res);
-            }
-            else
-            {
-                StageReporter("", "Oracle\\VirtualBox is already installed");
-                logger.Info("Oracle\\VirtualBox is already installed");
-            }
-
-            //Adding windows firewall rules for vboxheadless.exe and virtualbox.exe
-            string VBoxDir = "";
-            VBoxDir = Environment.GetEnvironmentVariable("VBOX_MSI_INSTALL_PATH");
-            if (VBoxDir == "" || VBoxDir == null)
-            {
-                VBoxDir = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                VBoxDir = Path.Combine(VBoxDir, "Oracle", "VirtualBox");
-            }
-            string VBoxPath = Path.Combine(VBoxDir, "VBoxHeadless.exe");
-            //VBoxPath = VBoxDir.ToLower();
-            Net.set_fw_rules(VBoxPath.ToLower(), "vboxheadless", false);
-
-            VBoxPath = Path.Combine(VBoxDir, "VirtualBox.exe");
-            VBoxDir = VBoxDir.ToLower();
-            Net.set_fw_rules(VBoxPath.ToLower(), "virtualbox", false);
+            Inst.inst_VBox(appDir);
         }
+
         private void prepare_vbox()
         {
             // PREPARE VBOX
@@ -532,11 +451,9 @@ namespace Deployment
 
             // clone VM
             StageReporter("", "Cloning VM");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {_cloneName} snappy");
-            logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", _cloneName, res);
-            ssh_res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
-            logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
+            VMs.clone_vm(_cloneName);
 
+            //Preparing temporary network interfaces to upload and run installation scripts
             StageReporter("", "Preparing NIC - NAT");
             logger.Info("Preparing NIC-NAT");
             res = Deploy.LaunchCommandLineApp("vboxmanage",
@@ -546,47 +463,19 @@ namespace Deployment
 
             // set RAM
             StageReporter("", "Setting RAM");
+            VMs.vm_set_RAM(_cloneName);
 
-            var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
-            //ulong vmRam = 3072;
-            ulong vmRam = 2048;
-            //if (hostRam < 4100)
-            //{
-            //    vmRam = 1024;
-            //}
-            if ((hostRam <= 16500) && (hostRam > 8100))
-            {
-                vmRam = hostRam / 2;
-            }
-            else if (hostRam > 16500)
-            {
-                vmRam = 8124;
-            }
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --memory {vmRam}");
-            logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", _cloneName, vmRam, res);
-
-            //number of cores
+            //set number of cores
             StageReporter("", "Setting number of processors");
-            int hostCores = Environment.ProcessorCount; //number of logical processors
-            ulong vmCores = 2;
-            if (hostCores > 4 && hostCores < 17) //to ensure that not > than half phys processors will be used
-            {
-                vmCores = (ulong)hostCores / 2;
-            }
-            else if (hostCores > 16)
-            {
-                vmCores = 8;
-            }
+            VMs.vm_set_CPUs(_cloneName);
 
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --cpus {vmCores}");
-            logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", _cloneName, vmCores.ToString(), res);
-            // time settings
+            //set UTC timezone
             StageReporter("", "Setting timezone");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
             logger.Info("vboxmanage modifyvm {0} --rtcuseutc: {1}", _cloneName, res);
             Thread.Sleep(4000);
            
-            //start VM
+            //start VM, will try 2 times
             StageReporter("", "Starting VM");
             if (!VMs.start_vm(_cloneName))
             {
@@ -609,51 +498,12 @@ namespace Deployment
             if (!res_b)
             {
                 logger.Error("SSH 1 false","Can not open ssh, please check VM state manually and report error");
-                finished = 3;
                 Program.ShowError("Can not open ssh, please check VM state manually and report error", "Waiting for SSH");
                 Program.form1.Visible = false;
             }
             // DEPLOY PEER
-   
-            // creating tmpfs folder
-            StageReporter("", "Creating tmps folder");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
-            logger.Info("Creating tmpfs folder: {0}", ssh_res);
-            // copying snap
-            StageReporter("", "Copying Subutai SNAP");
+            VMs.run_scripts(_arguments["appDir"], _cloneName);
 
-            //Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-            //    $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
-            //    $"{_arguments["appDir"]}/redist/subutai/subutai_4.0.0_amd64.snap"
-            //    }, "/home/ubuntu/tmpfs");
-            Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                $"{_arguments["appDir"]}/redist/subutai/prepare-server.sh",
-                $"{_arguments["appDir"]}/redist/subutai/{snapFile}"
-                }, "/home/ubuntu/tmpfs");
-            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", snapFile);
-
-            // adopting prepare-server.sh
-            StageReporter("", "Adapting installation scripts");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
-            logger.Info("Adapting installation scripts: {0}", ssh_res);
-            // running prepare-server.sh script
-            StageReporter("", "Running installation scripts");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
-            logger.Info("Running installation scripts: {0}", ssh_res);
-            // deploying peer options
-            Thread.Sleep(20000);
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
-            Thread.Sleep(5000);
-            res_b = vm_reconfigure_nic();//stop and start machine
-            logger.Info("Waiting for SSH - 2");
-            res_b = VMs.waiting_4ssh(_cloneName);
-            if (!res_b)
-            {
-                logger.Info("SSH 2 false", "Can not open ssh, please check VM state manually and report error");
-                finished = 3;
-                Program.form1.Visible = false;
-            }
-                     
             StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
             
@@ -739,48 +589,7 @@ namespace Deployment
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
          }
 
-        private bool vm_reconfigure_nic()
-        {
-            //stop VM
-            string res = "";
-            StageReporter("", "Stopping VM");
-            VMs.stop_vm(_cloneName);
-            Thread.Sleep(5000);
-
-            StageReporter("Setting network interfaces", "");
-            VMs.set_bridged(_cloneName);
-            //NAT on nic2
-            VMs.set_nat(_cloneName);
-            //Hostonly eth2 on nic 3
-            StageReporter("", "Setting nic3 hostonly");
-            string if_name = VMs.set_hostonly(_cloneName);
-            // start VM
-            StageReporter("", "Starting VM");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-            logger.Info("vm 1: {0} starting: {1}", _cloneName, Deploy.com_out(res, 0));
-            logger.Info("vm 1: {0} stdout: {1}", _cloneName, Deploy.com_out(res, 1));
-            
-            string err = Deploy.com_out(res, 2);
-            logger.Info("vm 1: {0} stdout: {1}", _cloneName, err);
-
-            if (err != null && err.Contains(" error:") && err.Contains(if_name))
-            {
-                StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
-                Thread.Sleep(10000);
-                res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic3 none");
-                logger.Info("nic3 none: {0}", res);
-                StageReporter("", "Trying to turn off Host-Only adapter");
-                res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {_cloneName} ");
-                logger.Info("vm 2: {0} starting: {1}", _cloneName, res);
-                err = Deploy.com_out(res, 2);
-                if (err != null || err != "")
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
-
+ 
         private void deploy_p2p()
         {
             // DEPLOYING P2P SERVICE
@@ -805,7 +614,7 @@ namespace Deployment
  
             Net.set_fw_rules($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "SubutaiTray", false);
 
- 
+            //Configuring service logs
             string logPath = FD.logDir();
             logPath = Path.Combine(logPath, "p2p_log.txt");
             logger.Info("Logs are in {0}", logPath);
@@ -815,9 +624,7 @@ namespace Deployment
             res = Deploy.LaunchCommandLineApp("nssm", $"start \"{name}\"");
             logger.Info("Starting P2P service: {0}", res);
             Thread.Sleep(2000);
-            //Configuring service logs
-
-            
+              
             //configuring service restart on failure
             StageReporter("", "Configuring P2P service");
             res = Deploy.LaunchCommandLineApp("sc", $"failure \"{name}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400");
@@ -825,7 +632,6 @@ namespace Deployment
             Thread.Sleep(5000);
             finished = 1;
            }
-
         #endregion
 
   
@@ -843,8 +649,6 @@ namespace Deployment
                 Deploy.HideMarquee();
                 download_repo();
             }
-            
-
          }
 
         private void timer1_Tick(object sender, EventArgs e)

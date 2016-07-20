@@ -47,8 +47,7 @@ namespace Deployment
             return "Not defined";
         }
 
- 
-        public static string gateway_if()
+         public static string gateway_if()
         {
             var gateway_address = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(e => e.OperationalStatus == OperationalStatus.Up
@@ -138,6 +137,7 @@ namespace Deployment
             return splitted[1];
         }
 
+  
         public static void set_fw_rules(string ppath, string rname, bool is_service)
         {
             string res = "";

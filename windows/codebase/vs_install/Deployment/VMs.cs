@@ -47,6 +47,65 @@ namespace Deployment
             return true;
         }
 
+        //Cloning VM
+        public static bool clone_vm(string vmName)
+        {
+            string ssh_res = "";
+            string res = "";
+           
+            // clone VM
+            Form1.StageReporter("", "Cloning VM");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy");
+            logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", vmName, res);
+            ssh_res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
+            logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
+            return true;//check res
+        }
+
+        public static bool vm_set_RAM(string vmName)
+        {
+            string res = "";
+
+            var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
+            ulong vmRam = 2048; //Minimal size
+            //Need to be tested for low-memory machines
+            //if (hostRam < 4100)
+            //{
+            //    vmRam = 1024;
+            //}
+            if ((hostRam <= 16500) && (hostRam > 8100))
+            {
+                vmRam = hostRam / 2;
+            }
+            else if (hostRam > 16500)
+            {
+                vmRam = 8124;
+            }
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --memory {vmRam}");
+            logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", vmName, vmRam, res);
+            return true;
+        }
+
+        public static bool vm_set_CPUs(string vmName)
+        {
+            string res = "";
+
+            int hostCores = Environment.ProcessorCount; //number of logical processors
+            ulong vmCores = 2;
+            if (hostCores > 4 && hostCores < 17) //to ensure that not > than half phys processors will be used
+            {
+                vmCores = (ulong)hostCores / 2;
+            }
+            else if (hostCores > 16)
+            {
+                vmCores = 8;
+            }
+
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --cpus {vmCores}");
+            logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", vmName, vmCores.ToString(), res);
+            return true;
+        }
+
         public static bool waiting_4ssh(string name)
         {
             //Form1.StageReporter("", "Waiting for SSH ");
@@ -156,6 +215,86 @@ namespace Deployment
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {name} --nic3 none");
             logger.Info("No hostonly: {0}", res);
             return netif_vbox0;
+        }
+
+        public static bool vm_reconfigure_nic(string vmName)
+        {
+            //stop VM
+            string res = "";
+            Form1.StageReporter("", "Stopping VM");
+            stop_vm(vmName);
+            Thread.Sleep(5000);
+            Form1.StageReporter("Setting network interfaces", "");
+            set_bridged(vmName);
+            //NAT on nic2
+            set_nat(vmName);
+            //Hostonly eth2 on nic 3
+            Form1.StageReporter("", "Setting nic3 hostonly");
+            string if_name = set_hostonly(vmName);
+            // start VM
+            Form1.StageReporter("", "Starting VM");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ");
+            logger.Info("vm 1: {0} starting: {1}", vmName, Deploy.com_out(res, 0));
+            logger.Info("vm 1: {0} stdout: {1}", vmName, Deploy.com_out(res, 1));
+
+            string err = Deploy.com_out(res, 2);
+            logger.Info("vm 1: {0} stdout: {1}", vmName, err);
+
+            if (err != null && err.Contains(" error:") && err.Contains(if_name))
+            {
+                Form1.StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
+                Thread.Sleep(10000);
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic3 none");
+                logger.Info("nic3 none: {0}", res);
+                Form1.StageReporter("", "Trying to turn off Host-Only adapter");
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ");
+                logger.Info("vm 2: {0} starting: {1}", vmName, res);
+                err = Deploy.com_out(res, 2);
+                if (err != null || err != "")
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        //Run installation scripts
+        public static void run_scripts(string appDir, string vmName)
+        {
+            string ssh_res = "";
+            // creating tmpfs folder
+            Form1.StageReporter("", "Creating tmps folder");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
+            logger.Info("Creating tmpfs folder: {0}", ssh_res);
+            // copying snap
+            Form1.StageReporter("", "Copying Subutai SNAP");
+
+            Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                $"{appDir}/redist/subutai/prepare-server.sh",
+                $"{appDir}/redist/subutai/{Form1.snapFile}"
+                }, "/home/ubuntu/tmpfs");
+            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", Form1.snapFile);
+
+            // adopting prepare-server.sh
+            Form1.StageReporter("", "Adapting installation scripts");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
+            logger.Info("Adapting installation scripts: {0}", ssh_res);
+            // running prepare-server.sh script
+            Form1.StageReporter("", "Running installation scripts");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            logger.Info("Running installation scripts: {0}", ssh_res);
+            // deploying peer options
+            Thread.Sleep(20000);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Thread.Sleep(5000);
+            bool res_b = VMs.vm_reconfigure_nic(vmName);//stop and start machine
+            logger.Info("Waiting for SSH - 2");
+            res_b = VMs.waiting_4ssh(vmName);
+            if (!res_b)
+            {
+                logger.Info("SSH 2 false", "Can not open ssh, please check VM state manually and report error");
+                Program.form1.Visible = false;
+            }
         }
 
         public static bool import_templ(string tname)

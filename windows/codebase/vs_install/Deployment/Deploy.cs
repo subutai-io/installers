@@ -117,11 +117,11 @@ namespace Deployment
                 }
             }
 
-            if (destination.Contains("chrome") && app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
+            if (destination.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
             {
                 shouldWeDownload = false;
             }
-            if (destination.Contains("virtualbox") && app_installed("Oracle\\VirtualBox") == 1)
+            if (destination.Contains("virtualbox") && Inst.app_installed("Oracle\\VirtualBox") == 1)
             {
                 shouldWeDownload = false;
             }
@@ -444,7 +444,6 @@ namespace Deployment
                         return false;
                         Thread.Sleep(2000);
                     }
-                   
                 }
                 client.Disconnect();
                 return true;
@@ -511,43 +510,6 @@ namespace Deployment
                     return result.ToString();
                 }
          }
-        }
-        #endregion
-
-        #region UTILITIES
-
-        public int app_installed(string appName)
-        {
-            string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
-            string subkey86 = Path.Combine("SOFTWARE\\", appName);
-            RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
-            RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
-            if (rk == null && rk86 == null)
-            {
-                return 0;
-            }
-            return 1;
-         }
-
-        public static void install_ext()
-        {
-            RegistryKey kPath = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\Google\\Chrome\\Extentions", true);
-            if (kPath != null)
-            {
-                Registry.SetValue("kpmiofpmlciacjblommkcinncmneeoaa", "update_url", "http://clients2.google.com/service/update2/crx", RegistryValueKind.String);
-                logger.Info("E2E plugin value added");
-                kPath.Close();
-            } else
-            {
-                kPath = Registry.LocalMachine.OpenSubKey("Software\\Wow6432Node\\Google\\Chrome", true);
-                if (kPath != null)
-                {
-                    kPath.CreateSubKey("Extentions");
-                    kPath.Close();
-                    logger.Info("Extentions key added");
-                    install_ext();
-                }
-             }
         }
         #endregion
 
