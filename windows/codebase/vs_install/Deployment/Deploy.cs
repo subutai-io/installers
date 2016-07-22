@@ -93,11 +93,6 @@ namespace Deployment
                 destination = destination.Remove(destination.IndexOf('-'), 4);
             }
 
-            //if (destination.Contains("-master"))
-            //{
-            //    destination = destination.Remove(destination.IndexOf('-'), 7);
-            //}
-
             if (destination.Contains("-test") && !destination.Contains("repomd5"))
             {
                 destination = destination.Remove(destination.IndexOf('-'), 5);
@@ -116,15 +111,22 @@ namespace Deployment
                     shouldWeDownload = false;
                 }
             }
+            if (destination.Contains(".snap") && _arguments["peer"] == "client-only")
+            {
+                shouldWeDownload = false;//no need to download snap if client-only
+            }
 
             if (destination.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
             {
                 shouldWeDownload = false;
             }
-            if (destination.Contains("virtualbox") && Inst.app_installed("Oracle\\VirtualBox") == 1)
+            if (destination.Contains("virtualbox"))
             {
-                shouldWeDownload = false;
+                //vbox already installed or peer optin is client-only
+                if ( Inst.app_installed("Oracle\\VirtualBox") == 1 || _arguments["peer"] == "client-only")
+                    shouldWeDownload = false;
             }
+            
             //logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
 
             if (shouldWeDownload)
@@ -343,7 +345,7 @@ namespace Deployment
                     output = exeProcess.StandardOutput.ReadToEnd();
                     err  = exeProcess.StandardError.ReadToEnd();
                     exeProcess?.WaitForExit();
-                    return ("executing " + filename +  "|" + output + "|" + err);
+                    return ($"executing: \"{filename}-{arguments}\"|{output}|{err}");
                 }
             }
             catch (Exception ex)

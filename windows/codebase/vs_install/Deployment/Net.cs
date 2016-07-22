@@ -124,7 +124,7 @@ namespace Deployment
         {
             string res = Deploy.LaunchCommandLineApp("cmd.exe", " /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0");
             logger.Info("netstat = {0}", res);
-            res = Deploy.com_out(res, 1);
+            res = Deploy.com_out(res, 2);
             res = res.Replace("|", "");
             while (res.Contains("  "))
                 res = res.Replace("  ", " ");
@@ -156,31 +156,6 @@ namespace Deployment
 
                 res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow  program=\"{ppath}\" enable=yes");
                 logger.Info("Adding {0}_out rule to to firewall exceptions {1}: {2}", rname, ppath, res);
-            }
-        }
-
-        public static void p2p_logs_config(string sname, string filepath)
-        {
-            //Create Registry keys for parameters
-            string sPath = $"System\\CurrentControlSet\\Services\\{sname}\\Parameters";
-            string ksPath = $"HKEY_LOCAL_MACHINE\\{sPath}";
-            logger.Info("Registry key", sPath);
-            RegistryKey kPath = Registry.LocalMachine.OpenSubKey(sPath);
-
-            if (kPath != null)
-            {
-                //Path to logs
-                Registry.SetValue(ksPath, "AppStdout", filepath, RegistryValueKind.ExpandString);
-                logger.Info("AppStdout: {0}", filepath);
-                Registry.SetValue(ksPath, "AppStderr", filepath, RegistryValueKind.ExpandString);
-                logger.Info("AppStderr: {0}", filepath);
-                //Logs rotation
-                //kPath.SetValue("AppRotateSeconds", 86400, RegistryValueKind.DWord);
-                //Registry.SetValue(sPath, "AppRotateSeconds", filepath, RegistryValueKind.ExpandString);
-                int maxBytes = 5242880;
-                Registry.SetValue(ksPath, "AppRotate", maxBytes, RegistryValueKind.ExpandString);
-                logger.Info("AppRotateBytes: {0}", maxBytes);
-                kPath.Close();
             }
         }
     }

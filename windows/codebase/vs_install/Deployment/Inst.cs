@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.IO;
+//using System.ServiceProcess;
 using Microsoft.Win32;
 using NLog;
+using Renci.SshNet;
 
 namespace Deployment
 {
@@ -170,6 +169,120 @@ namespace Deployment
             VBoxPath = Path.Combine(VBoxDir, "VirtualBox.exe");
             VBoxDir = VBoxDir.ToLower();
             Net.set_fw_rules(VBoxPath.ToLower(), "virtualbox", false);
+        }
+
+        public static void service_stop(string serviceName)
+        {
+            string res = "";
+            res = Deploy.LaunchCommandLineApp("nssm", $"stop \"{serviceName}\"");
+            logger.Info("Stopping service {0}: {1}", serviceName, res);
+        }
+
+        public static void service_install(string serviceName, string binPath, string binArgument)
+        {
+            string res = "";
+            res = Deploy.LaunchCommandLineApp("nssm", $"install \"{serviceName}\" \"{binPath}\" \"{binArgument}\"");
+            logger.Info("Installing P2P service: {0}", res);
+        }
+
+        public static void service_start(string serviceName)
+        {
+            string res = "";
+            res = Deploy.LaunchCommandLineApp("nssm", $"start \"{serviceName}\"");
+            logger.Info("Starting P2P service: {0}", res);
+            Thread.Sleep(2000);
+        }
+
+        public static void service_config(string serviceName)
+        {
+            string res = "";
+            res = Deploy.LaunchCommandLineApp("sc", $"failure \"{serviceName}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400");
+            logger.Info("Configuring P2P service {0}", res);
+            Thread.Sleep(5000);
+        }
+
+        public static void p2p_logs_config(string sname)
+        {
+            string logPath = FD.logDir();
+            logPath = Path.Combine(logPath, "p2p_log.txt");
+            logger.Info("Logs are in {0}", logPath);
+            //Create Registry keys for parameters
+            string sPath = $"System\\CurrentControlSet\\Services\\{sname}\\Parameters";
+            string ksPath = $"HKEY_LOCAL_MACHINE\\{sPath}";
+            logger.Info("Registry key", sPath);
+            RegistryKey kPath = Registry.LocalMachine.OpenSubKey(sPath);
+
+            if (kPath != null)
+            {
+                //Path to logs
+                Registry.SetValue(ksPath, "AppStdout", logPath, RegistryValueKind.ExpandString);
+                logger.Info("AppStdout: {0}", logPath);
+                Registry.SetValue(ksPath, "AppStderr", logPath, RegistryValueKind.ExpandString);
+                logger.Info("AppStderr: {0}", logPath);
+                //Logs rotation
+                //kPath.SetValue("AppRotateSeconds", 86400, RegistryValueKind.DWord);
+                //Registry.SetValue(sPath, "AppRotateSeconds", filepath, RegistryValueKind.ExpandString);
+                int maxBytes = 5242880;
+                Registry.SetValue(ksPath, "AppRotate", maxBytes, RegistryValueKind.ExpandString);
+                logger.Info("AppRotateBytes: {0}", maxBytes);
+                kPath.Close();
+            }
+        }
+
+        public static void install_mh_nw()
+        {
+            //installing master template
+            Form1.StageReporter("", "Importing master");
+            logger.Info("Importing master");
+            VMs.import_templ("master");
+
+            // installing management template
+            Form1.StageReporter("", "Importing management");
+            bool b_res = VMs.import_templ("management");
+            if (!b_res)
+            {
+                logger.Info("trying import management again");
+                b_res = VMs.import_templ("management");
+                if (!b_res)
+                {
+                    logger.Info("import management failed second time");
+                    Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
+                    Program.form1.Visible = false;
+                }
+            }
+            string ssh_res = "";
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", 
+                "sudo bash subutai management_network detect");
+            logger.Info("Import management address: {0}", ssh_res);
+
+            if (Deploy.com_out(ssh_res, 0) != "0")
+            {
+                logger.Error("import management failed second time", "Management template was not installed");
+                Program.ShowError("Management template was not installed, installation failed, removing", "Management template was not imported");
+                Program.form1.Visible = false;
+            }
+        }
+
+        public static void install_mh_lc(PrivateKeyFile[] privateKeys)
+        {
+            //installing master template
+            Form1.StageReporter("", "Importing master");
+            logger.Info("Importing master");
+            string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
+            logger.Info("Import master: {0}", ssh_res);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l master_log| wc -l");
+            logger.Info("Import master log: {0}", ssh_res);
+
+            // installing management template
+            Form1.StageReporter("", "Importing management");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
+            logger.Info("Import management: {0}", ssh_res);
+            if (Deploy.com_out(ssh_res, 0) != "0")
+            {
+                logger.Error("Management template was not installed");
+                Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
+                Program.form1.Visible = false;
+            }
         }
     }
 }

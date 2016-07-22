@@ -38,6 +38,7 @@ namespace Deployment
             {
                 _arguments[splitted[0]] = splitted[1];
                 logger.Info("Parsing arguments:  {0} =  {1}", splitted[0], splitted[1] );
+
             }
         }
 
@@ -100,11 +101,10 @@ namespace Deployment
                        logger.Info("Stage unzip: {0}", "unzip-extracted");
                    }
                    stage_counter++;
-                   logger.Info("Stage: {0}", stage_counter);
+                   logger.Info("Stage unzip: {0}", stage_counter);
                }, TaskContinuationOptions.NotOnFaulted)
 
-                              //
-                              .ContinueWith((prevTask) =>
+                             .ContinueWith((prevTask) =>
                               {
                                   Exception ne = (Exception)e.Error;
                                   logger.Error(ne.Message, "unzipping");
@@ -136,7 +136,7 @@ namespace Deployment
                                       logger.Info("Stage deploy-redist: {0}", "deploy-redist");
                                   }
                                   stage_counter++;
-                                  logger.Info("Stage: {0}", stage_counter);
+                                  logger.Info("Stage deploy redistributables: {0}", stage_counter);
                               }, TaskContinuationOptions.NotOnFaulted)
 
                                .ContinueWith((prevTask) =>
@@ -149,10 +149,10 @@ namespace Deployment
 
                               .ContinueWith((prevTask) =>
                               {
-                                  if (_arguments["params"].Contains("prepare-vbox"))
+                                  if (_arguments["params"].Contains("prepare-vbox") && _arguments["peer"] != "client-only")
                                   {
                                       prepare_vbox();
-                                      logger.Info("Stage: {0}", "prepare-vbox");
+                                      logger.Info("Stage prepare vbox: {0}", "prepare-vbox");
                                   }
                                   stage_counter++;
                                   logger.Info("Stage prepate-vbox: {0}", stage_counter);
@@ -168,7 +168,7 @@ namespace Deployment
 
                               .ContinueWith((prevTask) =>
                               {
-                                  if (_arguments["params"].Contains("prepare-rh"))
+                                  if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
                                   {
                                       prepare_rh();
                                       //logger.Info("Stage: {0}", "prepare-rh");
@@ -186,12 +186,11 @@ namespace Deployment
 
                               .ContinueWith((prevTask) =>
                               {
-                                  if (_arguments["params"].Contains("deploy-p2p"))
+                                  if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
                                   {
                                       deploy_p2p();
                                       logger.Info("Stage: {0}", "deploy-p2p");
                                   }
-
                                   stage_counter++;
                                   logger.Info("Stage deploy-p2p: {0}", stage_counter);
                               }, TaskContinuationOptions.NotOnFaulted)
@@ -205,8 +204,8 @@ namespace Deployment
 //
                .ContinueWith((prevTask) =>
                {
-                   stage_counter = 1;
-                   finished = 1;
+                   //stage_counter = 1;
+                   //finished = 1;
                    logger.Info("stage_counter = {0}", stage_counter);
                    Program.form1.Invoke((MethodInvoker) delegate
                    {
@@ -225,7 +224,7 @@ namespace Deployment
                .ContinueWith((prevTask) =>
                {
                    logger.Info("finished = {0}", finished);
-                   if (finished == 1 || finished == 11)
+                   if (finished == 1 )  //|| finished == 11)
                        Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "");
                });
         }
@@ -242,7 +241,6 @@ namespace Deployment
             download_description_file("repo_descriptor");
             string regfile = Path.Combine(FD.logDir(), "subutai-clean-registry.reg");
             download_file(regfile);
-            
         }
 
         private void download_description_file(String arg_name)
@@ -316,6 +314,7 @@ namespace Deployment
 
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
+            //download tray-dev if installing -dev version
             if (file.Contains("tray") && _arguments["params"].Contains("dev"))
             {
                 file = file.Replace("tray.", "tray-dev.");
@@ -407,20 +406,28 @@ namespace Deployment
             StageReporter("", "TAP driver");
             Inst.inst_TAP(appDir);
 
-            string res = "";
-            StageReporter("", "MS Visual C++");
-            res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
-            logger.Info("MS Visual C++: {0}", res);
+            if (_arguments["peer"] != "rh-only") //install components if not installing RH only
+            {
+                string res = "";
+                StageReporter("", "MS Visual C++");
+                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
+                logger.Info("MS Visual C++: {0}", res);
 
-            StageReporter("", "Chrome browser");
-            Inst.inst_Chrome(appDir);
- 
-            StageReporter("", "Checking Chrome E2E extension");
-            Inst.inst_E2E();
-  
-            StageReporter("", "Virtual Box");
-            Inst.inst_VBox(appDir);
-        }
+                StageReporter("", "Chrome browser");
+                Inst.inst_Chrome(appDir);
+
+                StageReporter("", "Checking Chrome E2E extension");
+                Inst.inst_E2E();
+            }
+
+            StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
+            if (_arguments["peer"] != "client-only")
+            {
+                Inst.inst_VBox(appDir);
+            } 
+         }
+
+
 
         private void prepare_vbox()
         {
@@ -429,15 +436,15 @@ namespace Deployment
             StageReporter("", "Configuring network");
             logger.Info("Preparing Virtual Box");
             Deploy.ShowMarquee();
-            logger.Info("Marqee");
             // prepare NAT network
-            Deploy.LaunchCommandLineApp("VboxManage.exe", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
-            logger.Info("vboxmanage natnetwork add --netname natnet1 --network '10.0.5.0/24 --enable --dhcp on");
+            string res = "";
+            res = Deploy.LaunchCommandLineApp("VboxManage.exe", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
+            logger.Info("Configuring NAt interface: {0}", res);
 
             // import OVAs
             StageReporter("", "Importing Snappy");
-            Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova");
-            logger.Info("vboxmanage import snappy.ova");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova");
+            logger.Info("Importing snappy: {0}", res);
         }
 
         private void prepare_rh()
@@ -445,7 +452,6 @@ namespace Deployment
             // PREPARE RH
             StageReporter("Preparing resource host", "");
             logger.Info("Preparing resource host");
-            string ssh_res = "";
             string res = "";
             Deploy.ShowMarquee();
 
@@ -471,9 +477,7 @@ namespace Deployment
 
             //set UTC timezone
             StageReporter("", "Setting timezone");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --rtcuseutc on");
-            logger.Info("vboxmanage modifyvm {0} --rtcuseutc: {1}", _cloneName, res);
-            Thread.Sleep(4000);
+            VMs.vm_set_timezone(_cloneName);
            
             //start VM, will try 2 times
             StageReporter("", "Starting VM");
@@ -507,13 +511,12 @@ namespace Deployment
             StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
             
-            if (_arguments["peer"] != "rh-only")
-            {
-                StageReporter("Preparing management host", "");
-                logger.Info("Preparing management host");
-                
+            //if (_arguments["peer"] == "trial")
+            //{
                 if (_arguments["peer"] == "trial")
                 {
+                    StageReporter("Preparing management host", "");
+                    logger.Info("Preparing management host");
                     logger.Info("trial - installing management host");
                     if (_arguments["network-installation"].ToLower() != "true")
                     {
@@ -525,67 +528,25 @@ namespace Deployment
 
                     if (_arguments["network-installation"].ToLower() == "true")
                     {
-                        //installing master template
-                        StageReporter("", "Importing master");
-                        logger.Info("Importing master");
-                        VMs.import_templ("master");
-
-                        // installing management template
-                        StageReporter("", "Importing management");
-                        bool b_res = VMs.import_templ("management");
-                        if (!b_res)
-                        {
-                            logger.Info("trying import management again");
-                            b_res = VMs.import_templ("management");
-                            if (!b_res)
-                            {
-                                logger.Info("import management failed second time");
-                                Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
-                                Program.form1.Visible = false;
-                            }
-                        }
-                             
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash subutai management_network detect");
-                        logger.Info("Import management address: {0}", ssh_res);
-
-                        if (Deploy.com_out(ssh_res, 0) != "0")
-                        {
-                            logger.Error("import management failed second time", "Management template was not installed");
-                            Program.ShowError("Management template was not installed, installation failed, removing", "Management template was not imported");
-                            Program.form1.Visible = false;
-                        }
+                        Inst.install_mh_nw();
                     }
                     else
                     {
-                        //installing master template
-                        StageReporter("", "Importing master");
-                        logger.Info("Importing master");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
-                        logger.Info("Import master: {0}", ssh_res);
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l master_log| wc -l");
-                        logger.Info("Import master log: {0}", ssh_res);
+                        Inst.install_mh_lc(_privateKeys);
+               }
 
-                        // installing management template
-                        StageReporter("", "Importing management");
-                        ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", _privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
-                        logger.Info("Import management: {0}", ssh_res);
-                        if (Deploy.com_out(ssh_res, 0) != "0")
-                        {
-                            logger.Error("Management template was not installed");
-                            Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
-                            Program.form1.Visible = false;
-                        }
-                    }
-
-                    if (_arguments["network-installation"].ToLower() != "true")
-                    {
+               if (_arguments["network-installation"].ToLower() != "true")
+               {
                         // setting iptables rules
                         StageReporter("", "Allowing TCP trafic");
                         logger.Info("Allowing TCP trafic");
-                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo iptables - P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT");
-                    }
-                }
+                        Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", 
+                            "sudo iptables - P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT");
+               }
+               
             }
+            if (_arguments["peer"] == "rh-only")
+                    finished = 1;
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
          }
 
@@ -595,42 +556,37 @@ namespace Deployment
             // DEPLOYING P2P SERVICE
             StageReporter("Installing P2P service", "");
             Deploy.ShowMarquee();
-            _arguments["appDir"] = "C:\\Subutai\\";
-            string res = "";
-            var name = "Subutai Social P2P";
-            string name1 = "Subutai Social P2P";
+            //_arguments["appDir"] = "C:\\Subutai\\"; for debug
+            string name = "Subutai Social P2P";
             var binPath = $"{_arguments["appDir"]}bin\\p2p.exe";
             const string binArgument = "daemon";
+            //Check if service is running and remove if yes
+            Inst.service_stop(name);
 
             // installing service
             StageReporter("", "Installing P2P service");
-            res = Deploy.LaunchCommandLineApp("nssm", $"install \"{name}\" \"{binPath}\" \"{binArgument}\"");
-            logger.Info("Installing P2P service: {0}", res);
+            Inst.service_install(name, binPath, binArgument);
 
             StageReporter("", "Adding P2P service to firewall exceptions");
-            Net.set_fw_rules(name1, "p2p_s",true);
+            Net.set_fw_rules(name, "p2p_s",true);
 
             Net.set_fw_rules(binPath, "p2p", false);
  
             Net.set_fw_rules($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "SubutaiTray", false);
 
             //Configuring service logs
-            string logPath = FD.logDir();
-            logPath = Path.Combine(logPath, "p2p_log.txt");
-            logger.Info("Logs are in {0}", logPath);
-            Net.p2p_logs_config("Subutai Social P2P", logPath);
+            StageReporter("", "Configuring P2P service logs");
+            Inst.p2p_logs_config("Subutai Social P2P");
 
+            //Starting P2P service 
             StageReporter("", "Starting P2P service");
-            res = Deploy.LaunchCommandLineApp("nssm", $"start \"{name}\"");
-            logger.Info("Starting P2P service: {0}", res);
-            Thread.Sleep(2000);
-              
+            Inst.service_start(name);
+
             //configuring service restart on failure
             StageReporter("", "Configuring P2P service");
-            res = Deploy.LaunchCommandLineApp("sc", $"failure \"{name}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400");
-            logger.Info("Configuring P2P service {0}", res);
-            Thread.Sleep(5000);
-            finished = 1;
+            Inst.service_config(name);
+            if(_arguments["peer"] != "rh-only")
+                finished = 1;
            }
         #endregion
 
@@ -682,8 +638,9 @@ namespace Deployment
             {
                 if (finished == 1)
                 {
-                    finished = 11;
-                    form2.Show();
+                    //finished = 11;
+                    //form2.Show();
+
                 } else
                 {
                     finished = 11;

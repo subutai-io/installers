@@ -106,6 +106,16 @@ namespace Deployment
             return true;
         }
 
+        public static bool vm_set_timezone(string vmName)
+        {
+            string res = "";
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --rtcuseutc on");
+            logger.Info("vboxmanage modifyvm {0} --rtcuseutc: {1}", vmName, res);
+            Thread.Sleep(4000);
+
+            return true;
+        }
+
         public static bool waiting_4ssh(string name)
         {
             //Form1.StageReporter("", "Waiting for SSH ");
