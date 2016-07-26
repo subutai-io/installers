@@ -22,6 +22,8 @@ namespace Deployment
         private readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
         public readonly Deploy _deploy;
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
+        public static string[] rows;
+        public static string installation_type = "";
 
         private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
         private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
@@ -30,6 +32,7 @@ namespace Deployment
 
         private static int stage_counter = 0;
         public  int finished = 0;
+        private string st = " finished";
         public static string snapFile = "";
 
         private void ParseArguments()
@@ -37,19 +40,42 @@ namespace Deployment
             foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
             {
                 _arguments[splitted[0]] = splitted[1];
-                logger.Info("Parsing arguments:  {0} =  {1}", splitted[0], splitted[1] );
-
+                logger.Info("Arguments:  {0} =  {1}", splitted[0], splitted[1] );
             }
         }
 
         public Form1()
         {
-            logger.Info("version = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
+            logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
             InitializeComponent();
             ParseArguments();
             _deploy = new Deploy(_arguments);
             timer1.Start();
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            DevExpress.Skins.SkinManager.EnableFormSkins();
+            DevExpress.LookAndFeel.LookAndFeelHelper.ForceDefaultLookAndFeelChanged();
+
+            _deploy.SetEnvironmentVariables();
+
+            if (_arguments["network-installation"].ToLower() == "true")
+            {
+                //DOWNLOAD REPO
+                StageReporter("Downloading prerequisites", "");
+                Deploy.HideMarquee();
+                //Deploy.ShowMarquee();
+                download_repo();
+            }
+            //Inst.inst_E2E();
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            Invoke((MethodInvoker)Refresh);
+        }
+
         public static void StageReporter(string stageName, string subStageName)
         {
             Program.form1.Invoke((MethodInvoker)delegate
@@ -104,13 +130,13 @@ namespace Deployment
                    logger.Info("Stage unzip: {0}", stage_counter);
                }, TaskContinuationOptions.NotOnFaulted)
 
-                             .ContinueWith((prevTask) =>
-                              {
-                                  Exception ne = (Exception)e.Error;
-                                  logger.Error(ne.Message, "unzipping");
-                                  //finished = 3;
-                                  Program.ShowError(ne.Message, "unzipping");
-                              }, TaskContinuationOptions.OnlyOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    Exception ne = (Exception)e.Error;
+                    logger.Error(ne.Message, "unzipping");
+                    //finished = 3;
+                    Program.ShowError(ne.Message, "unzipping");
+                }, TaskContinuationOptions.OnlyOnFaulted)
 
                               //               .ContinueWith((prevTask) =>
                               //               {
@@ -128,80 +154,80 @@ namespace Deployment
                               //                   Program.ShowError(ne.Message, "check files");
                               //               }, TaskContinuationOptions.OnlyOnFaulted)
 
-                              .ContinueWith((prevTask) =>
-                              {
-                                  if (_arguments["params"].Contains("deploy-redist"))
-                                  {
-                                      deploy_redist();
-                                      logger.Info("Stage deploy-redist: {0}", "deploy-redist");
-                                  }
-                                  stage_counter++;
-                                  logger.Info("Stage deploy redistributables: {0}", stage_counter);
-                              }, TaskContinuationOptions.NotOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    if (_arguments["params"].Contains("deploy-redist"))
+                    {
+                        deploy_redist();
+                        logger.Info("Stage deploy-redist: {0}", "deploy-redist");
+                    }
+                    stage_counter++;
+                    logger.Info("Stage deploy redistributables: {0}", stage_counter);
+                }, TaskContinuationOptions.NotOnFaulted)
 
-                               .ContinueWith((prevTask) =>
-                               {
-                                   Exception ne = (Exception)e.Error;
-                                   logger.Error(ne.Message, "deploy-redist");
-                                   //finished = 3;
-                                   Program.ShowError(ne.Message, "deploy-redist");
-                               }, TaskContinuationOptions.OnlyOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    Exception ne = (Exception)e.Error;
+                    logger.Error(ne.Message, "deploy-redist");
+                    //finished = 3;
+                    Program.ShowError(ne.Message, "deploy-redist");
+                }, TaskContinuationOptions.OnlyOnFaulted)
 
-                              .ContinueWith((prevTask) =>
-                              {
-                                  if (_arguments["params"].Contains("prepare-vbox") && _arguments["peer"] != "client-only")
-                                  {
-                                      prepare_vbox();
-                                      logger.Info("Stage prepare vbox: {0}", "prepare-vbox");
-                                  }
-                                  stage_counter++;
-                                  logger.Info("Stage prepate-vbox: {0}", stage_counter);
-                              }, TaskContinuationOptions.NotOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    if (_arguments["params"].Contains("prepare-vbox") && _arguments["peer"] != "client-only")
+                    {
+                        prepare_vbox();
+                        logger.Info("Stage prepare vbox: {0}", "prepare-vbox");
+                    }
+                    stage_counter++;
+                    logger.Info("Stage prepate-vbox: {0}", stage_counter);
+                }, TaskContinuationOptions.NotOnFaulted)
 
-                               .ContinueWith((prevTask) =>
-                               {
-                                   Exception ne = (Exception)e.Error;
-                                   logger.Error(ne.Message, "prepare-vbox");
-                                   //finished = 3;
-                                   Program.ShowError(ne.Message, "prepare-vbox");
-                               }, TaskContinuationOptions.OnlyOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    Exception ne = (Exception)e.Error;
+                    logger.Error(ne.Message, "prepare-vbox");
+                    //finished = 3;
+                    Program.ShowError(ne.Message, "prepare-vbox");
+                }, TaskContinuationOptions.OnlyOnFaulted)
 
-                              .ContinueWith((prevTask) =>
-                              {
-                                  if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
-                                  {
-                                      prepare_rh();
-                                      //logger.Info("Stage: {0}", "prepare-rh");
-                                  }
-                                  stage_counter++;
-                                  logger.Info("Stage prepare-rh: {0}", stage_counter);
-                              }, TaskContinuationOptions.NotOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
+                    {
+                        prepare_rh();
+                        //logger.Info("Stage: {0}", "prepare-rh");
+                    }
+                    stage_counter++;
+                    logger.Info("Stage prepare-rh: {0}", stage_counter);
+                }, TaskContinuationOptions.NotOnFaulted)
 
-                               .ContinueWith((prevTask) =>
-                               {
-                                   Exception ne = (Exception)e.Error;
-                                   logger.Error(ne.Message, "prepare-rh");
-                                   Program.ShowError(ne.Message, "prepare-rh");
-                               }, TaskContinuationOptions.OnlyOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    Exception ne = (Exception)e.Error;
+                    logger.Error(ne.Message, "prepare-rh");
+                    Program.ShowError(ne.Message, "prepare-rh");
+                }, TaskContinuationOptions.OnlyOnFaulted)
 
-                              .ContinueWith((prevTask) =>
-                              {
-                                  if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
-                                  {
-                                      deploy_p2p();
-                                      logger.Info("Stage: {0}", "deploy-p2p");
-                                  }
-                                  stage_counter++;
-                                  logger.Info("Stage deploy-p2p: {0}", stage_counter);
-                              }, TaskContinuationOptions.NotOnFaulted)
+                .ContinueWith((prevTask) =>
+                {
+                    if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
+                    {
+                        deploy_p2p();
+                        logger.Info("Stage: {0}", "deploy-p2p");
+                    }
+                    stage_counter++;
+                    logger.Info("Stage deploy-p2p: {0}", stage_counter);
+                }, TaskContinuationOptions.NotOnFaulted)
 
-                               .ContinueWith((prevTask) =>
-                               {
-                                   Exception ne = (Exception)e.Error;
-                                   logger.Error(ne.Message, "deploy-p2p");
-                                   Program.ShowError(ne.Message, "deploy-p2p");
-                               }, TaskContinuationOptions.OnlyOnFaulted)
-//
+                .ContinueWith((prevTask) =>
+                {
+                    Exception ne = (Exception)e.Error;
+                    logger.Error(ne.Message, "deploy-p2p");
+                    Program.ShowError(ne.Message, "deploy-p2p");
+                }, TaskContinuationOptions.OnlyOnFaulted)
+
                .ContinueWith((prevTask) =>
                {
                    //stage_counter = 1;
@@ -211,21 +237,24 @@ namespace Deployment
                    {
                        logger.Info("form1.invoke");
                        Program.form1.Visible = false;
+                       
                    });
 
                    Program.form2.Invoke((MethodInvoker)delegate
                    {
-                      //logger.Info("show finished = {0}", finished);
-                      InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
-                      form2.Show();
-                      //show_finished();
-                    });
+                       //logger.Info("show finished = {0}", finished);
+                       InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
+                       logger.Info("will show form2 from task factory");
+                       form2.Show();
+                       //show_finished();
+                   });
                }, TaskContinuationOptions.NotOnFaulted)
                .ContinueWith((prevTask) =>
                {
                    logger.Info("finished = {0}", finished);
-                   if (finished == 1 )  //|| finished == 11)
+                   if (finished == 11  &&  st == "complete"  && _arguments["peer"] != "rh-only" ) //|| finished == 11)
                        Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "");
+                   //Environment.Exit(0);
                });
         }
         #endregion
@@ -236,11 +265,25 @@ namespace Deployment
             //DOWNLOAD REPO
             StageReporter("Downloading prerequisites", "");
 
-            Deploy.HideMarquee();
-            logger.Info("Downloading repo_descriptor");
+            //Deploy.HideMarquee();
+            //logger.Info("Downloading repo_descriptor");
             download_description_file("repo_descriptor");
+            if (_arguments["params"].Contains("dev"))
+            {
+                installation_type = "dev";
+            } else if (_arguments["params"].Contains("master"))
+            {
+                installation_type = "master";
+            } else
+            {
+                installation_type = "prod";
+            }
+            StageReporter("", $"Creating download list for installation type: {installation_type}");
+
+            rows = FD.repo_rows($"{_arguments["appDir"]}{_arguments["repo_descriptor"]}", _arguments["peer"],installation_type);
             string regfile = Path.Combine(FD.logDir(), "subutai-clean-registry.reg");
-            download_file(regfile);
+            Deploy.HideMarquee();
+            download_file(regfile, download_prerequisites);
         }
 
         private void download_description_file(String arg_name)
@@ -249,20 +292,20 @@ namespace Deployment
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"], 
                 destination: $"{_arguments["appDir"]}{_arguments[arg_name]}", 
-                onComplete: download_prerequisites, 
+                onComplete: null, 
                 report: "Getting repo descriptor",
-                async: true, //true
+                async: false, 
                 kurjun: true);
         }
 
-        private void download_file(String file_name)
+        private void download_file(String file_name, AsyncCompletedEventHandler cmplHandler)
         {
             StageReporter("", $"Getting file {file_name}");
             logger.Info("Getting  file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"],
                 destination: $"{file_name}",
-                onComplete: null,
+                onComplete: cmplHandler,
                 report: $"Getting file {file_name}",
                 async: true,
                 kurjun: true);
@@ -272,6 +315,7 @@ namespace Deployment
 
         private void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
+            //Check thread exception
             if (e != null)
             {
                 if (e.Cancelled)
@@ -294,7 +338,7 @@ namespace Deployment
                     {
                         Exception ne = (Exception)e.Error;
                         logger.Error(ne.Message);
-                        Program.ShowError("Download error, please uninstall partially installed Subutai Social", 
+                        Program.ShowError("Download error, uninstalling partially installed Subutai Social", 
                             ne.Message);
                         Program.form1.Visible = false;
                      }
@@ -303,26 +347,22 @@ namespace Deployment
             {
                logger.Info("File not downloaded");
             }
-            if (!File.Exists($"{_arguments["appDir"]}{_arguments["repo_descriptor"]}"))
-            {
-                Environment.Exit(1);
-            }
-            var rows = File.ReadAllLines($"{_arguments["appDir"]}{_arguments["repo_descriptor"]}");
-
+            
+            //Start download
             var row = rows[_prerequisitesDownloaded];
-            var folderFile = row.Split(new[] {"|"}, StringSplitOptions.None);
+            var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
 
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
+
+
             //download tray-dev if installing -dev version
             if (file.Contains("tray") && _arguments["params"].Contains("dev"))
             {
                 file = file.Replace("tray.", "tray-dev.");
             }
-                                   
-            logger.Info("Downloading prerequisites: {0}.", $"{_arguments["appDir"]}{folder}/{file}");
 
-            if (_prerequisitesDownloaded < rows.Length - 3) //.snap? (_prerequisitesDownloaded != rows.Length - 3) 
+            if (_prerequisitesDownloaded < rows.Length - 1) //For last row will change OnComplete
             {
                 _prerequisitesDownloaded++;
                 _deploy.DownloadFile(
@@ -334,24 +374,10 @@ namespace Deployment
                     kurjun: true
                     );
             }
-            else //if (_prerequisitesDownloaded == rows.Length - 3) //snap
-            {
+            else
+            {//changed OnComplete
                 var destfile = file;
-                if ((_arguments["params"].Contains("dev")) || (_arguments["params"].Contains("master")))
-                {
-                    if (_arguments["params"].Contains("dev"))
-                    {
-                        _prerequisitesDownloaded++;
-                    } else //master
-                    {
-                        _prerequisitesDownloaded += 2;
-                    }
-                    row = rows[_prerequisitesDownloaded];
-                    folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
-                    folder = folderFile[0].Trim();
-                    file = folderFile[1].Trim();
-                }
-                snapFile = file;
+                snapFile = file; //Last is .snap, need to remember name
                  _deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
                     destination: $"{_arguments["appDir"]}{folder}/{file}",
@@ -360,7 +386,7 @@ namespace Deployment
                     async: true,
                     kurjun: true);
             } 
-       }
+        }
 
         private void check_md5()
         {
@@ -444,7 +470,7 @@ namespace Deployment
             // import OVAs
             StageReporter("", "Importing Snappy");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova");
-            logger.Info("Importing snappy: {0}", res);
+            logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
         }
 
         private void prepare_rh()
@@ -511,10 +537,8 @@ namespace Deployment
             StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
             
-            //if (_arguments["peer"] == "trial")
-            //{
-                if (_arguments["peer"] == "trial")
-                {
+            if (_arguments["peer"] == "trial")
+            {
                     StageReporter("Preparing management host", "");
                     logger.Info("Preparing management host");
                     logger.Info("trial - installing management host");
@@ -591,30 +615,8 @@ namespace Deployment
         #endregion
 
   
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            DevExpress.Skins.SkinManager.EnableFormSkins();
-            DevExpress.LookAndFeel.LookAndFeelHelper.ForceDefaultLookAndFeelChanged();
-
-            _deploy.SetEnvironmentVariables();
-
-            if (_arguments["network-installation"].ToLower() == "true")
-            {
-                //DOWNLOAD REPO
-                StageReporter("Downloading prerequisites", "");
-                Deploy.HideMarquee();
-                download_repo();
-            }
-         }
-
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            Invoke((MethodInvoker) Refresh);
-        }
-        
         private void show_finished()
         {
-            string st = " finished";
             switch (finished)
             {
                 case 0:
@@ -638,9 +640,9 @@ namespace Deployment
             {
                 if (finished == 1)
                 {
-                    //finished = 11;
-                    //form2.Show();
-
+                    finished = 11;
+                    logger.Info("will show form2 from sub");
+                    form2.Show();
                 } else
                 {
                     finished = 11;

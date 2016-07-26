@@ -1,18 +1,80 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
+using NLog;
 
 namespace Deployment
 {
     class FD
     {
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private int[] md5Sum;
         private string name;
+        private static readonly string [] peerTypes = {"trial","rh-only","client-only"};
+        private static readonly string[] instTypes = { "prod", "dev", "master" };
+        //read description file and form download list for installation
+        public static string[] repo_rows(string fpath, string peer_type, string inst_type)
+        {
+            if (!File.Exists(fpath))
+            {
+                Program.ShowError("Repo descriptor file does not exist, cancelling","File does not exist");
+                Program.form1.Visible = false;
+                //Environment.Exit(1);
+            }
+            var rows = File.ReadAllLines(fpath);
+            string[] rows1 = rows2download(ref rows, peer_type, inst_type);
+            return rows1;
+        }
 
-        public string Md5Sum
+        //define download list
+        public static string[] rows2download(ref string[] rows1, string peer_type, string inst_type)
+        {
+            List<string> rows = new List<string>();
+            foreach (string row in rows1)
+            {
+                string [] folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
+
+                string folder = folderFile[0].Trim();
+                string file = folderFile[1].Trim();
+                string need_mh = folderFile[2].Trim();
+                string need_rh = folderFile[3].Trim();
+                string need_client = folderFile[4].Trim();
+                string need_prod = folderFile[5].Trim();
+                string need_dev = folderFile[6].Trim();
+                string need_master = folderFile[7].Trim();
+
+                int pLen = peerTypes.Length;
+                int iLen = instTypes.Length;
+                int start_i = 2;
+                int start_j = start_i + pLen;
+
+                for (int i = start_i; i < start_i + pLen; i++) //find i for peer type
+                {
+                    if (peer_type.Contains(peerTypes[i - (pLen - 1)])) //found i
+                    {
+                        if (folderFile[i].Contains("1")) //need file
+                        {
+                            for (int j = start_j; j < start_j + iLen; j++)
+                            {
+                                if (inst_type.Contains(instTypes[j - (iLen + pLen - 1)]))
+                                {
+                                    if (folderFile[j].Contains("1"))
+                                    {
+                                        rows.Add(row);
+                                        logger.Info("file to download:{0}\\{1}", folder, file);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            string[] arows = rows.ToArray();
+            return arows;
+        }
+
+    public string Md5Sum
         {
             get
             {

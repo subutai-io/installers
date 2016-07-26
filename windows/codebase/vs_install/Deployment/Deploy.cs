@@ -111,10 +111,10 @@ namespace Deployment
                     shouldWeDownload = false;
                 }
             }
-            if (destination.Contains(".snap") && _arguments["peer"] == "client-only")
-            {
-                shouldWeDownload = false;//no need to download snap if client-only
-            }
+            //if (destination.Contains(".snap") && _arguments["peer"] == "client-only")
+            //{
+            //    shouldWeDownload = false;//no need to download snap if client-only
+            //}
 
             if (destination.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
             {
