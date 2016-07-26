@@ -87,45 +87,88 @@ namespace Deployment
         }
 
         //Install E2E extension - create subkey in Registry
-        public static void install_ext()
+        public static bool create_subkey(string keyPath, string subKeyPath)
         {
-            string keyPath = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
-            string extName = "kpmiofpmlciacjblommkcinncmneeoaa";
+            string keyPath0 = keyPath; //"SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
+            string subKeyPath0 = subKeyPath; //"kpmiofpmlciacjblommkcinncmneeoaa";
             RegistryKey kPath = Registry.LocalMachine.OpenSubKey(keyPath, true);
-            if (kPath != null)
+            if (kPath != null) //Extensions subkey exists
             {
-                kPath.CreateSubKey(extName);
+                kPath.CreateSubKey(subKeyPath);//create E2E subkey
                 kPath.Close();
-                extName = Path.Combine(keyPath, extName);
-                kPath = Registry.LocalMachine.OpenSubKey(extName, true);
-                if (kPath != null)
+                string keyPath1 = Path.Combine(keyPath, subKeyPath);
+                logger.Info("After create subkey {0}", keyPath1);
+                kPath = Registry.LocalMachine.OpenSubKey(keyPath1, true);
+                if (kPath != null) //E2E key exists, was created
                 {
-                    kPath.SetValue("update_url", "http://clients2.google.com/service/update2/crx", RegistryValueKind.String);
-                    logger.Info("E2E plugin value added");
+                    logger.Info("Subkey {0} exists", subKeyPath);
+                    kPath.Close();
+                    return true;
+                } else
+                {
+                    logger.Info("Subkey {0} was not added", subKeyPath);
+                    return false;
+                }
+            } else { //there is no  key to add subkey
+                string [] keyPathArr = keyPath.Split(new[] { "\\" },  StringSplitOptions.None);
+                logger.Info("keyPath = {0}, keyPathArr[0] = {1}, keyPathArr[3] = {2}", keyPath, keyPathArr[0], keyPathArr[3]);
+
+                string keyPath2 = "";
+                    
+                Registry.LocalMachine.OpenSubKey(keyPathArr[0], true);
+                for (int i = 0; i < keyPathArr.Length; i++)
+                {
+                    keyPath2 = Path.Combine(keyPath2, keyPathArr[i]);
+                    kPath = Registry.LocalMachine.OpenSubKey(keyPath2, true);
+                    logger.Info("i = {0}  keyPath2 = {1}", i, keyPath2);
+                    if (kPath == null)
+                    {
+                        kPath = Registry.LocalMachine.CreateSubKey(keyPath2);
+                    }
                     kPath.Close();
                 }
-            }
-            else
-            {
-                kPath = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Wow6432Node\\Google\\Chrome", true);
-                if (kPath != null)
+                if (create_subkey(keyPath0, subKeyPath0))
                 {
-                    kPath.CreateSubKey("Extensions");
-                    kPath.Close();
-                    logger.Info("Extensions key added");
-                    install_ext();
+                    return true; //Subkey exist
+                } else
+                {
+                    logger.Info("Could not create subkey {0}", subKeyPath0);
+                    return false;
                 }
             }
         }
 
         public static void inst_E2E()
         {
-            logger.Info("E2E extension");
-            if (app_installed("Google\\Chrome\\Extensions\\kpmiofpmlciacjblommkcinncmneeoaa") == 0)
+            Form1.StageReporter("", "Installing Chrome E2E extension");
+            logger.Info("Installing Chrome E2E extension");
+            string e2ePath = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
+            string e2eName = "kpmiofpmlciacjblommkcinncmneeoaa";
+
+            //string e2ePath = "SOFTWARE\\Wow6432Node\\Google1\\Chrome1\\Extensions1";
+            //string e2eName = "testingplugins";
+
+            string e2eKey = Path.Combine(e2ePath, e2eName);
+            //RegistryKey extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
+            RegistryKey extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
+            if (extPath == null)
             {
-                Form1.StageReporter("", "Chrome E2E extension");
-                install_ext();
+                logger.Info("Setting E2E extension  subkey");
+                
+                if (create_subkey(e2ePath, e2eName))
+                {
+                    extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
+                    
+                    if (extPath == null)
+                        logger.Info("Can not open E2E subkey");
+                }
             }
+            else
+            {
+                logger.Info("Chrome E2E subkey exists");
+            }
+            extPath.SetValue("update_url", "http://clients2.google.com/service/update2/crx", RegistryValueKind.String);
+            logger.Info("Chrome E2E extension values sat");
         }
 
         public static void inst_VBox(string instDir)
