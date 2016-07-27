@@ -108,12 +108,13 @@ namespace Deployment
         {
             get { return name; }
         }
-        /*
-                private void check_files()
+        
+                private void check_files(string appDir, string tgt)
                 {
-                    StageReporter("", "Performing file check");
-                    download_file($"{ _arguments["appDir"]}{_arguments["repo_tgt"]}");
-                    string pth = $"{_arguments["appDir"]}{_arguments["repo_tgt"]}";
+                    Form1.StageReporter("", "Performing file check");
+                    string pth = $"{appDir}{tgt}";
+                    //Form1.download_file($"{pth}", null);
+                   
                     try
                     {
                         var rows = File.ReadAllLines(pth);
@@ -122,9 +123,9 @@ namespace Deployment
                             var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
                             var folderpath = folderFile[0].Trim();
                             var filename = folderFile[1].Trim();
-                            String fullFolderPath = $"{_arguments["appDir"]}/{folderpath.ToString()}";
-                            String fullFileName = $"{_arguments["appDir"]}/{folderpath.ToString()}/{filename.ToString()}";
-                            StageReporter("", folderpath.ToString() + "/" + filename.ToString());
+                            String fullFolderPath = $"{appDir}/{folderpath.ToString()}";
+                            String fullFileName = $"{appDir}/{folderpath.ToString()}/{filename.ToString()}";
+                            Form1.StageReporter("", folderpath.ToString() + "/" + filename.ToString());
 
                             if (!Directory.Exists(fullFolderPath))
                             {
@@ -145,7 +146,6 @@ namespace Deployment
                         logger.Error(ex.Message);
                     }
                 }
-        */
-
+        
     }
 }

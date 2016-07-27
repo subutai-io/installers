@@ -138,22 +138,6 @@ namespace Deployment
                     Program.ShowError(ne.Message, "unzipping");
                 }, TaskContinuationOptions.OnlyOnFaulted)
 
-                              //               .ContinueWith((prevTask) =>
-                              //               {
-                              //                   check_files();
-                              //                   stage_counter++;
-                              //                   logger.Info("Stage check_files: {0}", stage_counter);
-                              //               }, TaskContinuationOptions.NotOnFaulted)
-
-                              /////////////////////////
-                              //               .ContinueWith((prevTask) =>
-                              //               {
-                              //                   Exception ne = (Exception)e.Error;
-                              //                   logger.Error(ne.Message, "check files");
-                              //                   finished = 3;
-                              //                   Program.ShowError(ne.Message, "check files");
-                              //               }, TaskContinuationOptions.OnlyOnFaulted)
-
                 .ContinueWith((prevTask) =>
                 {
                     if (_arguments["params"].Contains("deploy-redist"))
@@ -266,7 +250,7 @@ namespace Deployment
             StageReporter("Downloading prerequisites", "");
 
             //Deploy.HideMarquee();
-            //logger.Info("Downloading repo_descriptor");
+            logger.Info("Downloading repo_descriptor");
             download_description_file("repo_descriptor");
             if (_arguments["params"].Contains("dev"))
             {
@@ -429,12 +413,13 @@ namespace Deployment
             Deploy.ShowMarquee();
             string appDir = _arguments["appDir"];
 
-            StageReporter("", "TAP driver");
-            Inst.inst_TAP(appDir);
-
             if (_arguments["peer"] != "rh-only") //install components if not installing RH only
             {
                 string res = "";
+
+                StageReporter("", "TAP driver");
+                Inst.inst_TAP(appDir);
+
                 StageReporter("", "MS Visual C++");
                 res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
                 logger.Info("MS Visual C++: {0}", res);

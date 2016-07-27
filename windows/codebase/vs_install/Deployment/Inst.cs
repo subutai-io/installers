@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.IO;
-//using System.ServiceProcess;
 using Microsoft.Win32;
 using NLog;
 using Renci.SshNet;
@@ -145,11 +144,7 @@ namespace Deployment
             string e2ePath = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
             string e2eName = "kpmiofpmlciacjblommkcinncmneeoaa";
 
-            //string e2ePath = "SOFTWARE\\Wow6432Node\\Google1\\Chrome1\\Extensions1";
-            //string e2eName = "testingplugins";
-
             string e2eKey = Path.Combine(e2ePath, e2eName);
-            //RegistryKey extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
             RegistryKey extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
             if (extPath == null)
             {
