@@ -57,7 +57,7 @@ sudo -u "${USER}" printf '{\n\t"external_update_url": "https://clients2.google.c
 }
 
 function set_path {
-sudo -u "${USER}" echo '\nexport PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
+sudo -u "${USER}" echo 'export PATH="/Applications/Subutai:$PATH"' >> ~/.bash_profile
 }
 
 function create_config {
