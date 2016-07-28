@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.ServiceProcess;
 using System.Diagnostics;
@@ -20,6 +14,7 @@ namespace uninstall_clean
     public partial class clean : Form
     {
         //private static NLog.logger logger = LogManager.GetCurrentClasslogger();
+        private static string sysDrive = "";
         public clean()
         {
             InitializeComponent();
@@ -30,18 +25,7 @@ namespace uninstall_clean
 
         private void clean_Load(object sender, EventArgs e)
         {
-            //timer1.Enabled = true;
-            //timer1.Start();
-            //timer1.Interval = 1000;
-            //progressBar1.Maximum = 10;
-
-            //timer1.Tick += new EventHandler(timer1_Tick);
-            //logger.Info("Starting to remove Subutai Social");
-            clean_all();
-
-            //remove_vm();
-            //delete_from_reg();
-            //remove_env();
+              clean_all();
         }
 
         void timer1_Tick(object sender, EventArgs e)
@@ -57,8 +41,8 @@ namespace uninstall_clean
         }
         private void clean_all()
         {
-            var SubutaiDir = Environment.GetEnvironmentVariable("Subutai");
-
+            var SubutaiDir = Environment.GetEnvironmentVariable("Subutai") ?? "";
+ 
             remove_fw_rules(SubutaiDir);
             string mess = stop_process("p2p");
             //logger.Info("Stopping p2p process: {0}", mess);
@@ -76,12 +60,9 @@ namespace uninstall_clean
             //logger.Info("Stopping SubutaiTray process: {0}", mess);
             //MessageBox.Show(mess + " Application was not running.", "Stopping SubutaiTray", MessageBoxButtons.OK);
             mess = "";
-            delete_from_reg();
+           
             delete_Shortcuts("Subutai");
             remove_vm();
-
-            //logger.Info("Subutai directory: {0}", SubutaiDir);
-            //var SubutaiDir = "c:\\4delete";
 
             if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
             {
@@ -102,15 +83,26 @@ namespace uninstall_clean
                 }
             }
             remove_env();
-            //Environment.SetEnvironmentVariable("Subutai", null);
-            Environment.SetEnvironmentVariable("Subutai", "");
+            SubutaiDir = Environment.GetEnvironmentVariable("Subutai") ?? "";
+
+            Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.User);
+            Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.Process);
+
+            delete_from_reg();
             progressBar1.Visible = false;
-            LaunchCommandLineApp("regedit.exe", "/s c:\\temp\\subutai-clean-registry.reg");
+
+            //Find if registry cleaner exists 
+
+            string rclean_path = logDir();
+            if (rclean_path != "")
+            {
+                rclean_path = Path.Combine(rclean_path, "subutai-clean-registry.reg");
+                LaunchCommandLineApp("regedit.exe", $"/s {rclean_path}");
+            }
+
+            del_TAP();
             MessageBox.Show("Subutai Social uninstalled", "Information", MessageBoxButtons.OK);
-            
-            //label2.Visible = true;
-            //label2.Text = " Please, close this window";
-            //logger.Info("Uninstalled");
             Environment.Exit(0);
         }
         private string stop_service(string serviceName, int timeoutMilliseconds)
@@ -118,16 +110,10 @@ namespace uninstall_clean
             ServiceController service = new ServiceController(serviceName);
             try
             {
-                //timer1.Enabled = true;
-                //timer1.Start();
-                //timer1.Interval = 1000;
-                //progressBar1.Maximum = 10;
                 TimeSpan timeout = TimeSpan.FromMilliseconds(timeoutMilliseconds);
                 label1.Text = "Stopping " + serviceName + " service";
                 service.Stop();
                 service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
-                //timer1.Stop();
-                //timer1.Enabled = false;
                 Thread.Sleep(2000);
                 return "0";
             }
@@ -159,15 +145,9 @@ namespace uninstall_clean
         {
             try
             {
-                //timer1.Enabled = true;
-                //timer1.Start();
-                //timer1.Interval = 2000;
-                //progressBar1.Maximum = 10;
                 label1.Text = "Stopping " + procName + " process";
                 Process[] proc = Process.GetProcessesByName(procName);
                 proc[0].Kill();
-                //timer1.Stop();
-                //timer1.Enabled = false;
                 Thread.Sleep(3000);
                 return "0";
             }
@@ -184,29 +164,18 @@ namespace uninstall_clean
         {
             try
             {
-                //timer1.Enabled = true;
-                //timer1.Start();
-                //timer1.Interval = 1000;
-                //progressBar1.Maximum = 10;
+ 
                 label1.Text = "Deleting " + dirName + " folder";
                 if (Directory.Exists(dirName))
                     Directory.Delete(dirName, true);
-                //timer1.Stop();
-                //timer1.Enabled = false;
-                //deleteDirectory(dirName, true);
+
                 Thread.Sleep(5000);
                 return "0";
             }
             catch (Exception ex)
             {
-                //timer1.Enabled = true;
-                //timer1.Start();
-                //timer1.Interval = 1000;
-                //progressBar1.Maximum = 10;
+ 
                 label1.Text = "Can not delete folder " + dirName + ". " + ex.Message.ToString();
-                //logger.Error(ex.Message, "Deleting directory");
-                //timer1.Stop();
-                //timer1.Enabled = false;
                 return "Can not delete folder " + dirName + ". " + ex.Message.ToString();
             }
         }//
@@ -409,7 +378,7 @@ namespace uninstall_clean
         private void delete_from_reg()
         {
             //user environment
-            label1.Text = "DCleanig Registry";
+            label1.Text = "Cleanig Registry";
             string subkey; 
             RegistryKey rk;
 
@@ -456,6 +425,11 @@ namespace uninstall_clean
                 DeleteSubKeyTree("{1AAA66FC-2062-44D7-975D-BB87806ADC7A}", rk);
                 //logger.Info("{0} deleted", subkey);
             }
+            
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.07
+            subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+            DeleteSubKeyFound(subkey, "Subutai");
+
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\LZMA\{ 1AAA66FC - 2062 - 44D7 - 975D - BB87806ADC7A}
             subkey = "SOFTWARE\\Wow6432Node\\Caphyon\\Advanced Installer\\LZMA";
             rk = Registry.LocalMachine.OpenSubKey(subkey, true);
@@ -464,10 +438,6 @@ namespace uninstall_clean
                 DeleteSubKeyTree("{1AAA66FC-2062-44D7-975D-BB87806ADC7A}", rk);
                 //logger.Info("{0} deleted", subkey);
             }
-
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.07
-            subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-            DeleteSubKeyFound(subkey, "Subutai");
 
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Subutai Social
             subkey = "SOFTWARE\\Wow6432Node";
@@ -495,6 +465,7 @@ namespace uninstall_clean
             {
                 //rk.DeleteValue("Subutai");
                 DeleteSubKeyTree("Subutai", rk);
+                DeleteValueFound(subkey, "Subutai");
                 //logger.Info("{0} deleted", subkey);
             }
 
@@ -517,16 +488,6 @@ namespace uninstall_clean
                 DeleteSubKeyTree("Subutai Social", rk);
                 //logger.Info("{0} deleted", subkey);
             }
-
-
-                //rk = Registry.LocalMachine.OpenSubKey(subkey, true);
-                //if (rk != null)
-                //    DeleteSubKeyTree("Subutai 4.0.14", rk);
-
-                //subkey = "SYSTEM\\CurrentControlSet\\Services";
-                //rk = Registry.LocalMachine.OpenSubKey(subkey, true);
-                //if (rk != null)
-                //    DeleteSubKeyTree("Subutai Social P2P", rk);
 
             subkey = "SOFTWARE\\Optimal-dynamics";
             rk = Registry.CurrentUser.OpenSubKey(subkey, true);
@@ -672,5 +633,35 @@ namespace uninstall_clean
             LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_out\"");
         }
 
+        public static string logDir()
+        {
+            string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            sysDrive = Path.GetPathRoot(sysPath);
+            string logPath = Path.Combine(sysDrive, "temp");
+            if (!Directory.Exists(logPath))
+            {
+                Directory.CreateDirectory(logPath);
+            }
+            logPath = Path.Combine(logPath, "Subutai_Log");
+            if (!Directory.Exists(logPath))
+            {
+                return "";
+            }
+            return logPath;
+        }
+
+        public void del_TAP()
+        {
+            //string binPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), 
+            string binPath = Path.Combine(sysDrive, "Program Files",
+            "TAP-Windows", "bin", "tapinstall.exe");
+            string res = "";
+            if (File.Exists(binPath))
+            {
+                res = LaunchCommandLineApp(binPath, "remove tap0901");
+                Thread.Sleep(20000);
+            }
+        }
     }
-}
+
+    }

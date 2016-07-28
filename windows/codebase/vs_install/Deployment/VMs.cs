@@ -307,21 +307,5 @@ namespace Deployment
             }
         }
 
-        public static bool import_templ(string tname)
-        {
-            string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, 
-                "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
-            string stcode = Deploy.com_out(ssh_res, 0);
-            string sterr = Deploy.com_out(ssh_res, 2);
-
-            logger.Info("Import {0}: {1}, code: {2}, err: {3}", 
-                tname, ssh_res, stcode, sterr);
-
-            if (stcode != "0") //&&  sterr != "Empty")
-            {
-                return false;
-            }
-            return true;
-        }
-    }
+     }
 }
