@@ -60,8 +60,6 @@ namespace Deployment
             }
             logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("PATH"));
          }
-
-   
        
         #region HELPERS: Download
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)

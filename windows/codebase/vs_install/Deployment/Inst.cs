@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.IO;
 using Microsoft.Win32;
 using NLog;
@@ -272,15 +273,17 @@ namespace Deployment
             //installing master template
             Form1.StageReporter("", "Importing master");
             logger.Info("Importing master");
-            VMs.import_templ("master");
+            bool b_res = import_templ("master");
 
             // installing management template
             Form1.StageReporter("", "Importing management");
-            bool b_res = VMs.import_templ("management");
+            //b_res = import_templ("management");
+            b_res = import_templ_task("management");
             if (!b_res)
             {
                 logger.Info("trying import management again");
-                b_res = VMs.import_templ("management");
+                //b_res = import_templ("management");
+                b_res = import_templ_task("management");
                 if (!b_res)
                 {
                     logger.Info("import management failed second time");
@@ -307,6 +310,7 @@ namespace Deployment
             Form1.StageReporter("", "Importing master");
             logger.Info("Importing master");
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
+
             logger.Info("Import master: {0}", ssh_res);
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls -l master_log| wc -l");
             logger.Info("Import master log: {0}", ssh_res);
@@ -321,6 +325,105 @@ namespace Deployment
                 Program.ShowError("Management template was not installed, instllation failed, please uninstall and try to install later", "Management template was not imported");
                 Program.form1.Visible = false;
             }
+        }
+
+        //public async static Task<bool> import_templ(string tname)
+        public static bool import_templ(string tname)
+        {
+            string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+                "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
+
+            string stcode = Deploy.com_out(ssh_res, 0);
+            string sterr = Deploy.com_out(ssh_res, 2);
+
+            logger.Info("Import {0}: {1}, code: {2}, err: {3}",
+                tname, ssh_res, stcode, sterr);
+
+            if (stcode != "0") //&&  sterr != "Empty")
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public static bool import_templ_task(string tname)
+        {
+            // Cancellation token to cancel watcher when import is finished or cancelled
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+
+            //Starting Watcher task as parent, import as child
+            var watcher = Task.Factory.StartNew(() =>
+            {
+                string res0 = "";
+                int cnt = 0;
+                logger.Info("Import {0}",  tname);
+                while (true)
+                {
+                    Thread.Sleep(20000);
+                    string res = check_templ(tname);
+                    logger.Info("res = {0}", res);
+                    if (res == res0)
+                    {
+                        //will check 5 times more
+                        cnt++;
+                        if (cnt >= 5)
+                        {
+                            //stop 
+                            logger.Info("Cancelling from watcher");
+                            tokenSource.Cancel();
+                        }
+                    }
+                    res0 = res;
+                }
+            }, token);
+
+            var import = Task.Factory.StartNew(() =>
+            {
+                string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+                        "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
+
+                string stcode = Deploy.com_out(ssh_res, 0);
+                string sterr = Deploy.com_out(ssh_res, 2);
+
+                logger.Info("Import {0}: {1}, code: {2}, err: {3}",
+                    tname, ssh_res, stcode, sterr);
+
+                if (stcode != "0") //&&  sterr != "Empty")
+                {
+                    return false;
+                }
+                return true;
+            }, token);
+
+            import.Wait();//import finished
+            logger.Info("Cancelling from outer");
+            tokenSource.Cancel();//cancel  watcher
+            bool b_res = false;
+            if (import.IsCompleted)
+            {
+                b_res = import.Result;
+            } 
+            return b_res;
+       }
+
+        private static  string check_templ(string tname)
+        {
+            string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+                    "ubuntu", "ubuntu", $"du -b {tname}_log"); //find size in bytes
+            string stcode = Deploy.com_out(ssh_res, 0);
+            string stres = Deploy.com_out(ssh_res, 1);
+            string sterr = Deploy.com_out(ssh_res, 2);
+
+            if (sterr == "Empty")
+            {
+                Form1.StageReporter("", $"Downloaded {stres} bytes, err: {sterr}");
+            } else
+            {
+                Form1.StageReporter("", $"Download error: {sterr}, trying restart import");
+            }
+            
+            return stres;
         }
     }
 }
