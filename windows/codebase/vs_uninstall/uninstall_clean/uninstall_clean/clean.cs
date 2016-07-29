@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using System.ServiceProcess;
 using System.Diagnostics;
@@ -41,8 +42,9 @@ namespace uninstall_clean
         }
         private void clean_all()
         {
+           
             var SubutaiDir = Environment.GetEnvironmentVariable("Subutai") ?? "";
- 
+
             remove_fw_rules(SubutaiDir);
             string mess = stop_process("p2p");
             //logger.Info("Stopping p2p process: {0}", mess);
@@ -453,8 +455,7 @@ namespace uninstall_clean
             rk = Registry.LocalMachine.OpenSubKey(subkey, true);
             if (rk != null)
             {
-                //rk.DeleteValue("Subutai");
-                DeleteSubKeyTree("Subutai", rk);
+                DeleteValueFound(subkey,"Subutai");
                 //logger.Info("{0} deleted", subkey);
             }
 
@@ -463,8 +464,7 @@ namespace uninstall_clean
             rk = Registry.LocalMachine.OpenSubKey(subkey, true);
             if (rk != null)
             {
-                //rk.DeleteValue("Subutai");
-                DeleteSubKeyTree("Subutai", rk);
+                //DeleteSubKeyTree("Subutai", rk);
                 DeleteValueFound(subkey, "Subutai");
                 //logger.Info("{0} deleted", subkey);
             }
@@ -583,7 +583,7 @@ namespace uninstall_clean
                 foreach (var vname in rk.GetValueNames())
                 {
                     string kvalue = Convert.ToString(rk.GetValue(vname));
-                    if (kvalue.Contains(str_2_find))
+                    if (kvalue.Contains(str_2_find) && !vname.Contains("Path"))
                     {
                         //MessageBox.Show("value: " + kvalue, rk + "\\" + vname, MessageBoxButtons.OK);
                         rk.DeleteValue(vname);
@@ -591,14 +591,14 @@ namespace uninstall_clean
                     }
                 }
             }
-
         }
 
 
         public void remove_env()
         {
             //logger.Info("Remove env");
-            string strPath = Environment.GetEnvironmentVariable("PATH");
+            
+            string strPath = Environment.GetEnvironmentVariable("Path");
             string strSubutai = Environment.GetEnvironmentVariable("Subutai");
 
             if (strPath == null || strPath == "")
@@ -608,16 +608,21 @@ namespace uninstall_clean
                 return;
 
             string[] strP = strPath.Split(';');
+            List<string> lPath = new List<string>();
 
             foreach (string sP in strP)
             {
-                if (sP.Contains(strSubutai))
+                if (!lPath.Contains(sP) && !sP.Contains(strSubutai))
                 {
-                    strPath = strPath.Replace(sP + ";","");
-                    //logger.Info("Path = {0}", strPath);
+                    lPath.Add(sP);
                 }
-             }
-            Environment.SetEnvironmentVariable("PATH", strPath);
+            }
+
+            string[] slPath = lPath.ToArray();
+            string newPath = string.Join(";", slPath);
+
+            Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Machine);
+          
         }
 
         public void remove_fw_rules(string appdir)
