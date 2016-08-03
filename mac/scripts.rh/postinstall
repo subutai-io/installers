@@ -17,7 +17,7 @@ function download {
 	prop='id'
 	id=`jsonval`
 	if [ -e $target ]; then
-		if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
+		if [ "`md5 $target | awk '{print $4}'`" = "$id" ]; then :
 		else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/raw/get\?id\=$id
 		fi
 	else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/raw/get\?id\=$id
