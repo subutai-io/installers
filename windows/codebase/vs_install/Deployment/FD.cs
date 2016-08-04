@@ -87,11 +87,15 @@ namespace Deployment
             }
         }
 
-        public static string logDir()
+        public static string sysDrive()
         {
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             string sysDrive = Path.GetPathRoot(sysPath);
-            string logPath = Path.Combine(sysDrive, "temp");
+            return sysDrive;
+        }
+        public static string logDir()
+        {
+            string logPath = Path.Combine(sysDrive(), "temp");
             if (!Directory.Exists(logPath))
             {
                 Directory.CreateDirectory(logPath);

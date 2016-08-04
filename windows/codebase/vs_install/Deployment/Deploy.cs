@@ -26,8 +26,10 @@ namespace Deployment
 {
     public class Deploy
     {
-        private const string RestFileinfoURL = "/kurjun/rest/file/info?name=";
-        private const string RestFileURL = "/kurjun/rest/file/get?id=";
+        //private const string RestFileinfoURL = "/kurjun/rest/file/info?name=";
+        private const string RestFileinfoURL = "/kurjun/rest/raw/info?name=";
+        //private const string RestFileURL = "/kurjun/rest/file/get?id=";
+        private const string RestFileURL = "/kurjun/rest/raw/get?id=";
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -38,27 +40,42 @@ namespace Deployment
 
         public void SetEnvironmentVariables()
         {
-            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("VirtualBox"))
+            string sysDrive = FD.sysDrive();
+            logger.Info("Orig: {0}", Environment.GetEnvironmentVariable("Path"));
+            if (!$"{Environment.GetEnvironmentVariable("Path")}".Contains("VirtualBox"))
             {
-                Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox"
+                Environment.SetEnvironmentVariable("Path",
+                $"{Environment.GetEnvironmentVariable("Path")};{sysDrive}Program Files\\Oracle\\VirtualBox",
+                EnvironmentVariableTarget.Machine
                 );
+                logger.Info("VirtualBox: {0}", Environment.GetEnvironmentVariable("Path"));
             }
 
-            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("TAP-Windows"))
+            if (!$"{Environment.GetEnvironmentVariable("Path")}".Contains("TAP-Windows"))
             {
-                Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\TAP-Windows\\bin"
+                Environment.SetEnvironmentVariable("Path",
+                $"{Environment.GetEnvironmentVariable("Path")};{sysDrive}Program Files\\TAP-Windows\\bin",
+                EnvironmentVariableTarget.Machine
                 );
+                logger.Info("TAP-Windowsx: {0}", Environment.GetEnvironmentVariable("Path"));
             }
 
-            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("Subutai"))
+            if (!$"{Environment.GetEnvironmentVariable("Path")}".Contains("Subutai"))
             {
-                Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{_arguments["appDir"]}bin"
+                Environment.SetEnvironmentVariable("Path",
+                $"{Environment.GetEnvironmentVariable("Path")};{_arguments["appDir"]}bin"
+                , EnvironmentVariableTarget.Machine
                 );
+
+                Environment.SetEnvironmentVariable("Path",
+                $"{Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine)};{_arguments["appDir"]}bin\\tray"
+                , EnvironmentVariableTarget.Machine
+                );
+                logger.Info("Subutai: {0}", Environment.GetEnvironmentVariable("Path")
+                    ,EnvironmentVariableTarget.Machine
+                    );
             }
-            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("PATH"));
+            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("Path"));
          }
        
         #region HELPERS: Download
