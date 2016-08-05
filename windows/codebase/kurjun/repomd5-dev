@@ -1,4 +1,5 @@
 bin | tray.zip | 1 | 0 | 1 |1|1|1
+bin | ssh.zip | 1 | 0 | 1 |1|1|1
 bin | p2p.exe | 1 | 0 | 1 |1|1|1
 ova | snappy.ova | 1 | 1 | 0 |1|1|1
 redist | chrome.msi | 1 | 0 | 1 |1|1|1

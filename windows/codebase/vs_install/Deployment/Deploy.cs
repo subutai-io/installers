@@ -26,9 +26,7 @@ namespace Deployment
 {
     public class Deploy
     {
-        //private const string RestFileinfoURL = "/kurjun/rest/file/info?name=";
         private const string RestFileinfoURL = "/kurjun/rest/raw/info?name=";
-        //private const string RestFileURL = "/kurjun/rest/file/get?id=";
         private const string RestFileURL = "/kurjun/rest/raw/get?id=";
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();

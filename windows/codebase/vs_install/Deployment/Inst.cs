@@ -210,6 +210,22 @@ namespace Deployment
             Net.set_fw_rules(VBoxPath.ToLower(), "virtualbox", false);
         }
 
+        public static void inst_ssh(string instDir)
+        {
+            string path_t = Path.Combine(FD.sysDrive(), "Users");
+            string path_l = Path.Combine(instDir, "home");
+            string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}");
+            logger.Info("ssh - creating home: {0}", res);
+
+            //path_t = Path.Combine(instDir, "ssh");
+            //if (Directory.Exists(path))
+            //{
+
+            //}
+            
+        }
+
+
         public static void service_stop(string serviceName)
         {
             string res = "";
@@ -261,7 +277,7 @@ namespace Deployment
                 //Logs rotation
                 //kPath.SetValue("AppRotateSeconds", 86400, RegistryValueKind.DWord);
                 //Registry.SetValue(sPath, "AppRotateSeconds", filepath, RegistryValueKind.ExpandString);
-                int maxBytes = 5242880;
+                int maxBytes = 3*1024*1024;//
                 Registry.SetValue(ksPath, "AppRotate", maxBytes, RegistryValueKind.ExpandString);
                 logger.Info("AppRotateBytes: {0}", maxBytes);
                 kPath.Close();
@@ -360,7 +376,7 @@ namespace Deployment
                 logger.Info("Import {0}",  tname);
                 while (true)
                 {
-                    Thread.Sleep(20000);
+                    Thread.Sleep(5000);
                     string res = check_templ(tname);
                     logger.Info("res = {0}", res);
                     if (res == res0)
@@ -415,9 +431,9 @@ namespace Deployment
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);
 
-            if (sterr == "Empty")
+            if (sterr.Contains("Empty"))
             {
-                Form1.StageReporter("", $"Downloaded {stres} bytes, err: {sterr}");
+                Form1.StageReporter("", $"Importing {tname}");
             } else
             {
                 Form1.StageReporter("", $"Download error: {sterr}, trying restart import");

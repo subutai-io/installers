@@ -429,6 +429,9 @@ namespace Deployment
 
                 StageReporter("", "Checking Chrome E2E extension");
                 Inst.inst_E2E();
+
+                StageReporter("", "SSH ");
+                Inst.inst_ssh(Path.Combine(FD.sysDrive(), "Subutai"));
             }
 
             StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
