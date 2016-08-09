@@ -214,15 +214,26 @@ namespace Deployment
         {
             string path_t = Path.Combine(FD.sysDrive(), "Users");
             string path_l = Path.Combine(instDir, "home");
-            string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}");
-            logger.Info("ssh - creating home: {0}", res);
-
-            //path_t = Path.Combine(instDir, "ssh");
-            //if (Directory.Exists(path))
-            //{
-
-            //}
+            if (!Directory.Exists(path_l))
+            {
+                string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}");
+                logger.Info("ssh - creating home: {0}", res);
+            } else
+            {
+                logger.Info("link {0} already exists", path_l);
+            }
             
+        }
+
+        public static void remove_ssh(string instDir)
+        {
+            //string path_t = Path.Combine(FD.sysDrive(), "Users");
+            string path_l = Path.Combine(instDir, "home");
+            if (Directory.Exists(path_l))
+            {
+                Directory.Delete(path_l);
+                logger.Info("ssh home dir exists, removing {0}", path_l);
+            }
         }
 
 

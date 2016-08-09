@@ -84,6 +84,7 @@ namespace uninstall_clean
                         "Removing Subutai folder", MessageBoxButtons.OK);
                 }
             }
+            remove_home(SubutaiDir);
             remove_env();
             SubutaiDir = Environment.GetEnvironmentVariable("Subutai") ?? "";
 
@@ -330,11 +331,8 @@ namespace uninstall_clean
                                 MessageBoxDefaultButton.Button1);
                             if (drs == DialogResult.Yes)
                             {
-                                //if (outputVmsRunning.Contains(wrd))
-                                //{
                                 string res1 = LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ");
                                 Thread.Sleep(5000);
-                                //}
                                 string res2 = LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}");
                                 Thread.Sleep(5000);
                             }
@@ -672,6 +670,14 @@ namespace uninstall_clean
                 Thread.Sleep(20000);
             }
         }
-    }
 
+        public void remove_home(string instDir)
+        {
+            string path_l = Path.Combine(instDir, "home");
+            if (Directory.Exists(path_l))
+            {
+                Directory.Delete(path_l);
+            }
+        }
     }
+}

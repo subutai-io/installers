@@ -66,6 +66,7 @@ namespace Deployment
                 StageReporter("Downloading prerequisites", "");
                 Deploy.HideMarquee();
                 //Deploy.ShowMarquee();
+                Inst.remove_ssh(_arguments["appDir"]);
                 download_repo();
             }
             //Inst.inst_E2E();
