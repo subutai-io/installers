@@ -39,43 +39,38 @@ namespace Deployment
         public void SetEnvironmentVariables()
         {
             string sysDrive = FD.sysDrive();
-            logger.Info("Orig: {0}", Environment.GetEnvironmentVariable("Path"));
-            if (!$"{Environment.GetEnvironmentVariable("Path")}".Contains("VirtualBox"))
+            //string path_orig = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine);
+            string path_orig = Environment.GetEnvironmentVariable("Path");
+            logger.Info("Orig: {0}", path_orig);
+            if (!path_orig.Contains("VirtualBox"))
             {
-                Environment.SetEnvironmentVariable("Path",
-                $"{Environment.GetEnvironmentVariable("Path")};{sysDrive}Program Files\\Oracle\\VirtualBox",
-                EnvironmentVariableTarget.Machine
-                );
-                logger.Info("VirtualBox: {0}", Environment.GetEnvironmentVariable("Path"));
+                path_orig += $";{sysDrive}Program Files\\Oracle\\VirtualBox";
+                //logger.Info("VirtualBox: {0}", path_orig);
             }
 
-            if (!$"{Environment.GetEnvironmentVariable("Path")}".Contains("TAP-Windows"))
-            {
-                Environment.SetEnvironmentVariable("Path",
-                $"{Environment.GetEnvironmentVariable("Path")};{sysDrive}Program Files\\TAP-Windows\\bin",
-                EnvironmentVariableTarget.Machine
-                );
-                logger.Info("TAP-Windowsx: {0}", Environment.GetEnvironmentVariable("Path"));
+            if (!path_orig.Contains("TAP-Windows"))
+                {
+                path_orig += $";{sysDrive}Program Files\\TAP-Windows\\bin";
+                //logger.Info("TAP-Windowsx: {0}", path_orig);
             }
 
-            if (!$"{Environment.GetEnvironmentVariable("Path")}".Contains("Subutai"))
+            if (!path_orig.Contains("Subutai"))
             {
-                Environment.SetEnvironmentVariable("Path",
-                $"{Environment.GetEnvironmentVariable("Path")};{_arguments["appDir"]}bin"
-                , EnvironmentVariableTarget.Machine
-                );
-
-                Environment.SetEnvironmentVariable("Path",
-                $"{Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine)};{_arguments["appDir"]}bin\\tray"
-                , EnvironmentVariableTarget.Machine
-                );
-                logger.Info("Subutai: {0}", Environment.GetEnvironmentVariable("Path")
-                    ,EnvironmentVariableTarget.Machine
-                    );
+                path_orig += $";{_arguments["appDir"]}bin";
+                path_orig += $";{_arguments["appDir"]}bin\\tray";
+               
             }
-            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("Path"));
-         }
-       
+
+            //            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine));
+
+            Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
+
+            //logger.Info("Path machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
+            logger.Info("Path Process: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Process);
+            //logger.Info("Path User: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.User);
+        }
+
         #region HELPERS: Download
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)
         {
@@ -95,7 +90,6 @@ namespace Deployment
                 if (!Program.form1.PrerequisiteFilesInfo.ContainsKey(destination))
                 {
                     Program.form1.PrerequisiteFilesInfo.Add(destination, info);
-                    //logger.Info("Adding {0} into PrerequisiteFilesInfo", destination);
                 }
                 logger.Info("Getting file {0} from kurjun, md5sum:{1}", destination, md5);
             }
@@ -124,11 +118,7 @@ namespace Deployment
                     shouldWeDownload = false;
                 }
             }
-            //if (destination.Contains(".snap") && _arguments["peer"] == "client-only")
-            //{
-            //    shouldWeDownload = false;//no need to download snap if client-only
-            //}
-
+   
             if (destination.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
             {
                 shouldWeDownload = false;
@@ -319,7 +309,6 @@ namespace Deployment
             try
             {
                 kfi = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
-                //return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
                 return kfi;
             }
             catch (Exception ex)
@@ -336,7 +325,7 @@ namespace Deployment
         public static string LaunchCommandLineApp(string filename, string arguments)
         {
             // Use ProcessStartInfo class
-           var startInfo = new ProcessStartInfo
+            var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
                 UseShellExecute = false,
@@ -358,16 +347,57 @@ namespace Deployment
                     output = exeProcess.StandardOutput.ReadToEnd();
                     err  = exeProcess.StandardError.ReadToEnd();
                     exeProcess?.WaitForExit();
-                    return ($"executing: \"{filename}-{arguments}\"|{output}|{err}");
+                    return ($"executing: \"{filename} {arguments}\"|{output}|{err}");
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message, "can not run process");
-                Thread.Sleep(15000);
-                LaunchCommandLineApp(filename, arguments);
+                logger.Error(ex.Message, "can not run process {0}", filename);//try to repeat, counting 
+                Thread.Sleep(10000); //uncomment if need repeated tries 
+                //LaunchCommandLineApp(filename, arguments, 0);//will try 3 times
             }
-            return (filename + " was not executed");//never
+            return ($"1|{filename} was not executed|Error");
+        }
+
+        public static string LaunchCommandLineApp(string filename, string arguments, int try_counter)
+        {
+            // try execute desktop commant 3 times
+            int count = try_counter;
+            var startInfo = new ProcessStartInfo
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                FileName = filename,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            string output;
+            string err;
+            count++; 
+            logger.Info("trying to exe {0} {1} {2} time", filename, arguments, count);
+            try
+            {
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                using (var exeProcess = Process.Start(startInfo))
+                {
+                    output = exeProcess.StandardOutput.ReadToEnd();
+                    err = exeProcess.StandardError.ReadToEnd();
+                    exeProcess?.WaitForExit();
+                    return ($"executing: \"{filename} {arguments}\"|{output}|{err}");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (count > 3)
+                     return ($"command \"{filename} {arguments}\" can not run {try_counter} times");
+                logger.Error(ex.Message, "can not run process {0} {1} time(s)", filename, try_counter);
+                Thread.Sleep(10000);
+                LaunchCommandLineApp(filename, arguments, count); //try to execue again 
+            }
+            return ($"1|{filename} was not executed|Error");
         }
         #endregion
 

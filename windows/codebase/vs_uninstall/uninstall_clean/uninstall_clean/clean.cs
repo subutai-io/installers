@@ -308,6 +308,10 @@ namespace uninstall_clean
         {
             label1.Text = "Virtual Machines";
             string outputVms = LaunchCommandLineApp("vboxmanage", $"list vms");
+            if (outputVms.Contains("Error"))
+            {
+                return;
+            }
             //string outputVmsRunning = LaunchCommandLineApp("vboxmanage", $"list runningvms");
             string[] rows = Regex.Split(outputVms, "\n");
             foreach (string row in rows)
@@ -340,7 +344,7 @@ namespace uninstall_clean
             }
         }
 
-        private string LaunchCommandLineApp(string filename, string arguments)
+        private string LaunchCommandLineApp(string filename, string arguments )
         {
             // Use ProcessStartInfo class
             var startInfo = new ProcessStartInfo
@@ -372,9 +376,9 @@ namespace uninstall_clean
             catch (Exception)
             {
                 Thread.Sleep(2000);
-                LaunchCommandLineApp(filename, arguments);
+                //LaunchCommandLineApp(filename, arguments);
             }
-            return (filename + " was not executed");
+            return ($"1|{filename} was not executed|Error");
         }
 
         private void delete_from_reg()
@@ -622,7 +626,8 @@ namespace uninstall_clean
             string newPath = string.Join(";", slPath);
 
             Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Machine);
-          
+            Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Process);
+        
         }
 
         public void remove_fw_rules(string appdir)

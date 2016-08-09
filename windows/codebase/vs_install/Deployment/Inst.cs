@@ -431,13 +431,13 @@ namespace Deployment
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);
 
-            if (sterr.Contains("Empty"))
-            {
-                Form1.StageReporter("", $"Importing {tname}");
-            } else
-            {
-                Form1.StageReporter("", $"Download error: {sterr}, trying restart import");
-            }
+            ////if (sterr.Contains("Empty"))
+            ////{
+            ////    Form1.StageReporter("", $"Importing {tname}");
+            ////} else
+            ////{
+            ////    Form1.StageReporter("", $"Download error: {sterr}, trying restart import");
+            ////}
             
             return stres;
         }

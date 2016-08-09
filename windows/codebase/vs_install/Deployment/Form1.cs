@@ -452,13 +452,24 @@ namespace Deployment
             Deploy.ShowMarquee();
             // prepare NAT network
             string res = "";
-            res = Deploy.LaunchCommandLineApp("VboxManage.exe", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
-            logger.Info("Configuring NAt interface: {0}", res);
-
+            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
+            logger.Info("Configuring NAT interface: {0}", res);
+            if (Deploy.com_out(res,2) == "Error")
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Configure VM");
+                Program.ShowError("Can not configure VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
             // import OVAs
             StageReporter("", "Importing Snappy");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova");
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
+            if (Deploy.com_out(res, 2) == "Error")
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not Import Snappy, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
         }
 
         private void prepare_rh()
