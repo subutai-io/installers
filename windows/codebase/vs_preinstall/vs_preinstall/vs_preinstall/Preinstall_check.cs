@@ -200,15 +200,31 @@ namespace vs_preinstall
                 return true;
             }
             int bound = Math.Min(vb.Length, vb_check.Length);
+            int[] vi = new int[bound];//minimal version
+            int[] vi_check = new int[bound];//checked version
             for (int i = 0; i < bound; ++i)
             {
-                int v1, v2;
-                if (Int32.TryParse(vb[i], out v1) && Int32.TryParse(vb_check[i], out v2))
+                if (!Int32.TryParse(vb[i], out vi[i]) || !Int32.TryParse(vb_check[i], out vi_check[i]))
                 {
-                    if (v2 < v1)
-                    {
+                    bound = i;
+                    break;
+                }
+            }
+
+            for (int i = 0; i < bound; ++i)
+            {
+                if (i < 2 && vi_check[i] < vi[i])
+                {
+                    return false;
+                }
+                if (i < 2 && vi_check[i] > vi[i])
+                {
+                    return true;
+                }
+                if (i > 2)//previous is equal
+                {
+                    if (vi_check[i] < vi[i])
                         return false;
-                    }
                 }
              }
             return true;
