@@ -60,9 +60,16 @@ And we use Deployment.exe tool developed under Visual Studio to handle the secon
 </ul>
 
 ## Repository descriptor (repomd5)
-	i.e. bin | tray.zip
+	i.e. bin | tray.zip | 1 | 0 | 1 |1|1|1
 	tray.zip - file to download from Kurjun
 	bin - is target directory where the file will be saved. I.e. if our Subutai directory is C:\Subutai then full path will be C:\Subutai\bin\tray.zip
+
+"| 1 | 0 | 1 |1|1|1" describes if this file will needed for given peer type and installation type, 1 means fille need to be installed, 0 - file not needed:
+| Trial | RH | Tray |prod|-dev|-master
+peer type can be:
+	 Trial: RH + Management + SubutaiTray, recomended for start
+	 RH: RH only - will be needed for multy-RH installations (1 MH and many RH), recommended for advanced users, Subutai Tray can be installed if needed
+	SubutaiTray: SubutaiTray application only. Installed if You have MH or RH installed before, and if You plan to work with environments on remote hosts.
 
 ## Full content of repomd5 (all these files must persist on Kurjun):
 	bin | tray.zip - tray application
@@ -72,10 +79,10 @@ And we use Deployment.exe tool developed under Visual Studio to handle the secon
 	redist | tap-driver.exe - TAP driver (https://swupdate.openvpn.org/community/releases/tap-windows-9.21.1.exe)
 	redist | vcredist64.exe - Visual C++ Redistributables (https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 	redist | virtualbox.exe - Oracle VirtualBox (http://download.virtualbox.org/virtualbox/5.0.16/VirtualBox-5.0.16-105871-Win.exe)
-	redist/subutai | subutai_4.0.0_amd64.snap - Subutai package for Ubuntu Snappy 	redist/subutai | subutai_4.0.0_amd64-dev.snap - Subutai package for Ubuntu Snappy built from dev branch
-	redist/subutai | subutai_4.0.0_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
+	redist/subutai | subutai_4.0.<VN>_amd64.snap - Subutai package for Ubuntu Snappy 	redist/subutai | subutai_4.0.<VN>_amd64-dev.snap - Subutai package for Ubuntu Snappy built from dev branch
+	redist/subutai | subutai_4.0.<VN>_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
 
-
+VN - SubVersion Number
 
 
 
