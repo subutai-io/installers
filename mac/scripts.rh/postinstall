@@ -33,7 +33,7 @@ function get_ova {
 
 function get_snap {
 	mkdir /Applications/Subutai/snap/
-	target="/Applications/Subutai/snap/subutai_4.0.2_amd64.snap"; filename="subutai_4.0.2_amd64.snap"; download
+	target="/Applications/Subutai/snap/subutai_4.0.3_amd64.snap"; filename="subutai_4.0.3_amd64.snap"; download
 }
 
 # function install_tuntap {
@@ -183,7 +183,7 @@ EOF
 }
 
 function install_subutai {
-scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-server /Applications/Subutai/snap/subutai_4.0.2_amd64.snap ubuntu@localhost:~/
+scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-server /Applications/Subutai/snap/subutai_4.0.3_amd64.snap ubuntu@localhost:~/
 ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepare-server"
 }
 
