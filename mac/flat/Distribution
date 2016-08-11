@@ -3,16 +3,6 @@
     <options customize="always"/>
     <title>Subutai Social</title>
     <license file="LICENSE"/>
-    <installation-check script="memory_check();"/>
-    <script>function memory_check() {
-      if(system.sysctl('hw.memsize') < 8589934592)) {
-        my.result.title = 'Failure';
-        my.result.message = 'You have <4Gb RAM';
-        my.result.type = 'Warning';
-      }
-      return true;
-    }
-    </script>
     <choices-outline>
         <line choice="installer_choice_1"/>
         <line choice="installer_choice_2"/>
