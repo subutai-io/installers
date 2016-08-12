@@ -3,6 +3,7 @@
     <options customize="always"/>
     <title>Subutai Social</title>
     <license file="LICENSE"/>
+    <readme file="README.rtf"/>
     <choices-outline>
         <line choice="installer_choice_1"/>
         <line choice="installer_choice_2"/>
