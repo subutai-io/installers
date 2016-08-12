@@ -9,7 +9,7 @@
       my.result.title = 'Warning';
       my.result.type = 'Warning';
       <!-- var message = 'Installation may take several minutes depending on Internet connection speed and your computer configuration.' -->
-      if(!(parseInt(system.sysctl('hw.memsize')) >= 8000000000)) {
+      if(!(parseInt(system.sysctl('hw.memsize')) >= 99000000000)) {
         my.result.message = 'Your computer has less than 8 GB memory. Please note installation may slow down the computer.';
         return false;
       } else {
