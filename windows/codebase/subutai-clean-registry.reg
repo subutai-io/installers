@@ -45,6 +45,7 @@ Windows Registry Editor Version 5.00
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\EC255BE87EA6A38419F07F55C71A810A
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\FC64E077A2F673C4B9C2199F7A98CC33
 
+[-HKEY_CURRENT_USER\Software\Optimal-dynamics]
 
 ;Uninstall
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1AAA66FC-2062-44D7-975D-BB87806ADC7A}

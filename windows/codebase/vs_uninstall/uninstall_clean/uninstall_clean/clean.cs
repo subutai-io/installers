@@ -424,7 +424,7 @@ namespace uninstall_clean
             DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.LocalMachine);
 
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.07
-            //Uninstalling version
+            //Uninstalling version key is CLOSED
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.2
 
             subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
@@ -457,17 +457,20 @@ namespace uninstall_clean
  
             subkey = "SYSTEM\\VritualRoot\\MACHINE\\SOFTWARE\\Wow6432Node";
             DeleteSubKeyTree("Subutai Social", subkey, RegistryHive.LocalMachine);
- 
-            subkey = "SOFTWARE\\Optimal-dynamics";
-            DeleteSubKeyTree("SS_Tray", subkey, RegistryHive.LocalMachine);
 
-            subkey = "SOFTWARE";
+            //HKEY_CURRENT_USER\Software\Optimal-dynamics
+            //HKEY_CURRENT_USER\Software\Optimal - dynamics\SS_Tray
+
+            //subkey = "Software\\Optimal-dynamics";
+            //DeleteSubKeyTree("SS_Tray", subkey, RegistryHive.CurrentUser);
+
+            subkey = "Software";
             rk = Registry.CurrentUser.OpenSubKey(subkey, true);
-            DeleteSubKeyTree("Optimal-dynamics", subkey, RegistryHive.LocalMachine);
+            DeleteSubKeyTree("Optimal-dynamics", subkey, RegistryHive.CurrentUser);
 
+            //HKEY_CURRENT_USER\Environment
             subkey = "Environment";
-            DeleteSubKeyTree("Subutai", subkey, RegistryHive.LocalMachine);
-
+            DeleteSubKeyTree("Subutai", subkey, RegistryHive.CurrentUser);
         }
 
         public bool DeleteKey(string KeyName, ref RegistryKey baseKey)
