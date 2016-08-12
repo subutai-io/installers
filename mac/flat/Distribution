@@ -6,13 +6,15 @@
     <readme file="ReadMe.rtf"/>
     <installation-check script="memory_check();"/>
     <script>function memory_check() {
+      my.result.message = 'Installation may take several minutes depending on Internet connection speed and your computer configuration. Please wait...'
       if(!(parseInt(system.sysctl('hw.memsize')) >= 8000000000)) {
         my.result.title = 'Warning';
-        my.result.message = 'You have less 8Gb RAM.';
+        my.result.message = 'You have less 8Gb RAM.\nInstallation may take several minutes depending on Internet connection speed and your computer configuration. Please wait...';
         my.result.type = 'Warning';
         return false;
+      } else {
+        return false;
       }
-      return true;
     }
     </script>
     <choices-outline>
