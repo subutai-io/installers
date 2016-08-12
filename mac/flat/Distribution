@@ -3,18 +3,18 @@
     <options customize="always"/>
     <title>Subutai Social</title>
     <license file="LICENSE"/>
-    <readme file="ReadMe.rtf"/>
+    <readme file="README.rtf"/>
     <installation-check script="memory_check();"/>
     <script>function memory_check() {
       my.result.title = 'Warning';
       my.result.type = 'Warning';
-      var message = 'Installation may take several minutes depending on Internet connection speed and your computer configuration.'
+      <!-- var message = 'Installation may take several minutes depending on Internet connection speed and your computer configuration.' -->
       if(!(parseInt(system.sysctl('hw.memsize')) >= 8000000000)) {
-        my.result.message = 'Your computer has less than 8 GB memory. Please note installation may slow down the computer.\n\n'.concat(message);
+        my.result.message = 'Your computer has less than 8 GB memory. Please note installation may slow down the computer.';
         return false;
       } else {
-        my.result.message = message
-        return false;
+        <!-- my.result.message = message -->
+        return true;
       }
     }
     </script>
