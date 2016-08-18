@@ -189,6 +189,7 @@
             this.tb_Info.Location = new System.Drawing.Point(386, 37);
             this.tb_Info.Multiline = true;
             this.tb_Info.Name = "tb_Info";
+            this.tb_Info.ReadOnly = true;
             this.tb_Info.Size = new System.Drawing.Size(321, 195);
             this.tb_Info.TabIndex = 21;
             this.tb_Info.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -235,11 +236,12 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Preinstall_check";
-            this.Text = "Checking Subutai system requirements";
+            this.Text = "Checking Subutai Social system requirements";
             this.TopMost = true;
             this.Load += new System.EventHandler(this.Preinstall_check_Load);
             this.ResumeLayout(false);

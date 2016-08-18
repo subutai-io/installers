@@ -119,7 +119,7 @@ namespace vs_preinstall
                     tb_Info.Text += "If not sure, press Next button, cancel installation and check in BIOS.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "If VT-x enabled, please turn off SmartScreen, Antivirus/Firewall software for installation time!";
+                    tb_Info.Text += "If VT-x enabled, please turn off Antivirus software for installation time!";
                 }
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
