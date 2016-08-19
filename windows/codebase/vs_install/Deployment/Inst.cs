@@ -76,7 +76,7 @@ namespace Deployment
             if (app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
             {
                 Form1.StageReporter("", "Chrome");
-                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}\\redist\\chrome.msi\"");
+                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}redist\\chrome.msi\"");
                 logger.Info("Chrome: {0}", res);
             }
             else
@@ -300,7 +300,7 @@ namespace Deployment
             //installing master template
             Form1.StageReporter("", "Importing master");
             logger.Info("Importing master");
-            bool b_res = import_templ("master");
+            bool b_res = import_templ_task("master");
 
             // installing management template
             Form1.StageReporter("", "Importing management");

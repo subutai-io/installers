@@ -27,6 +27,7 @@ namespace Deployment
 
         private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
         private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
+        private static CancellationTokenSource tokenSource = new CancellationTokenSource();
 
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -34,6 +35,7 @@ namespace Deployment
         public  int finished = 0;
         private string st = " finished";
         public static string snapFile = "";
+
 
         private void ParseArguments()
         {
@@ -97,12 +99,17 @@ namespace Deployment
 
         private void TaskFactory(object sender, AsyncCompletedEventArgs e)
         {
+            //var token = tokenSource.Token;
+            object state = "";
+
             Task.Factory.StartNew(() =>
             {
                 logger.Info("Starting task factory");
             })
                .ContinueWith((prevTask) =>
                {
+                   
+                   // Handle any exceptions to prevent UnobservedTaskException.             
                    logger.Info("Stage: {0} {1}", _arguments["network-installation"].ToLower(), "checkmd5");
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
@@ -110,7 +117,7 @@ namespace Deployment
                    }
                    stage_counter++;
                    logger.Info("Stage checkmd5: {0}", stage_counter);
-               })
+               }, TaskContinuationOptions.NotOnFaulted)
 
                .ContinueWith((prevTask) =>
                {
@@ -129,7 +136,7 @@ namespace Deployment
                    }
                    stage_counter++;
                    logger.Info("Stage unzip: {0}", stage_counter);
-               }, TaskContinuationOptions.NotOnFaulted)
+               },  TaskContinuationOptions.NotOnFaulted)
 
                 .ContinueWith((prevTask) =>
                 {
@@ -289,7 +296,7 @@ namespace Deployment
             logger.Info("Getting  file");
             _deploy.DownloadFile(
                 url: _arguments["kurjunUrl"],
-                destination: $"{file_name}",
+                destination: file_name,
                 onComplete: cmplHandler,
                 report: $"Getting file {file_name}",
                 async: true,
@@ -306,6 +313,7 @@ namespace Deployment
                 if (e.Cancelled)
                 {
                     logger.Error("File download cancelled");
+                    finished = 2;
                     Program.form1.Visible = false;
                 }
 
@@ -422,7 +430,7 @@ namespace Deployment
                 Inst.inst_TAP(appDir);
 
                 StageReporter("", "MS Visual C++");
-                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}\\redist\\vcredist64.exe", "/install /quiet");
+                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}redist\\vcredist64.exe", "/install /quiet");
                 logger.Info("MS Visual C++: {0}", res);
 
                 StageReporter("", "Chrome browser");
@@ -627,6 +635,7 @@ namespace Deployment
                     break;
                 case 2:
                     st = "cancelled";
+                    tokenSource.Cancel();
                     break;
                 case 3:
                     st = "failed";
@@ -682,6 +691,7 @@ namespace Deployment
                             finished = 2;
                             logger.Info("FormClosing: Installation cancelled");
                             e.Cancel = false;
+                            //tokenSource.Cancel();
                             show_finished();
                         }
                         break;
@@ -690,6 +700,7 @@ namespace Deployment
                         break;
                     case 2:
                         logger.Info("FormClosing: Installation cancelled");
+                        //tokenSource.Cancel();
                         break;
                     case 3:
                         logger.Info("FormClosing: Installation error");
