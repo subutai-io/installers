@@ -83,7 +83,7 @@ if [ -e /Applications/VirtualBox.app ]; then
 $(echo $vboxmanage_version | cut -d '.' -f 2 | xargs printf "%02d")\
 $(echo $vboxmanage_version | cut -d '.' -f 3 | xargs printf "%02d")
 
-	if [ $(printf '%d\n' $virtualbox_version) -ge 50014 ]; then :
+	if [ $(printf '%d\n' $virtualbox_version) -ge 50100 ]; then :
 	else install_vbox
 	fi
 else install_vbox
