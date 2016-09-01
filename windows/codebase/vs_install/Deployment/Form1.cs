@@ -461,9 +461,12 @@ namespace Deployment
             Deploy.ShowMarquee();
             // prepare NAT network
             string res = "";
+            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork remove --netname natnet1 ");
+            logger.Info("Removing NAT network: {0}", res);
             res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
-            logger.Info("Configuring NAT interface: {0}", res);
-            if (Deploy.com_out(res,2) == "Error")
+            logger.Info("Configuring NAT network: {0}", res);
+            //if (Deploy.com_out(res,2) == "Error")
+            if (res.ToLower().Contains("error"))
             {
                 logger.Error("Can not run command, please check if VirtualBox installed properly", "Configure VM");
                 Program.ShowError("Can not configure VM, please check if VitrualBox installed properly", "Prepare VBox");
@@ -473,7 +476,7 @@ namespace Deployment
             StageReporter("", "Importing Snappy");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova");
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
-            if (Deploy.com_out(res, 2) == "Error")
+            if (res.ToLower().Contains("error"))
             {
                 logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
                 Program.ShowError("Can not Import Snappy, please check if VitrualBox installed properly", "Prepare VBox");
@@ -499,8 +502,19 @@ namespace Deployment
             res = Deploy.LaunchCommandLineApp("vboxmanage",
                 $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
             logger.Info("nic 1 --nat: {0}", res);
+            //if (res.ToLower().Contains("error"))
+            //{
+            //    logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+            //    Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
+            //    Program.form1.Visible = false;
+            //}
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
-
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
             // set RAM
             StageReporter("", "Setting RAM");
             VMs.vm_set_RAM(_cloneName);

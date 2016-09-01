@@ -21,7 +21,7 @@ namespace Deployment
             logger.Info("vm 1: {0} stdout: {1}", name, Deploy.com_out(res, 1));
 
             string err = Deploy.com_out(res, 2);
-            if (err != null && err!="")
+            if (err != null && err!="" )
             {
                 logger.Info("vm 1: {0} stdout: {1}", name, err);
                 return false;
@@ -50,15 +50,26 @@ namespace Deployment
         //Cloning VM
         public static bool clone_vm(string vmName)
         {
-            string ssh_res = "";
             string res = "";
            
             // clone VM
             Form1.StageReporter("", "Cloning VM");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy");
             logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", vmName, res);
-            ssh_res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not clone VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy");
             logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not unregister VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
             return true;//check res
         }
 
@@ -83,6 +94,12 @@ namespace Deployment
             }
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --memory {vmRam}");
             logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", vmName, vmRam, res);
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
             return true;
         }
 
@@ -103,6 +120,13 @@ namespace Deployment
 
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --cpus {vmCores}");
             logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", vmName, vmCores.ToString(), res);
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
+
             return true;
         }
 
@@ -111,8 +135,14 @@ namespace Deployment
             string res = "";
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --rtcuseutc on");
             logger.Info("vboxmanage modifyvm {0} --rtcuseutc: {1}", vmName, res);
-            Thread.Sleep(4000);
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
+                Program.form1.Visible = false;
+            }
 
+            Thread.Sleep(4000);
             return true;
         }
 
