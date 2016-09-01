@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Security.Principal;
 
 namespace uninstall_clean
 {
@@ -15,11 +14,35 @@ namespace uninstall_clean
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+            bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
 
-            form1 = new clean();
-            Application.Run(form1);
+            if (!hasAdministrativeRight)
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.UseShellExecute = true;
+                startInfo.WorkingDirectory = Environment.CurrentDirectory;
+                startInfo.FileName = Application.ExecutablePath;
+                startInfo.Verb = "runas";
+                try
+                {
+                    Process p = Process.Start(startInfo);
+                    Application.Exit();
+                }
+                catch (System.ComponentModel.Win32Exception ex)
+                {
+                    MessageBox.Show("This utility requires elevated priviledges to complete correctly.", "Error: UAC Authorisation Required", MessageBoxButtons.OK);
+                    //                    Debug.Print(ex.Message);
+                    return;
+                }
+            }
+            else
+            {
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                form1 = new clean();
+                Application.Run(form1);
+            }
         }
     }
 }

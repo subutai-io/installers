@@ -62,7 +62,7 @@ namespace uninstall_clean
             {
                 mess = $"Probably {app_name} was not installed, please check and uninstall manually";
             }
-            MessageBox.Show(mess, $"Uninstalling {app_name}", MessageBoxButtons.OK);
+            //MessageBox.Show(mess, $"Uninstalling {app_name}", MessageBoxButtons.OK);
             if (app_path != "" || app_path != null)
             {
                 FD.remove_from_Path(app_path);

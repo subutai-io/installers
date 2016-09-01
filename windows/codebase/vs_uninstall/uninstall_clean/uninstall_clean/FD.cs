@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace uninstall_clean
 {
     class FD
     {
+        public static SecurityIdentifier cu = WindowsIdentity.GetCurrent().User;
+        public static string cu_name = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
         public static string delete_dir(string dirName)
         {
             try
@@ -248,5 +252,64 @@ namespace uninstall_clean
             }
             return path_l;
         }
+
+        public static bool del_sysfile(string drvPath)
+        {
+            //take ownership
+            //Get Currently Applied Access Control
+            FileSecurity fileS = new FileSecurity();//File.GetAccessControl(drvPath);
+            string tmp = "";
+            try
+            {
+                fileS = File.GetAccessControl(drvPath);
+            }
+            catch (Exception e)
+            {
+                tmp = e.Message;
+                return false;
+            }
+            //Update it, Grant Current User Full Control
+            
+            try
+            {
+                fileS.SetOwner(cu);
+            }
+            catch (Exception e)
+            {
+                tmp = e.Message;
+                return false;
+            }
+            try
+            {
+                fileS.SetAccessRule(new FileSystemAccessRule(cu,
+                    FileSystemRights.FullControl, AccessControlType.Allow));
+            }
+            catch (Exception e)
+            {
+                tmp = e.Message;
+                return false;
+            }
+            //Update the Access Control on the File
+            try
+            {
+                File.SetAccessControl(drvPath, fileS);
+            }
+            catch (Exception e)
+            {
+                tmp = e.Message;
+                return false;
+            }
+            //Delete the file
+            try
+            {
+                File.Delete(drvPath);
+                return true;
+            }
+            catch (Exception e)
+            {
+                tmp = e.Message;
+                return false;
+            }
+         }
     }
 }

@@ -8,7 +8,7 @@ namespace uninstall_clean
 {
     class RG
     {
-        public static  void delete_from_reg()
+        public static void delete_from_reg()
         {
             //user environment
             string SubutaiProdID = @"CF66AAA126027D4479D5BB7808A6CDA7";
@@ -33,7 +33,7 @@ namespace uninstall_clean
             //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S - 1 - 5 - 18\Components\001B050B63BD23B49988FFEB639D2F61
             //Components
             subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Components";
-            //DeleteSubKeyFound(subkey, "Subutai", RegistryHive.LocalMachine);
+            //DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
             clean.UpdateProgress(30);
             //********************************************************
             //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\CF66AAA126027D4479D5BB7808A6CDA7
@@ -52,7 +52,7 @@ namespace uninstall_clean
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.2
 
             subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-            DeleteSubKeyFound(subkey, "Subutai", RegistryHive.LocalMachine);
+            DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
             clean.UpdateProgress(45);
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\LZMA\{ 1AAA66FC - 2062 - 44D7 - 975D - BB87806ADC7A}
             subkey = "SOFTWARE\\Wow6432Node\\Caphyon\\Advanced Installer\\LZMA";
@@ -73,7 +73,7 @@ namespace uninstall_clean
             clean.UpdateProgress(65);
             //HKEY_LOCAL_MACHINE\SYSTEM\VritualRoot\MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S - 1 - 5 - 18\Components\336320F1CCE3E3F45A57FD0D4E46AB34
             subkey = "SYSTEM\\VritualRoot\\MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Components";
-            DeleteSubKeyFound(subkey, "Subutai", RegistryHive.LocalMachine);
+            DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
             clean.UpdateProgress(70);
             //HKEY_LOCAL_MACHINE\SYSTEM\VritualRoot\MACHINE\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\LZMA
             subkey = "SYSTEM\\VritualRoot\\MACHINE\\SOFTWARE\\Wow6432Node\\Caphyon\\Advanced Installer\\LZMA";
@@ -169,10 +169,16 @@ namespace uninstall_clean
             return false;
         }
 
-        public static void DeleteSubKeyFound(string subkey, string str_2_find, RegistryHive rh)
+        //Delete child subkey tree if substring was found in child key values
+        public static void DeleteKeyByValue(string subkey, string str_2_find, RegistryHive rh)
         {
             var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
-            RegistryKey rk = baseKey.OpenSubKey(subkey, true);
+            RegistryKey rk = baseKey;
+            if (subkey != "")
+            {
+                rk = baseKey.OpenSubKey(subkey, true);
+            }
+
             //RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey, true);//Components
 
             if (rk != null)
@@ -189,7 +195,7 @@ namespace uninstall_clean
                         string res = e.Message;
                         continue;
                     }
-                    string rsk_path = Path.Combine(subkey, rsk);
+                    //string rsk_path = Path.Combine(subkey, rsk);
                     if (productKey != null)
                     {
                         foreach (var vname in productKey.GetValueNames())
@@ -197,7 +203,8 @@ namespace uninstall_clean
                             string kvalue = Convert.ToString(productKey.GetValue(vname));
                             if (kvalue.Contains(str_2_find))
                             {
-                                DeleteSubKeyTree(rsk, ref productKey);
+                                //DeleteSubKeyTree(rsk, ref productKey);
+                                rk.DeleteSubKeyTree(rsk);
                                 //DeleteSubKeyTree(rsk, rsk_pat, rh);
                                 //logger.Info("Delete subkey {0}", subkey);
                             }
@@ -210,6 +217,36 @@ namespace uninstall_clean
             baseKey.Close();
         }
 
+        //Delete child key tree if substring was found in child key name
+        public static void DeleteKeyByName(string subkey, string str_2_find, RegistryHive rh)
+        {
+            var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
+
+            RegistryKey rk = baseKey;
+            if (subkey != "")
+            {
+                rk = baseKey.OpenSubKey(subkey, true);
+            }
+
+            if (rk != null)
+            {
+                foreach (string rsk in rk.GetSubKeyNames()) //Product
+                {
+                    if (rsk.ToLower().Contains(str_2_find.ToLower()))
+                    {
+                        DeleteSubKeyTree(rsk, ref rk);
+                    }
+
+                }
+                rk.Close();
+            }
+            baseKey.Close();
+        }
+
+        //Delete subkey in root key
+
+
+
         public static void DeleteValueFound(string subkey, string str_2_find, RegistryHive rh)
         {
             var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
@@ -221,7 +258,7 @@ namespace uninstall_clean
                     string kvalue = Convert.ToString(rk.GetValue(vname));
                     if (kvalue.Contains(str_2_find) && !vname.Contains("Path"))
                     {
-                        MessageBox.Show($"Vname: {vname} = {kvalue}", "DeleteValue", MessageBoxButtons.OK);
+                        //MessageBox.Show($"Vname: {vname} = {kvalue}", "DeleteValue", MessageBoxButtons.OK);
                         rk.DeleteValue(vname);
                     }
                 }
@@ -248,6 +285,73 @@ namespace uninstall_clean
             }
         }
 
+        public static string get_value(string subkey, string vname, RegistryHive rh)
+        {
+            var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
+            RegistryKey rk = baseKey.OpenSubKey(subkey, true);//Components
+            string kvalue = "";
+            if (rk != null)
+            {
+                try
+                {
+                    kvalue = Convert.ToString(rk.GetValue(vname));
+                }
+                catch (Exception e)
+                {
+                    string tmp = e.Message;
+                    return "";
+                }
+                rk.Close();
+                baseKey.Close();
+            }
+            return kvalue;
+        }
 
+        public static string find_and_get_value(string subkey, string name2find, string value2get, RegistryHive rh)
+        {
+            var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
+            RegistryKey rk = baseKey.OpenSubKey(subkey, true);//Products
+            string kvalue = "";
+            if (rk != null)
+            {
+                foreach (var rsk in rk.GetSubKeyNames()) //Product
+                {
+                    RegistryKey productKey;
+                    try
+                    {
+                        productKey = rk.OpenSubKey(rsk, true);
+                    }
+                    catch (Exception e)
+                    {
+                        string res = e.Message;
+                        continue;
+                    }
+                    //string rsk_path = Path.Combine(subkey, rsk);
+                    if (productKey != null)
+                    {
+                        string tmpkey = Path.Combine(rsk, "InstallProperties");
+                        RegistryKey installKey = rk.OpenSubKey(tmpkey, true);
+                        tmpkey = Path.Combine(subkey, rsk, "InstallProperties");
+                        if (installKey != null)
+                        {
+                            string prodName = installKey.GetValue("DisplayName").ToString();
+                            if (prodName.Contains(name2find))
+                            {
+                                kvalue = get_value(tmpkey, value2get, rh);
+                                installKey.Close();
+                                productKey.Close();
+                                rk.Close();
+                                return kvalue;
+                            }
+                            installKey.Close();
+                        }
+                        productKey.Close();
+                    }
+                }
+                rk.Close();
+            }
+            baseKey.Close();
+            return kvalue;
+        }
     }
 }

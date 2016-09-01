@@ -7,6 +7,7 @@ using System.Diagnostics;
 namespace uninstall_clean
 {
     class SCP
+        // Working with services and processes
     {
         public static  string stop_service(string serviceName, int timeoutMilliseconds)
         {
