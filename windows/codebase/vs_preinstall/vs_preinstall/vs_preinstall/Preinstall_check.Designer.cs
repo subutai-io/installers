@@ -183,7 +183,7 @@
             // 
             this.tb_Info.AcceptsReturn = true;
             this.tb_Info.AcceptsTab = true;
-            this.tb_Info.BackColor = System.Drawing.Color.Gainsboro;
+            this.tb_Info.BackColor = System.Drawing.SystemColors.ControlLight;
             this.tb_Info.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tb_Info.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tb_Info.Location = new System.Drawing.Point(386, 37);
@@ -217,8 +217,7 @@
             // Preinstall_check
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.AutoScroll = true;
-            this.BackColor = System.Drawing.Color.Gainsboro;
+            this.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ClientSize = new System.Drawing.Size(719, 292);
             this.Controls.Add(this.l_VB);
             this.Controls.Add(this.label9);

@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Management;
-using System.Management.Instrumentation;
 using Microsoft.Win32;
 
 namespace vs_preinstall
@@ -24,6 +17,7 @@ namespace vs_preinstall
         private string hostVT;
         private string shortVersion;
         private string vboxVersion;
+        private string vb_version2fit = "5.1.0";
 
         public Preinstall_check()
         {
@@ -87,7 +81,7 @@ namespace vs_preinstall
                 res = false;
             }
 
-           if (!vbox_version_fit("5.0.16", l_VB.Text))
+           if (!vbox_version_fit(vb_version2fit, l_VB.Text))
             {
                 l_VB.ForeColor = Color.Red;
                 res = false;
@@ -107,7 +101,7 @@ namespace vs_preinstall
                     tb_Info.Text = "DHCP server needs to be running on the local network.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "Subutai needs Oracle Virtual Box version 5.0.16 or higher. Please update or uninstall old verdion";
+                    tb_Info.Text += $"Subutai needs Oracle Virtual Box version {vb_version2fit} or higher. Please update or uninstall old verdion and restart windows!";
 
                 }
                 else {
@@ -134,7 +128,7 @@ namespace vs_preinstall
                 tb_Info.Text = "Please check Subutai system requirements.";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Subutai needs Oracle Virtual Box version 5.0.16 or higher. Please update or uninstall old version.";
+                tb_Info.Text += $"Subutai needs Oracle Virtual Box version {vb_version2fit} or higher. Please update or uninstall old version and restart windows!";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += "Press Next button to exit.";
@@ -191,7 +185,7 @@ namespace vs_preinstall
         {
             string[] vb = versFit.Split('.');
             string[] vb_check = versCheck.Split('.');
-            if (versCheck == "0")
+            if (versCheck == "0")//
             {
                 return true;
             }
