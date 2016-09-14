@@ -10,15 +10,17 @@ namespace vs_preinstall
    
     public partial class Preinstall_check : Form
     {
+        public Boolean res = true;
         public int hostCores; //number of logical processors
         public Boolean host64;
         public string hostOSversion;
+        public string hostOSversion_user;
         private long hostRam;
         private string hostVT;
         private string shortVersion;
         private string vboxVersion;
         private string vb_version2fit = "5.1.0";
-
+        
         public Preinstall_check()
         {
             InitializeComponent();
@@ -28,6 +30,7 @@ namespace vs_preinstall
         private void showing()
         {
             hostOSversion = Environment.OSVersion.Version.ToString();
+            hostOSversion_user = OS_name();
             shortVersion = hostOSversion.Substring(0, 3);
             hostCores = Environment.ProcessorCount; //number of logical processors
             host64 = Environment.Is64BitOperatingSystem;
@@ -39,21 +42,20 @@ namespace vs_preinstall
             l_Proc.Text = hostCores.ToString();
             l_RAM.Text = hostRam.ToString();
             l_S64.Text = host64.ToString();
-            l_OS.Text = shortVersion;//hostOSversion.ToString();
+            l_OS.Text = hostOSversion_user;//shortVersion;//hostOSversion.ToString();
             l_VT.Text = hostVT;
             l_VB.Text = vboxVersion;
 
-            tb_Info.Text = "* This value may need to be checked in BIOS. If installation fails, check if  hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS. \n\nPress Check button to check if Subutai can be installed";
+            tb_Info.Text = "";// "* This value may need to be checked in BIOS. If installation fails, check if  hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             checking();
         }
         private void checking()
         {
-            Boolean res = true;
             if (hostCores < 2)
             {
                 l_Proc.ForeColor = Color.Red;
                 res = false;
-             } else
+            } else
             {
                 l_Proc.ForeColor = Color.Green;
             }
@@ -62,7 +64,7 @@ namespace vs_preinstall
             {
                 l_RAM.ForeColor = Color.Red;
                 res =  false;
-             } else
+            } else
             {
                 l_RAM.ForeColor = Color.Green;
             }
@@ -70,7 +72,7 @@ namespace vs_preinstall
             {
                 l_S64.ForeColor = Color.Red;
                 res = false;
-             } else
+            } else
             {
                 l_S64.ForeColor = Color.Green;
             }
@@ -81,12 +83,25 @@ namespace vs_preinstall
                 res = false;
             }
 
-           if (!vbox_version_fit(vb_version2fit, l_VB.Text))
+            if (!vbox_version_fit(vb_version2fit, l_VB.Text))
             {
                 l_VB.ForeColor = Color.Red;
                 res = false;
             }
-            
+            else
+            {
+                l_VB.ForeColor = Color.Green;
+            }
+
+            if (!vbox_version_fit("6.1", shortVersion))
+            {
+                l_OS.ForeColor = Color.Red;
+                res = false;
+            }
+            else
+            {
+                l_OS.ForeColor = Color.Green;
+            }
 
             if (res)
             {
@@ -95,14 +110,16 @@ namespace vs_preinstall
                     label5.Text = "Subutai Social can be installed on Your system. Press Next button";
                     label5.ForeColor = Color.Green;
                     l_VT.ForeColor = Color.Green;
-                    tb_Info.Text = "Please turn off SmartScreen, Antivirus/Firewall software for installation time!";
+                    //tb_Info.Text = " ";
+                   
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text = "DHCP server needs to be running on the local network.";
+                    tb_Info.Text += "DHCP server must to be running on the local network.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += $"Subutai needs Oracle Virtual Box version {vb_version2fit} or higher. Please update or uninstall old verdion and restart windows!";
-
+                    tb_Info.Text += $"Subutai needs Oracle VirtualBox version {vb_version2fit} or higher. Please update or uninstall old version and restart Windows!";
                 }
                 else {
                     label5.Text = "Impossible to check if VT-x is enabled.";
@@ -117,18 +134,18 @@ namespace vs_preinstall
                 }
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "If installation fails or interrupted, please run Start->All Applications->Subutai folder->Uninstall or uninstall from Control Panel.";
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Press Next button to proceed.";
+                //tb_Info.Text += "If installation fails or interrupted, please run Start->All Applications->Subutai folder->Uninstall or uninstall from Control Panel.";
+                //tb_Info.Text += Environment.NewLine;
+                //tb_Info.Text += Environment.NewLine;
+                //tb_Info.Text += "Press Next button to proceed.";
             } else
             {
-                label5.Text = "Sorry, Subutai Social can not be installed. Press Next button";
+                label5.Text = "Sorry, Subutai Social can not be installed. Press Next button and cancel installation";
                 label5.ForeColor = Color.Red;
                 tb_Info.Text = "Please check Subutai system requirements.";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += $"Subutai needs Oracle Virtual Box version {vb_version2fit} or higher. Please update or uninstall old version and restart windows!";
+                tb_Info.Text += $"Subutai needs Oracle VirtualBox version {vb_version2fit} or higher. Please update or uninstall old version and restart Windows!";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += "Press Next button to exit.";
@@ -153,31 +170,16 @@ namespace vs_preinstall
           return "Not found";
         }
 
-        private void button1_Click(object sender, EventArgs e) //Next
-        {
-            if (label5.Text.Contains("Sorry"))
-            {
-                //MessageBox.Show("Sorry", "No", MessageBoxButtons.OK);
-                Environment.Exit(1);
-            } else
-            {
-                //MessageBox.Show("Yes", "Yes", MessageBoxButtons.OK);
-                //Environment.Exit(0);
-                this.Close();
-            }
-              
-        }
-
         public string vbox_version()
         {
             //HKEY_LOCAL_MACHINE\SOFTWARE\Oracle\VirtualBox
-            string subkey86 = "SOFTWARE\\Oracle\\VirtualBox";
-            RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
-            if (rk86 == null)
+            string subkey = "SOFTWARE\\Oracle\\VirtualBox";
+            RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
+            if (rk == null)
             {
                 return "0";
             }
-            var vers = rk86.GetValue("Version");
+            var vers = rk.GetValue("Version");
             return vers.ToString();
         }
 
@@ -224,10 +226,36 @@ namespace vs_preinstall
             return true;
         }
 
+        public string OS_name()
+        {
+            String subKey = @"SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion";
+            RegistryKey key = Registry.LocalMachine.OpenSubKey(subKey);
+            if (key == null)
+            {
+                return "Unknown";
+            }
+            var vers = key.GetValue("ProductName");
+            return vers.ToString();
+        }
+
         private void Preinstall_check_Load(object sender, EventArgs e)
         {
 
         }
 
-     }
+        private void button1_Click(object sender, EventArgs e) //Next
+        {
+            if (!res)//(label5.Text.Contains("Sorry"))
+            {
+                //MessageBox.Show("Sorry", "No", MessageBoxButtons.OK);
+                Environment.Exit(1);
+            }
+            else
+            {
+                //MessageBox.Show("Yes", "Yes", MessageBoxButtons.OK);
+                //Environment.Exit(0);
+                this.Close();
+            }
+        }
+    }
 }

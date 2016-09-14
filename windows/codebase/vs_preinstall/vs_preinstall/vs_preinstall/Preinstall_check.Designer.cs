@@ -73,9 +73,9 @@
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label3.Location = new System.Drawing.Point(14, 91);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(46, 18);
+            this.label3.Size = new System.Drawing.Size(190, 18);
             this.label3.TabIndex = 5;
-            this.label3.Text = "Is x64";
+            this.label3.Text = "Processor architecture: x64";
             // 
             // label4
             // 
@@ -83,9 +83,9 @@
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label4.Location = new System.Drawing.Point(14, 126);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(82, 18);
+            this.label4.Size = new System.Drawing.Size(122, 18);
             this.label4.TabIndex = 7;
-            this.label4.Text = "OS version";
+            this.label4.Text = "Windows version";
             // 
             // label5
             // 
@@ -111,13 +111,14 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Arial", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label6.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label6.ForeColor = System.Drawing.Color.Red;
-            this.label6.Location = new System.Drawing.Point(494, 9);
+            this.label6.Location = new System.Drawing.Point(496, 5);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(96, 19);
+            this.label6.Size = new System.Drawing.Size(93, 23);
             this.label6.TabIndex = 12;
-            this.label6.Text = "ATTENTION";
+            this.label6.Text = "Attention!";
+            this.label6.UseMnemonic = false;
             // 
             // label7
             // 
