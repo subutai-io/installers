@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Threading;
-using DevExpress.UserSkins;
-using DevExpress.Skins;
-using DevExpress.LookAndFeel;
-using DevExpress.XtraEditors;
 using NLog;
 
 namespace Deployment
 {
     static class Program
     {
-        public static Form1 form1;
+        public static f_install form1;
         public static InstallationFinished form2;
 
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
@@ -24,15 +20,15 @@ namespace Deployment
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            BonusSkins.Register();
-            SkinManager.EnableFormSkins();
-            UserLookAndFeel.Default.SetSkinStyle("DevExpress Style");
+            //BonusSkins.Register();
+            //SkinManager.EnableFormSkins();
+            //UserLookAndFeel.Default.SetSkinStyle("DevExpress Style");
 
             AppDomain current_domain = AppDomain.CurrentDomain;
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            form1 = new Form1();
+            form1 = new f_install();
             form2 = new InstallationFinished("complete","");
 
             Application.Run(form1);
@@ -42,10 +38,10 @@ namespace Deployment
         {
             if (Program.form1.Visible == true)
                 Program.form1.Hide();
-            var result = XtraMessageBox.Show(Text, Caption, MessageBoxButtons.OK);
+            var result = MessageBox.Show(Text, Caption, MessageBoxButtons.OK);
             if (result == DialogResult.OK)
                   Program.form1.Close();
-          
+        
         }
 
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)

@@ -141,7 +141,7 @@ namespace Deployment
                     logger.Info("Directory created: {0}", destination);
                 }
 
-                Form1.StageReporter("", report);
+                StageReporter("", report);
                 var webClient = new WebClient();
 
                 if (onComplete != null)
@@ -180,8 +180,8 @@ namespace Deployment
             //MessageBox.Show(e.ProgressPercentage.ToString());
             Program.form1.Invoke((MethodInvoker) delegate
             {
-                Program.form1.progressBarControl1.EditValue =
-                    e.ProgressPercentage;
+                //Program.form1.progressBarControl1.EditValue = e.ProgressPercentage;
+                UpdateProgress(e.ProgressPercentage);
             });
         }
         #endregion
@@ -226,10 +226,11 @@ namespace Deployment
 
         public void unzip_file(string source, string dest, bool remove)
         {
-            Program.form1.progressPanel1.Parent.Invoke((MethodInvoker) delegate
-            {
-                Program.form1.progressPanel1.Description = "Extracting: " + new FileInfo(source).Name;
-            });
+            //Program.form1.progressPanel1.Parent.Invoke((MethodInvoker) delegate
+            //{
+            //    Program.form1.progressPanel1.Description = "Extracting: " + new FileInfo(source).Name;
+            //});
+            Program.form1.label_SubStage.Text = "Extracting: " + new FileInfo(source).Name;
 
             ZipFile zf = null;
             try
@@ -268,15 +269,16 @@ namespace Deployment
 
                     using (FileStream streamWriter = File.Create(fullZipToPath))
                     {
-                        
+
                         var progressHandler = new ProgressHandler(
                             (object o, ICSharpCode.SharpZipLib.Core.ProgressEventArgs ex) =>
                             {
                                 var percentage = ex.Processed * 100 / zipEntry.Size;
 
-                                Program.form1.progressBarControl1.Parent.Invoke((MethodInvoker)delegate
+                                Program.form1.prBar_.Parent.Invoke((MethodInvoker)delegate
                                 {
-                                    Program.form1.progressBarControl1.EditValue = percentage;
+                                    //Program.form1.progressBarControl1.EditValue = percentage;
+                                    Program.form1.prBar_.Value = (int)percentage;
                                 });
                             });
                         StreamUtils.Copy(zipStream, streamWriter, buffer, progressHandler, new TimeSpan(), Program.form1, "none", 100);
@@ -560,11 +562,27 @@ namespace Deployment
 
         #region FORM HELPERS: show / hide marquee bar
 
+        public static void ShowMarquee_()
+        {
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                //Program.form1.marqueeProgressBarControl1.Visible = true;
+            });
+        }
+
+        public static void HideMarquee_()
+        {
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                //Program.form1.marqueeProgressBarControl1.Visible = false;
+            });
+        }
+
         public static void ShowMarquee()
         {
             Program.form1.Invoke((MethodInvoker)delegate
             {
-                Program.form1.marqueeProgressBarControl1.Visible = true;
+                   SetIndeterminate(true);
             });
         }
 
@@ -572,8 +590,72 @@ namespace Deployment
         {
             Program.form1.Invoke((MethodInvoker)delegate
             {
-                Program.form1.marqueeProgressBarControl1.Visible = false;
+                SetIndeterminate(false);
             });
+        }
+
+        public static void StageReporter(string stageName, string subStageName)
+        {
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                if (stageName != "")
+                {
+                    Program.form1.label_Stage.Text = stageName;
+                }
+                if (subStageName != "")
+                {
+                    //Program.form1.progressPanel1.Description = subStageName;
+                    Program.form1.label_SubStage.Text = subStageName;
+                }
+            });
+        }
+
+        public static void SetIndeterminate(bool isIndeterminate)
+        {
+            if (Program.form1.prBar_.InvokeRequired)
+            {
+                Program.form1.prBar_.BeginInvoke(
+                    new Action(() =>
+                    {
+                        if (isIndeterminate)
+                        {
+                            Program.form1.prBar_.Style = ProgressBarStyle.Marquee;
+                        }
+                        else
+                        {
+                            Program.form1.prBar_.Style = ProgressBarStyle.Blocks;
+                        }
+                    }
+                ));
+            }
+            else
+            {
+                if (isIndeterminate)
+                {
+                    Program.form1.prBar_.Style = ProgressBarStyle.Marquee;
+                }
+                else
+                {
+                    Program.form1.prBar_.Style = ProgressBarStyle.Blocks;
+                }
+            }
+        }
+
+        public static void UpdateProgress(int progress)
+        {
+            if (Program.form1.prBar_.InvokeRequired)
+            {
+                Program.form1.prBar_.BeginInvoke(
+                    new Action(() =>
+                    {
+                        Program.form1.prBar_.Value = progress;
+                    }
+                ));
+            }
+            else
+            {
+                Program.form1.prBar_.Value = progress;
+            }
         }
 
         #endregion

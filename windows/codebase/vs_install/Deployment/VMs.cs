@@ -31,7 +31,7 @@ namespace Deployment
 
         public static bool stop_vm(string name)
         {
-            Form1.StageReporter("Stopping machine", "");
+            Deploy.StageReporter("Stopping machine", "");
             string res = Deploy.LaunchCommandLineApp("vboxmanage", 
                 $"controlvm {name} poweroff soft");
             logger.Info("Stopping machine: {0}", res);
@@ -51,9 +51,9 @@ namespace Deployment
         public static bool clone_vm(string vmName)
         {
             string res = "";
-           
+
             // clone VM
-            Form1.StageReporter("", "Cloning VM");
+            Deploy.StageReporter("", "Cloning VM");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy");
             logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", vmName, res);
             if (res.ToLower().Contains("error"))
@@ -173,7 +173,7 @@ namespace Deployment
 
         public static bool set_bridged(string name)
         {
-            Form1.StageReporter("", "Setting nic1 bridged");
+            Deploy.StageReporter("", "Setting nic1 bridged");
             //get default routing interface
             string netif = Net.gateway_if();
             logger.Info("Gateway interface: {0}", netif);
@@ -201,7 +201,7 @@ namespace Deployment
         {
             //NAT (eth1) 
             //NAT on nic2
-            Form1.StageReporter("", "Setting nic2 NAT");
+            Deploy.StageReporter("", "Setting nic2 NAT");
             string res = Deploy.LaunchCommandLineApp("vboxmanage",
                $"modifyvm {name} --nic2 nat --cableconnected2 on --natpf2 \"ssh-fwd,tcp,,4567,,22\" --natpf2 \"https-fwd,tcp,,9999,,8443\"");//
             logger.Info("Enable NAT nic2: {0}", res);
@@ -261,18 +261,18 @@ namespace Deployment
         {
             //stop VM
             string res = "";
-            Form1.StageReporter("", "Stopping VM");
+            Deploy.StageReporter("", "Stopping VM");
             stop_vm(vmName);
             Thread.Sleep(5000);
-            Form1.StageReporter("Setting network interfaces", "");
+            Deploy.StageReporter("Setting network interfaces", "");
             set_bridged(vmName);
             //NAT on nic2
             set_nat(vmName);
             //Hostonly eth2 on nic 3
-            Form1.StageReporter("", "Setting nic3 hostonly");
+            Deploy.StageReporter("", "Setting nic3 hostonly");
             string if_name = set_hostonly(vmName);
             // start VM
-            Form1.StageReporter("", "Starting VM");
+            Deploy.StageReporter("", "Starting VM");
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ");
             logger.Info("vm 1: {0} starting: {1}", vmName, Deploy.com_out(res, 0));
             logger.Info("vm 1: {0} stdout: {1}", vmName, Deploy.com_out(res, 1));
@@ -282,11 +282,11 @@ namespace Deployment
 
             if (err != null && err.Contains(" error:") && err.Contains(if_name))
             {
-                Form1.StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
+                Deploy.StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
                 Thread.Sleep(10000);
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic3 none");
                 logger.Info("nic3 none: {0}", res);
-                Form1.StageReporter("", "Trying to turn off Host-Only adapter");
+                Deploy.StageReporter("", "Trying to turn off Host-Only adapter");
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ");
                 logger.Info("vm 2: {0} starting: {1}", vmName, res);
                 err = Deploy.com_out(res, 2);
@@ -303,24 +303,24 @@ namespace Deployment
         {
             string ssh_res = "";
             // creating tmpfs folder
-            Form1.StageReporter("", "Creating tmps folder");
+            Deploy.StageReporter("", "Creating tmps folder");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             // copying snap
-            Form1.StageReporter("", "Copying Subutai SNAP");
+            Deploy.StageReporter("", "Copying Subutai SNAP");
 
             Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{appDir}/redist/subutai/prepare-server.sh",
-                $"{appDir}/redist/subutai/{Form1.snapFile}"
+                $"{appDir}/redist/subutai/{TC.snapFile}"
                 }, "/home/ubuntu/tmpfs");
-            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", Form1.snapFile);
+            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", TC.snapFile);
 
             // adopting prepare-server.sh
-            Form1.StageReporter("", "Adapting installation scripts");
+            Deploy.StageReporter("", "Adapting installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Adapting installation scripts: {0}", ssh_res);
             // running prepare-server.sh script
-            Form1.StageReporter("", "Running installation scripts");
+            Deploy.StageReporter("", "Running installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Running installation scripts: {0}", ssh_res);
             // deploying peer options

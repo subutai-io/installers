@@ -31,14 +31,14 @@ namespace Deployment
         public static void inst_TAP(string instDir)
         {
             string res = "";
-            Form1.StageReporter("", "TAP driver");
+            Deploy.StageReporter("", "TAP driver");
             if (app_installed("TAP-Windows") == 0)
             {
                 res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\tap-driver.exe", "/S");
                 logger.Info("TAP driver: {0}", res);
             } else
             {
-                Form1.StageReporter("", "TAP driver already installed");
+                Deploy.StageReporter("", "TAP driver already installed");
                 logger.Info("TAP driver is already installed: {0}", res);
             }
 
@@ -75,13 +75,13 @@ namespace Deployment
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Clients\StartMenuInternet\Google Chrome
             if (app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
             {
-                Form1.StageReporter("", "Chrome");
+                Deploy.StageReporter("", "Chrome");
                 res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}redist\\chrome.msi\"");
                 logger.Info("Chrome: {0}", res);
             }
             else
             {
-                Form1.StageReporter("", "Google\\Chrome is already installed");
+                Deploy.StageReporter("", "Google\\Chrome is already installed");
                 logger.Info("Google\\Chrome is already installed");
             }
         }
@@ -140,7 +140,7 @@ namespace Deployment
 
         public static void inst_E2E()
         {
-            Form1.StageReporter("", "Installing Chrome E2E extension");
+            Deploy.StageReporter("", "Installing Chrome E2E extension");
             logger.Info("Installing Chrome E2E extension");
             string e2ePath = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
             string e2eName = "kpmiofpmlciacjblommkcinncmneeoaa";
@@ -189,7 +189,7 @@ namespace Deployment
             }
             else
             {
-                Form1.StageReporter("", "Oracle\\VirtualBox is already installed");
+                Deploy.StageReporter("", "Oracle\\VirtualBox is already installed");
                 logger.Info("Oracle\\VirtualBox is already installed");
             }
 
@@ -240,7 +240,8 @@ namespace Deployment
         public static void service_stop(string serviceName)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("nssm", $"stop \"{serviceName}\"");
+            //res = Deploy.LaunchCommandLineApp("nssm", $"stop \"{serviceName}\"");
+            res = Deploy.LaunchCommandLineApp("sc", $"stop \"{serviceName}\"");
             logger.Info("Stopping service {0}: {1}", serviceName, res);
         }
 
@@ -248,13 +249,16 @@ namespace Deployment
         {
             string res = "";
             res = Deploy.LaunchCommandLineApp("nssm", $"install \"{serviceName}\" \"{binPath}\" \"{binArgument}\"");
-            logger.Info("Installing P2P service: {0}", res);
+            string cmd = $"create \"{serviceName}\" binpath= \"\"{binPath}\" \"{binArgument}\"\" start= auto";
+            //res = Deploy.LaunchCommandLineApp("sc", cmd);
+            logger.Info("Installing P2P service: {0} {1}", cmd, res);
         }
 
         public static void service_start(string serviceName)
         {
             string res = "";
             res = Deploy.LaunchCommandLineApp("nssm", $"start \"{serviceName}\"");
+            //res = Deploy.LaunchCommandLineApp("sc", $"start \"{serviceName}\"");
             logger.Info("Starting P2P service: {0}", res);
             Thread.Sleep(2000);
         }
@@ -288,7 +292,7 @@ namespace Deployment
                 //Logs rotation
                 //kPath.SetValue("AppRotateSeconds", 86400, RegistryValueKind.DWord);
                 //Registry.SetValue(sPath, "AppRotateSeconds", filepath, RegistryValueKind.ExpandString);
-                int maxBytes = 3*1024*1024;//
+                int maxBytes = 50 * 1024;//
                 Registry.SetValue(ksPath, "AppRotate", maxBytes, RegistryValueKind.ExpandString);
                 logger.Info("AppRotateBytes: {0}", maxBytes);
                 kPath.Close();
@@ -298,12 +302,12 @@ namespace Deployment
         public static void install_mh_nw()
         {
             //installing master template
-            Form1.StageReporter("", "Importing master");
+            Deploy.StageReporter("", "Importing master");
             logger.Info("Importing master");
             bool b_res = import_templ_task("master");
 
             // installing management template
-            Form1.StageReporter("", "Importing management");
+            Deploy.StageReporter("", "Importing management");
             //b_res = import_templ("management");
             b_res = import_templ_task("management");
             if (!b_res)
@@ -334,7 +338,7 @@ namespace Deployment
         public static void install_mh_lc(PrivateKeyFile[] privateKeys)
         {
             //installing master template
-            Form1.StageReporter("", "Importing master");
+            Deploy.StageReporter("", "Importing master");
             logger.Info("Importing master");
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
 
@@ -343,7 +347,7 @@ namespace Deployment
             logger.Info("Import master log: {0}", ssh_res);
 
             // installing management template
-            Form1.StageReporter("", "Importing management");
+            Deploy.StageReporter("", "Importing management");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
             logger.Info("Import management: {0}", ssh_res);
             if (Deploy.com_out(ssh_res, 0) != "0")
@@ -388,6 +392,11 @@ namespace Deployment
                 while (true)
                 {
                     Thread.Sleep(5000);
+                    if (token.IsCancellationRequested)
+                    {
+                        logger.Info("Watcher cancelled");
+                        break;
+                    }
                     string res = check_templ(tname);
                     logger.Info("res = {0}", res);
                     if (res == res0)
@@ -399,6 +408,7 @@ namespace Deployment
                             //stop 
                             logger.Info("Cancelling from watcher");
                             tokenSource.Cancel();
+                            //break;
                         }
                     }
                     res0 = res;

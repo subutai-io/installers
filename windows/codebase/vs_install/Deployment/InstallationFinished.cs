@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace Deployment
 {
-    public partial class InstallationFinished : DevExpress.XtraEditors.XtraForm
+    public partial class InstallationFinished : Form//DevExpress.XtraEditors.XtraForm
     {
         bool opacityChanging = false;
         bool need2clean = false;
