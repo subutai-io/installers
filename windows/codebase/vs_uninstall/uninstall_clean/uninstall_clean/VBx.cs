@@ -161,7 +161,16 @@ namespace uninstall_clean
                 res = SCP.LaunchCommandLineApp(uninst[0], uninst[1], true, false);
             }
             //MessageBox.Show(res, "Uninstalling VirtualBox", MessageBoxButtons.OK);
-            String mesg = String.Format("Oracle VirtualBox removed from Your machine. \n\n Please do not forget to RESTART windows before new installation!");
+
+            String mesg = "";
+            if (AP.app_installed("Oracle\\VirtualBox") == 0)
+            {
+                mesg = String.Format("Oracle VirtualBox removed from Your machine. \n\n Please do not forget to RESTART windows before new installation!");
+            }
+            else
+            {
+                mesg = String.Format("Oracle VirtualBox was not removed from Your machine");
+            }
             MessageBox.Show(mesg, "Removing Oracle VirtualBox", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
         }

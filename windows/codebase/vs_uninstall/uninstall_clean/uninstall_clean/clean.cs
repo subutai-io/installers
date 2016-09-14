@@ -188,6 +188,7 @@ namespace uninstall_clean
                  {
                      StageReporter("", "Removing /home directory link");
                      //Remove / home shortcut
+                     mess = FD.remove_from_home(SubutaiDir);
                      mess = FD.remove_home(SubutaiDir);
                      //Remove Subutai dirs from Path
                      // UpdateProgress(60);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 
 namespace uninstall_clean
@@ -33,6 +34,18 @@ namespace uninstall_clean
                 }
             }
             return EnvVar;
+        }
+        public static int app_installed(string appName)
+        {
+            string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
+            string subkey86 = Path.Combine("SOFTWARE\\", appName);
+            RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey);
+            RegistryKey rk86 = Registry.LocalMachine.OpenSubKey(subkey86);
+            if (rk == null && rk86 == null)
+            {
+                return 0;
+            }
+            return 1;
         }
 
         public static  void remove_app(string app_name, string cmd, string args, string app_path)

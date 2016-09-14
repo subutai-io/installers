@@ -253,6 +253,36 @@ namespace uninstall_clean
             return path_l;
         }
 
+        public static string remove_from_home(string instDir)
+        {
+            string res = "1";
+            if (instDir == "")
+            {
+                return "Not exists";
+            }
+            
+            string uname = Environment.GetEnvironmentVariable("Username");
+            if (uname == "" || uname == null)
+            {
+                return "Not exists";
+            }
+            string path_l = Path.Combine(instDir, "home", uname, ".ssh", "known_hosts");
+            if (File.Exists(path_l))
+            {
+                try
+                {
+                    File.Delete(path_l);
+                    res = "0";
+                }
+                catch (Exception e)
+                {
+                    res = e.Message;
+                 
+                }
+            }
+            return res;
+        }
+
         public static bool del_sysfile(string drvPath)
         {
             //take ownership

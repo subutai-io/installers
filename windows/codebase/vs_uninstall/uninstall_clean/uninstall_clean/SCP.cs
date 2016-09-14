@@ -34,14 +34,16 @@ namespace uninstall_clean
             ServiceController ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == serviceName);
             string mess = "";
 
-            if (ctl == null)
-            {
-                mess = "Not installed";
-            }
-            else
-            {
-                mess = LaunchCommandLineApp("nssm", $"remove \"Subutai Social P2P\" confirm", true, false);
-            }
+            ////if (ctl == null)
+            ////{
+            ////    mess = "Not installed";
+            ////}
+            ////else
+            ////{
+            ////    mess = LaunchCommandLineApp("nssm", $"remove \"Subutai Social P2P\" confirm", true, false);
+            ////}
+
+            mess = LaunchCommandLineApp("nssm", $"remove \"Subutai Social P2P\" confirm", true, false);
             return (mess);
         }
 
