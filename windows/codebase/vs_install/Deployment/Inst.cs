@@ -308,12 +308,10 @@ namespace Deployment
 
             // installing management template
             Deploy.StageReporter("", "Importing management");
-            //b_res = import_templ("management");
             b_res = import_templ_task("management");
             if (!b_res)
             {
                 logger.Info("trying import management again");
-                //b_res = import_templ("management");
                 b_res = import_templ_task("management");
                 if (!b_res)
                 {
@@ -328,6 +326,7 @@ namespace Deployment
             logger.Info("Import management address returned: {0}", ssh_res);
             string rhIP = Deploy.com_out(ssh_res, 1);
             logger.Info("Import management address: {0}", rhIP);
+            //check if IPv4 address returned
             string[] ips = rhIP.Split('.');
             if (ips.Length != 4)
             {

@@ -108,8 +108,7 @@ namespace Deployment
                        //Program.ShowError(ex.Message, "checkmd5 faulted");
                        //we can continue
                    }
- 
-                   
+                    
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
                        TC.unzip_extracted();
@@ -188,7 +187,7 @@ namespace Deployment
                     if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
                     {
                         TC.prepare_rh();
-                        //logger.Info("Stage: {0}", "prepare-rh");
+                        
                     }
                     stage_counter++;
                     logger.Info("Stage prepare-rh: {0}", stage_counter);
