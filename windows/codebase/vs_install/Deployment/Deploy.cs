@@ -65,10 +65,15 @@ namespace Deployment
 
             Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Machine);
             Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
-
-            //logger.Info("Path machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
+            logger.Info("Pat machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
             logger.Info("Path Process: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Process);
-            //logger.Info("Path User: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.User);
+
+            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
+
+            logger.Info("Subutai machine: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Machine);
+            logger.Info("Subutai Process: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Process);
+
         }
 
         #region HELPERS: Download
@@ -284,8 +289,11 @@ namespace Deployment
                         StreamUtils.Copy(zipStream, streamWriter, buffer, progressHandler, new TimeSpan(), Program.form1, "none", 100);
                     }
                 }
-
-                //new FileInfo(source).Delete();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                Program.ShowError("","Extracting zip");
             }
             finally
             {
@@ -413,7 +421,7 @@ namespace Deployment
                 SshCommand scmd = client.RunCommand(command);
                 int exitstatus = scmd.ExitStatus;
                 string sresult = scmd.Result;
-                if (sresult == null || sresult == "")
+                if (sresult == null || sresult == "" || sresult == " " )
                     sresult = "Empty";
                 string serror = scmd.Error;
                 if (serror == null || serror == "")

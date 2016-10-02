@@ -26,7 +26,7 @@ namespace Deployment
             return 1;
         }
 
-        
+
         //Install TAP driver and utilities
         public static void inst_TAP(string instDir)
         {
@@ -46,7 +46,7 @@ namespace Deployment
             {
                 var pathTAPin = Path.Combine(instDir, "redist");
                 var pathTAPout = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TAP-Windows", "bin");
-           
+
                 try
                 {
                     File.Copy(Path.Combine(pathTAPin, "addtap.bat"), Path.Combine(pathTAPout, "addtap.bat"), true);
@@ -66,7 +66,7 @@ namespace Deployment
                     logger.Error(ex.Message + " copying utility deltapall");
                 }
             }
-         }
+        }
 
         //Install Chrome
         public static void inst_Chrome(string instDir)
@@ -110,11 +110,11 @@ namespace Deployment
                     return false;
                 }
             } else { //there is no  key to add subkey
-                string [] keyPathArr = keyPath.Split(new[] { "\\" },  StringSplitOptions.None);
+                string[] keyPathArr = keyPath.Split(new[] { "\\" }, StringSplitOptions.None);
                 logger.Info("keyPath = {0}, keyPathArr[0] = {1}, keyPathArr[3] = {2}", keyPath, keyPathArr[0], keyPathArr[3]);
 
                 string keyPath2 = "";
-                    
+
                 Registry.LocalMachine.OpenSubKey(keyPathArr[0], true);
                 for (int i = 0; i < keyPathArr.Length; i++)
                 {
@@ -150,11 +150,11 @@ namespace Deployment
             if (extPath == null)
             {
                 logger.Info("Setting E2E extension  subkey");
-                
+
                 if (create_subkey(e2ePath, e2eName))
                 {
                     extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
-                    
+
                     if (extPath == null)
                         logger.Info("Can not open E2E subkey");
                 }
@@ -222,7 +222,7 @@ namespace Deployment
             {
                 logger.Info("link {0} already exists", path_l);
             }
-            
+
         }
 
         public static void remove_ssh(string instDir)
@@ -323,13 +323,15 @@ namespace Deployment
                 }
             }
             string ssh_res = "";
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", 
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai management_network detect");
-            logger.Info("Import management address: {0}", ssh_res);
-
-            if (Deploy.com_out(ssh_res, 0) != "0")
+            logger.Info("Import management address returned: {0}", ssh_res);
+            string rhIP = Deploy.com_out(ssh_res, 1);
+            logger.Info("Import management address: {0}", rhIP);
+            string[] ips = rhIP.Split('.');
+            if (ips.Length != 4)
             {
-                logger.Error("import management failed second time", "Management template was not installed");
+                logger.Error("import management failed ", "Management template was not installed");
                 Program.ShowError("Management template was not installed, installation failed, removing", "Management template was not imported");
                 Program.form1.Visible = false;
             }

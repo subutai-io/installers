@@ -120,15 +120,28 @@ namespace uninstall_clean
             UpdateProgress(0);
             Task.Factory.StartNew(() =>
             {
+                StageReporter("", "Starting uninstall");
+                SetIndeterminate(true);
             })
 
               .ContinueWith((prevTask) =>
                {
+                   Exception ex = prevTask.Exception;
+                   if (prevTask.IsFaulted)
+                   {
+                       //prepare-vbox faulted with exception
+                       while (ex is AggregateException && ex.InnerException != null)
+                       {
+                           ex = ex.InnerException;
+                       }
+                       MessageBox.Show(ex.Message, "Start", MessageBoxButtons.OK);
+                       //throw new InvalidOperationException();
+                   }
                    StageReporter("", "Removing firewall rules");
                    SetIndeterminate(true);
                    SCP.remove_fw_rules(SubutaiDir);
                    //UpdateProgress(10);
-               }, TaskContinuationOptions.OnlyOnRanToCompletion)
+               })
 
                  .ContinueWith((prevTask) =>
                  {
@@ -148,7 +161,6 @@ namespace uninstall_clean
 
                  .ContinueWith((prevTask) =>
                  {
-
                      StageReporter("", "Removing Subutai shortcuts");
                      FD.delete_Shortcuts("Subutai");
                      //UpdateProgress(40);
@@ -176,7 +188,6 @@ namespace uninstall_clean
                      string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                      //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
                      appUserDir = Path.Combine(appUserDir, "Subutai Social");
-                     //MessageBox.Show($"Subutai Social: {appUserDir}", "Subutai Social", MessageBoxButtons.OK);
                      if (Directory.Exists(appUserDir))
                      {
                          Directory.Delete(appUserDir, true);
@@ -186,23 +197,23 @@ namespace uninstall_clean
 
                  .ContinueWith((prevTask) =>
                  {
+
                      StageReporter("", "Removing /home directory link");
                      //Remove / home shortcut
                      mess = FD.remove_from_home(SubutaiDir);
                      mess = FD.remove_home(SubutaiDir);
+
                      //Remove Subutai dirs from Path
                      // UpdateProgress(60);
 
                      StageReporter("", "Removing Subutai dirs from %Path%");
                      //Remove Subutai dirs from Path
                      mess = FD.remove_from_Path("Subutai");
-                     //Save Path
+                     //Remove %Subutai%
                      Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.Machine);
                      Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.User);
                      Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.Process);
                      //UpdateProgress(70);
-
-
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                  .ContinueWith((prevTask) =>
@@ -242,11 +253,9 @@ namespace uninstall_clean
                   SetIndeterminate(false);
                   UpdateProgress(100);
                   StageReporter("", "Finished");
-
                   MessageBox.Show("Subutai Social uninstalled", "Information", MessageBoxButtons.OK);
                   Environment.Exit(0);
                }, TaskContinuationOptions.OnlyOnRanToCompletion);
-
         }
 
  
