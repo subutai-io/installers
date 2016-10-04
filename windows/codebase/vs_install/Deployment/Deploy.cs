@@ -220,6 +220,7 @@ namespace Deployment
 
         public void unzip_files(string folderPath)
         {
+            logger.Info("Unzipping files from {0}", folderPath);
             var filenames = Directory.GetFiles(folderPath, "*.zip", SearchOption.AllDirectories).Select(Path.GetFullPath).ToArray();
             foreach (var filename in filenames)
             {
@@ -240,8 +241,6 @@ namespace Deployment
             ZipFile zf = null;
             try
             {
-                //long maxProcessed = 0;
-
                 FileStream fs = File.OpenRead(source);
                 zf = new ZipFile(fs);
                 if (!String.IsNullOrEmpty(""))
@@ -274,7 +273,6 @@ namespace Deployment
 
                     using (FileStream streamWriter = File.Create(fullZipToPath))
                     {
-
                         var progressHandler = new ProgressHandler(
                             (object o, ICSharpCode.SharpZipLib.Core.ProgressEventArgs ex) =>
                             {

@@ -119,7 +119,6 @@ namespace Deployment
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
 
-
             //download tray-dev if installing -dev version
             if (file.Contains("tray") && _arguments["params"].Contains("dev"))
             {
@@ -156,6 +155,7 @@ namespace Deployment
         public static void check_md5()
         {
             //verify downloaded 
+            Deploy.StageReporter(" ", " ");
             Deploy.StageReporter("Verifying MD5", "");
             Deploy.HideMarquee();
             foreach (var info in Program.form1.PrerequisiteFilesInfo)
@@ -181,21 +181,23 @@ namespace Deployment
                     logger.Error("Verification of MD5 checksums for {0} failed: calc = {1}", filepath, calculatedMd5);
                 }
             }
+            Deploy.StageReporter(" ", " ");
         }
         public static void unzip_extracted()
         {
             // UNZIP FILES
-            Deploy.StageReporter("", "");
+            Deploy.StageReporter(" ", " ");
             Deploy.StageReporter("Extracting", "");
             logger.Info("Unzipping");
             Deploy.HideMarquee();
             Program.form1._deploy.unzip_files(_arguments["appDir"]);
+            Deploy.StageReporter(" ", " ");
         }
 
         public static void deploy_redist()
         {
             // DEPLOY REDISTRIBUTABLES
-
+            Deploy.StageReporter(" ", " ");
             Deploy.StageReporter("Installing redistributables", "");
             logger.Info("Installing redistributables");
             Deploy.ShowMarquee();
@@ -227,11 +229,13 @@ namespace Deployment
             {
                 Inst.inst_VBox(appDir);
             }
+            Deploy.StageReporter(" ", " ");
         }
 
         public static void prepare_vbox()
         {
             // PREPARE VBOX
+            Deploy.StageReporter(" ", " ");
             Deploy.StageReporter("Preparing Virtual Box", "");
             Deploy.StageReporter("", "Configuring network");
             logger.Info("Preparing Virtual Box");
@@ -259,11 +263,13 @@ namespace Deployment
                 Program.ShowError("Can not Import Snappy, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
+            Deploy.StageReporter(" ", " ");
         }
 
         public static void prepare_rh()
         {
             // PREPARE RH
+            Deploy.StageReporter(" ", " ");
             Deploy.StageReporter("Preparing resource host", "");
             logger.Info("Preparing resource host");
             string res = "";
@@ -371,12 +377,14 @@ namespace Deployment
             if (_arguments["peer"] == "rh-only")
                 Program.form1.finished = 1;
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Deploy.StageReporter(" ", " ");
         }
 
         public static void deploy_p2p()
         {
             // DEPLOYING P2P SERVICE
             //_arguments["appDir"] = "C:\\Subutai\\"; for debug
+            Deploy.StageReporter(" ", " ");
             string appPath = _arguments["appDir"];
             Deploy.StageReporter("Installing P2P service", "");
             Deploy.ShowMarquee();
