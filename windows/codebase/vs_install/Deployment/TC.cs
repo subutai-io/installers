@@ -9,7 +9,8 @@ using Renci.SshNet;
 
 namespace Deployment
 {
-    //Task Factory Components
+    //Task factory Components
+    //Download components
     class TC
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
@@ -186,8 +187,8 @@ namespace Deployment
         public static void unzip_extracted()
         {
             // UNZIP FILES
-            Deploy.StageReporter(" ", " ");
-            Deploy.StageReporter("Extracting", "");
+            //Deploy.StageReporter(" ", " ");
+            //Deploy.StageReporter("Extracting", "");
             logger.Info("Unzipping");
             Deploy.HideMarquee();
             Program.form1._deploy.unzip_files(_arguments["appDir"]);
@@ -211,7 +212,7 @@ namespace Deployment
                 Inst.inst_TAP(appDir);
 
                 Deploy.StageReporter("", "MS Visual C++");
-                res = Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}redist\\vcredist64.exe", "/install /quiet");
+                res = Deploy.LaunchCommandLineApp($"{appDir}redist\\vcredist64.exe", "/install /quiet");
                 logger.Info("MS Visual C++: {0}", res);
 
                 Deploy.StageReporter("", "Chrome browser");
@@ -221,7 +222,7 @@ namespace Deployment
                 Inst.inst_E2E();
 
                 Deploy.StageReporter("", "SSH ");
-                Inst.inst_ssh(Path.Combine(FD.sysDrive(), "Subutai"));
+                Inst.inst_ssh(appDir);
             }
 
             Deploy.StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
@@ -403,7 +404,7 @@ namespace Deployment
             Net.set_fw_rules(name, "p2p_s", true);
 
             Net.set_fw_rules(binPath, "p2p", false);
-            Net.set_fw_rules($"{appPath}bin\\tray\\SubutaiTray.exe", "SubutaiTray", false);
+            Net.set_fw_rules($"{appPath}bin\\tray\\{Deploy.SubutaiTrayName}", "SubutaiTray", false);
 
             //Configuring service logs
             Deploy.StageReporter("", "Configuring P2P service logs");

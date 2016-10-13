@@ -15,7 +15,7 @@ namespace Deployment
 {
     public partial class f_install : Form
     {
-        private readonly string[] _args = Environment.GetCommandLineArgs();
+        //private readonly string[] _args = Environment.GetCommandLineArgs();
         public readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
         public readonly Deploy _deploy;
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
@@ -34,20 +34,27 @@ namespace Deployment
         //public static string snapFile = "";
 
 
-        private void ParseArguments()
+        private void ParseArguments(string _args)
         {
-            foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
+            //"params=deploy-redist,prepare-vbox,dev,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev ";
+            //var args_eq = _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2);
+            string[] s_args = _args.Split(' '); ;
+            //foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
+            foreach (string s_splitted in s_args)
             {
+                string[] splitted = s_splitted.Split('=');
+                if (splitted.Length != 2)
+                    continue;
                 _arguments[splitted[0]] = splitted[1];
                 logger.Info("Arguments:  {0} =  {1}", splitted[0], splitted[1]);
             }
         }
 
-        public f_install()
+        public f_install(string args)
         {
             logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
             InitializeComponent();
-            ParseArguments();
+            ParseArguments(args);
             _deploy = new Deploy(_arguments);
             timer1.Start();
         }
@@ -55,10 +62,11 @@ namespace Deployment
         private void f_install_Load(object sender, EventArgs e)
         {
             _deploy.SetEnvironmentVariables();
+            FD.copy_uninstall();
 
             if (_arguments["network-installation"].ToLower() == "true")
             {
-                //DOWNLOAD REPO
+                // DOWNLOAD REPO
                 Deploy.StageReporter("Downloading prerequisites", "");
                 Deploy.HideMarquee();
                 TC.download_repo();
@@ -69,6 +77,12 @@ namespace Deployment
         private void timer1_Tick(object sender, EventArgs e)
         {
             Invoke((MethodInvoker)Refresh);
+        }
+
+        public string installDir()
+        {
+            string sTmp = _arguments["appDir"].ToString();
+            return sTmp;
         }
 
         #region TASKS FACTORY
@@ -82,10 +96,10 @@ namespace Deployment
             {
                 logger.Info("Starting task factory");
             })
-               .ContinueWith((prevTask) =>
+               .ContinueWith((prevTask) =>  
                {
 
-                   // Handle any exceptions to prevent UnobservedTaskException.             
+                   //Checking if files downloaded without errors      
                    logger.Info("Stage: {0} {1}", _arguments["network-installation"].ToLower(), "checkmd5");
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
@@ -97,6 +111,7 @@ namespace Deployment
 
                .ContinueWith((prevTask) =>
                {
+                   //Installing prerequisites
                    Exception ex = prevTask.Exception;
                    if (prevTask.IsFaulted)
                    {
@@ -111,6 +126,7 @@ namespace Deployment
                     
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
+                       Deploy.StageReporter(" ", " ");
                        TC.unzip_extracted();
                        logger.Info("Stage unzip: {0}", "unzip-extracted");
                    }
@@ -120,7 +136,8 @@ namespace Deployment
 
                .ContinueWith((prevTask) =>
                {
-                    Exception ex = prevTask.Exception;
+                   //Unzipping .zip
+                   Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
                        //unzipping faulted with exception
@@ -145,6 +162,7 @@ namespace Deployment
 
                 .ContinueWith((prevTask) =>
                 {
+                    //Prepare vbox
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -193,6 +211,7 @@ namespace Deployment
                     logger.Info("Stage prepare-rh: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
+
                 .ContinueWith((prevTask) =>
                 {
                     Exception ex = prevTask.Exception;
@@ -214,23 +233,44 @@ namespace Deployment
                         TC.deploy_p2p();
                         logger.Info("Stage: {0}", "deploy-p2p");
                     }
+
                     stage_counter++;
                     logger.Info("Stage deploy-p2p: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-               .ContinueWith((prevTask) =>
+                .ContinueWith((prevTask) =>
+                {
+                    Exception ex = prevTask.Exception;
+                    if (prevTask.IsFaulted)
+                    {
+                        //deploy p2p faulted with exception
+                        while (ex is AggregateException && ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            logger.Error(ex.Message, "deploy p2p faulted");
+                        }
+                        finished = 3;
+                        //Program.ShowError(ex.Message, "deploy p2p faulted");
+                    }
+
+                    _deploy.createAppShortCuts();
+                    stage_counter++;
+                    logger.Info("Stage create shortcuts: {0}", stage_counter);
+                }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
+              .ContinueWith((prevTask) =>
                {
                    Exception ex = prevTask.Exception;
                    if (prevTask.IsFaulted)
                    {
-                       //deploy p2p faulted with exception
+                       //create shortcuts faulted with exception
                        while (ex is AggregateException && ex.InnerException != null)
                        {
                            ex = ex.InnerException;
-                           logger.Error(ex.Message, "deploy p2p faulted");
+                           logger.Error(ex.Message, "create shortcuts faulted");
                        }
                        finished = 3;
-                       //Program.ShowError(ex.Message, "deploy p2p faulted");
+                       Program.ShowError(ex.Message, "Create shortcuts faulted");
                    }
 
                    logger.Info("stage_counter = {0}", stage_counter);
@@ -253,15 +293,11 @@ namespace Deployment
                {
                    logger.Info("finished = {0}", finished);
                    if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") //|| finished == 11)
-                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "");
+                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\{Deploy.SubutaiTrayName}", "");
                    //Environment.Exit(0);
                });
         }
         #endregion
-
-        #region TASK FACTORY COMPONENTS
-        #endregion
-
 
         private void show_finished()
         {

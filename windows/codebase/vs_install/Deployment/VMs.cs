@@ -307,14 +307,18 @@ namespace Deployment
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             // copying snap
-            Deploy.StageReporter("", "Copying Subutai SNAP");
+            Deploy.StageReporter("", "Copying Subutai files");
 
-            Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+            string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{appDir}/redist/subutai/prepare-server.sh",
                 $"{appDir}/redist/subutai/{TC.snapFile}"
                 }, "/home/ubuntu/tmpfs");
-            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", TC.snapFile);
+            logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
 
+            if (!ftp_res.Equals("Uploaded"))
+            {
+                Program.ShowError("Cannot upload Subutai files to RH, canceling", "Setting up RH");
+            }
             // adopting prepare-server.sh
             Deploy.StageReporter("", "Adapting installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");

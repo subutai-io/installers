@@ -85,8 +85,8 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Image = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
-            this.pictureBox1.InitialImage = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
+            //this.pictureBox1.Image = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
+            //this.pictureBox1.InitialImage = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
             this.pictureBox1.Location = new System.Drawing.Point(15, 12);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(130, 130);

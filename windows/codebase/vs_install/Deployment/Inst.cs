@@ -10,6 +10,7 @@ namespace Deployment
 {
     class Inst
     {
+        //Installation of components
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         //Define if application is installed
@@ -24,6 +25,18 @@ namespace Deployment
                 return 0;
             }
             return 1;
+        }
+
+        public static string subutai_path()
+        {
+            string subkey86 = Path.Combine("SOFTWARE\\", "Subutai Social", "Subutai");
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey86);
+            if (rk == null)
+            {
+                return "NA";
+            }
+            string path = rk.GetValue("Path").ToString();
+            return path;
         }
 
 
@@ -176,15 +189,15 @@ namespace Deployment
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                    "", true);
-                Deploy.CreateShortcut(
-                    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                    "", true);
+                    "", "", true);
+                //Deploy.CreateShortcut(
+                //    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
+                //    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
+                //    "", true, "");
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
-                    "", true);
+                    "", "", true);
                 logger.Info("Virtual Box: {0} ", res);
             }
             else

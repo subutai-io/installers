@@ -8,6 +8,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
+using System.Reflection;
 using System.Threading;
 using Deployment.items;
 using ICSharpCode.SharpZipLib.Core;
@@ -28,8 +29,13 @@ namespace Deployment
     {
         private const string RestFileinfoURL = "/kurjun/rest/raw/info?name=";
         private const string RestFileURL = "/kurjun/rest/raw/get?id=";
+        public static string SubutaiTrayName = "SubutaiTray.exe";
+        private const string SubutaiIconName = "Subutai_logo_4_Light_70x70.ico";
+        public static string SubutaiUninstallName = "uninstall-clean.exe";
+        private const string SubutaiUninstallIconName = "uninstall.ico";
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        
 
         public Deploy(Dictionary<string, string> arguments)
         {
@@ -51,7 +57,7 @@ namespace Deployment
             if (!path_orig.Contains("TAP-Windows"))
                 {
                 path_orig += $";{sysDrive}Program Files\\TAP-Windows\\bin";
-                //logger.Info("TAP-Windowsx: {0}", path_orig);
+                //logger.Info("TAP-Windows: {0}", path_orig);
             }
 
             if (!path_orig.Contains("Subutai"))
@@ -62,7 +68,7 @@ namespace Deployment
             }
 
             //            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine));
-
+            path_orig = path_orig.Replace(";;", ";"); 
             Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Machine);
             Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
             logger.Info("Pat machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
@@ -236,7 +242,7 @@ namespace Deployment
             //{
             //    Program.form1.progressPanel1.Description = "Extracting: " + new FileInfo(source).Name;
             //});
-            Program.form1.label_SubStage.Text = "Extracting: " + new FileInfo(source).Name;
+            //Program.form1.label_SubStage.Text = "Extracting: " + new FileInfo(source).Name;
 
             ZipFile zf = null;
             try
@@ -456,25 +462,47 @@ namespace Deployment
             return sa[ind];
         }
 
-        public static void SendFileSftp(string hostname, int port, string username, string password, List<string> localFilesPath, string remotePath)
+        //SSH.NET sftp to send files to virtual machine
+        public static string SendFileSftp(string hostname, int port, string username, string password, List<string> localFilesPath, string remotePath)
         {
-            using (var client = new SftpClient(hostname, port, username, password))
+            SftpClient client;
+            try
             {
-                client.Connect();
-                client.BufferSize = 4 * 1024;
+                client = new SftpClient(hostname, port, username, password);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                return "Cannot create client";
+            }
 
-                foreach (var filePath in localFilesPath)
+            try
+            {
+                using (client)
                 {
-                    var fileStream = new FileStream(filePath, FileMode.Open);
+                    client.Connect();
+                    client.BufferSize = 4 * 1024;
+                    logger.Info("After client connected");
+                    foreach (var filePath in localFilesPath)
                     {
-                        var destination =
-                            $"{remotePath}/{new FileInfo(filePath).Name}";
-                        client.UploadFile(fileStream, destination, true, null);
+                        var fileStream = new FileStream(filePath, FileMode.Open);
+                        {
+                            var destination =
+                                $"{remotePath}/{new FileInfo(filePath).Name}";
+                            client.UploadFile(fileStream, destination, true, null);
+                            logger.Info("Uploaded: {0}", destination);
+                        }
                     }
-                }
 
-                client.Disconnect();
-                client.Dispose();
+                    client.Disconnect();
+                    client.Dispose();
+                    return "Uploaded";
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                return "Cannot upload";
             }
         }
 
@@ -505,24 +533,128 @@ namespace Deployment
         #endregion
 
         #region UTILITIES: Create shortcut
-
-        public static void CreateShortcut(string binPath, string destination, string arguments, bool runAsAdmin)
+        //Shortcuts for VirtualBox
+        public static void CreateShortcut(string binPath, string destination, 
+                                         string arguments, string iconPath, 
+                                         bool runAsAdmin)
         {
             var shell = new WshShell();
-            IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(destination);
-
-            shortcut.TargetPath = binPath;
-            shortcut.Arguments = arguments;
-            //shortcut.IconLocation = "cmd.exe, 0";
-            //shortcut.Description = string.Format("Launches clrenv for {0} {1} {2}", arch, flavor, extra);
-            shortcut.Save();
-
-            using (var fs = new FileStream(destination, FileMode.Open, FileAccess.ReadWrite))
+            try
             {
-                fs.Seek(21, SeekOrigin.Begin);
-                fs.WriteByte(0x22);
+                IWshShortcut shortcut = (IWshShortcut)shell.CreateShortcut(destination);
+                shortcut.TargetPath = binPath;
+                shortcut.Arguments = arguments;
+                if (!iconPath.Equals(""))
+                {
+                    //shortcut.IconLocation = "cmd.exe, 0";
+                    shortcut.IconLocation = $"{iconPath}, 0";
+                }
+                
+                //shortcut.Description = string.Format("Launches clrenv for {0} {1} {2}", arch, flavor, extra);
+                shortcut.Save();
+                using (var fs = new FileStream(destination, FileMode.Open, FileAccess.ReadWrite))
+                {
+                    fs.Seek(21, SeekOrigin.Begin);
+                    fs.WriteByte(0x22);
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Shortcut", MessageBoxButtons.OK);
             }
         }
+
+        //Creates shortcut at the specified path
+        //
+        //
+        private void CreateShortcut_(string binPath, string destination, 
+                                    string arguments, 
+                                    bool runAsAdmin)
+            //(string shortcutPathName, bool create)
+        {
+            try
+                {
+                    string shortcutTarget = binPath;//System.IO.Path.Combine(Application.StartupPath, appname + ".exe");
+                    WshShell myShell = new WshShell();
+                    WshShortcut myShortcut = (WshShortcut)myShell.CreateShortcut(destination);
+                    myShortcut.TargetPath = shortcutTarget; //The exe file this shortcut executes when double clicked
+                    myShortcut.IconLocation = shortcutTarget + ",0"; //Sets the icon of the shortcut to the exe`s icon
+                    myShortcut.WorkingDirectory = Application.StartupPath; //The working directory for the exe
+                    myShortcut.Arguments = ""; //The arguments used when executing the exe
+                    myShortcut.Save(); //Creates the shortcut
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+
+        public void createAppShortCuts()
+        {
+            logger.Info("Creating shortcuts");
+            var binPath = Path.Combine(_arguments["appDir"], "bin\\tray", SubutaiTrayName);
+            var destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), 
+                "Subutai.lnk");
+             
+            //Desktop
+            string iconPath = Path.Combine(_arguments["appDir"], SubutaiIconName);
+            Deploy.CreateShortcut(
+                binPath,
+                destPath,
+                "",
+                iconPath,
+                false);
+
+            //StartMenu\Programs
+            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+                "Subutai.lnk");
+            Deploy.CreateShortcut(
+                binPath,
+                destPath,
+                "",
+                iconPath,
+                false);
+            //StartMenu\Startup
+            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),
+                "Subutai.lnk");
+            Deploy.CreateShortcut(
+                binPath,
+                destPath,
+                "",
+                iconPath,
+                false);
+            //Create App folder in Programs
+            string folderpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Subutai");
+            destPath = Path.Combine(folderpath, "Subutai.lnk");
+            try
+            {
+                if (!Directory.Exists(folderpath))
+                {
+                    Directory.CreateDirectory(folderpath);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+            }
+            Deploy.CreateShortcut(
+                binPath,
+                destPath,
+                "",
+                iconPath,
+                false);
+            destPath = Path.Combine(folderpath, "Uninstall.lnk");
+            binPath = Path.Combine(FD.logDir(), SubutaiUninstallName);
+            iconPath = Path.Combine(_arguments["appDir"], SubutaiUninstallIconName);
+            Deploy.CreateShortcut(
+                binPath,
+                destPath,
+                "",
+                iconPath,
+                false);
+
+        }
+
         #endregion
 
         #region UTILITIES: Request Kurjun REST API

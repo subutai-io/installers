@@ -28,10 +28,11 @@ namespace Deployment
                 dir2clean = appdir;
             } 
         }
-
+           
         private void clean(string appdir)
         {
-            Process.Start($"{appdir}bin\\uninstall-clean");
+            
+            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}");
             //res = Deploy.LaunchCommandLineApp("regedit.exe", " /s c:\\temp\\subutai-clean-registry.reg");
         }
 
@@ -55,7 +56,7 @@ namespace Deployment
             {
                 MessageBox.Show("Installation was interrupted, removing partially installed Subutai Social", "Installation failed", MessageBoxButtons.OK);
                 clean(dir2clean);
-                this.Close();
+                this.Close();//check can not to ve closed
             }
             if (!need2clean)
             {
