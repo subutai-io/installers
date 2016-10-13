@@ -2,10 +2,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
+     
 
 namespace Deployment
 {
-    public partial class InstallationFinished : DevExpress.XtraEditors.XtraForm
+    public partial class InstallationFinished : Form//DevExpress.XtraEditors.XtraForm
     {
         bool opacityChanging = false;
         bool need2clean = false;
@@ -27,15 +29,11 @@ namespace Deployment
             } 
         }
 
-        
-
         private void clean(string appdir)
         {
-            string res = "";
-            res = Deploy.LaunchCommandLineApp($"{appdir}bin\\uninstall-clean", "");
-            res = Deploy.LaunchCommandLineApp("regedit.exe", "/s c:\\temp\\subutai-clean-registry.reg");
+            Process.Start($"{appdir}bin\\uninstall-clean");
+            //res = Deploy.LaunchCommandLineApp("regedit.exe", " /s c:\\temp\\subutai-clean-registry.reg");
         }
-
 
         private void InstallationFinished_Load(object sender, EventArgs e)
         {

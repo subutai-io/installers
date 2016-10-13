@@ -87,11 +87,15 @@ namespace Deployment
             }
         }
 
-        public static string logDir()
+        public static string sysDrive()
         {
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             string sysDrive = Path.GetPathRoot(sysPath);
-            string logPath = Path.Combine(sysDrive, "temp");
+            return sysDrive;
+        }
+        public static string logDir()
+        {
+            string logPath = Path.Combine(sysDrive(), "temp");
             if (!Directory.Exists(logPath))
             {
                 Directory.CreateDirectory(logPath);
@@ -111,7 +115,7 @@ namespace Deployment
         
                 private void check_files(string appDir, string tgt)
                 {
-                    Form1.StageReporter("", "Performing file check");
+                    Deploy.StageReporter("", "Performing file check");
                     string pth = $"{appDir}{tgt}";
                     //Form1.download_file($"{pth}", null);
                    
@@ -125,7 +129,7 @@ namespace Deployment
                             var filename = folderFile[1].Trim();
                             String fullFolderPath = $"{appDir}/{folderpath.ToString()}";
                             String fullFileName = $"{appDir}/{folderpath.ToString()}/{filename.ToString()}";
-                            Form1.StageReporter("", folderpath.ToString() + "/" + filename.ToString());
+                            Deploy.StageReporter("", folderpath.ToString() + "/" + filename.ToString());
 
                             if (!Directory.Exists(fullFolderPath))
                             {

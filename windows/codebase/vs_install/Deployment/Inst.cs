@@ -26,19 +26,19 @@ namespace Deployment
             return 1;
         }
 
-        
+
         //Install TAP driver and utilities
         public static void inst_TAP(string instDir)
         {
             string res = "";
-            Form1.StageReporter("", "TAP driver");
+            Deploy.StageReporter("", "TAP driver");
             if (app_installed("TAP-Windows") == 0)
             {
                 res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\tap-driver.exe", "/S");
                 logger.Info("TAP driver: {0}", res);
             } else
             {
-                Form1.StageReporter("", "TAP driver already installed");
+                Deploy.StageReporter("", "TAP driver already installed");
                 logger.Info("TAP driver is already installed: {0}", res);
             }
 
@@ -46,7 +46,7 @@ namespace Deployment
             {
                 var pathTAPin = Path.Combine(instDir, "redist");
                 var pathTAPout = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "TAP-Windows", "bin");
-           
+
                 try
                 {
                     File.Copy(Path.Combine(pathTAPin, "addtap.bat"), Path.Combine(pathTAPout, "addtap.bat"), true);
@@ -66,7 +66,7 @@ namespace Deployment
                     logger.Error(ex.Message + " copying utility deltapall");
                 }
             }
-         }
+        }
 
         //Install Chrome
         public static void inst_Chrome(string instDir)
@@ -75,13 +75,13 @@ namespace Deployment
             //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Clients\StartMenuInternet\Google Chrome
             if (app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
             {
-                Form1.StageReporter("", "Chrome");
-                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}\\redist\\chrome.msi\"");
+                Deploy.StageReporter("", "Chrome");
+                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}redist\\chrome.msi\"");
                 logger.Info("Chrome: {0}", res);
             }
             else
             {
-                Form1.StageReporter("", "Google\\Chrome is already installed");
+                Deploy.StageReporter("", "Google\\Chrome is already installed");
                 logger.Info("Google\\Chrome is already installed");
             }
         }
@@ -110,11 +110,11 @@ namespace Deployment
                     return false;
                 }
             } else { //there is no  key to add subkey
-                string [] keyPathArr = keyPath.Split(new[] { "\\" },  StringSplitOptions.None);
+                string[] keyPathArr = keyPath.Split(new[] { "\\" }, StringSplitOptions.None);
                 logger.Info("keyPath = {0}, keyPathArr[0] = {1}, keyPathArr[3] = {2}", keyPath, keyPathArr[0], keyPathArr[3]);
 
                 string keyPath2 = "";
-                    
+
                 Registry.LocalMachine.OpenSubKey(keyPathArr[0], true);
                 for (int i = 0; i < keyPathArr.Length; i++)
                 {
@@ -140,7 +140,7 @@ namespace Deployment
 
         public static void inst_E2E()
         {
-            Form1.StageReporter("", "Installing Chrome E2E extension");
+            Deploy.StageReporter("", "Installing Chrome E2E extension");
             logger.Info("Installing Chrome E2E extension");
             string e2ePath = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
             string e2eName = "kpmiofpmlciacjblommkcinncmneeoaa";
@@ -150,11 +150,11 @@ namespace Deployment
             if (extPath == null)
             {
                 logger.Info("Setting E2E extension  subkey");
-                
+
                 if (create_subkey(e2ePath, e2eName))
                 {
                     extPath = Registry.LocalMachine.OpenSubKey(e2eKey, true);
-                    
+
                     if (extPath == null)
                         logger.Info("Can not open E2E subkey");
                 }
@@ -189,7 +189,7 @@ namespace Deployment
             }
             else
             {
-                Form1.StageReporter("", "Oracle\\VirtualBox is already installed");
+                Deploy.StageReporter("", "Oracle\\VirtualBox is already installed");
                 logger.Info("Oracle\\VirtualBox is already installed");
             }
 
@@ -210,10 +210,38 @@ namespace Deployment
             Net.set_fw_rules(VBoxPath.ToLower(), "virtualbox", false);
         }
 
+        public static void inst_ssh(string instDir)
+        {
+            string path_t = Path.Combine(FD.sysDrive(), "Users");
+            string path_l = Path.Combine(instDir, "home");
+            if (!Directory.Exists(path_l))
+            {
+                string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}");
+                logger.Info("ssh - creating home: {0}", res);
+            } else
+            {
+                logger.Info("link {0} already exists", path_l);
+            }
+
+        }
+
+        public static void remove_ssh(string instDir)
+        {
+            //string path_t = Path.Combine(FD.sysDrive(), "Users");
+            string path_l = Path.Combine(instDir, "home");
+            if (Directory.Exists(path_l))
+            {
+                Directory.Delete(path_l);
+                logger.Info("ssh home dir exists, removing {0}", path_l);
+            }
+        }
+
+
         public static void service_stop(string serviceName)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("nssm", $"stop \"{serviceName}\"");
+            //res = Deploy.LaunchCommandLineApp("nssm", $"stop \"{serviceName}\"");
+            res = Deploy.LaunchCommandLineApp("sc", $"stop \"{serviceName}\"");
             logger.Info("Stopping service {0}: {1}", serviceName, res);
         }
 
@@ -221,13 +249,16 @@ namespace Deployment
         {
             string res = "";
             res = Deploy.LaunchCommandLineApp("nssm", $"install \"{serviceName}\" \"{binPath}\" \"{binArgument}\"");
-            logger.Info("Installing P2P service: {0}", res);
+            string cmd = $"create \"{serviceName}\" binpath= \"\"{binPath}\" \"{binArgument}\"\" start= auto";
+            //res = Deploy.LaunchCommandLineApp("sc", cmd);
+            logger.Info("Installing P2P service: {0} {1}", cmd, res);
         }
 
         public static void service_start(string serviceName)
         {
             string res = "";
             res = Deploy.LaunchCommandLineApp("nssm", $"start \"{serviceName}\"");
+            //res = Deploy.LaunchCommandLineApp("sc", $"start \"{serviceName}\"");
             logger.Info("Starting P2P service: {0}", res);
             Thread.Sleep(2000);
         }
@@ -261,7 +292,7 @@ namespace Deployment
                 //Logs rotation
                 //kPath.SetValue("AppRotateSeconds", 86400, RegistryValueKind.DWord);
                 //Registry.SetValue(sPath, "AppRotateSeconds", filepath, RegistryValueKind.ExpandString);
-                int maxBytes = 5242880;
+                int maxBytes = 50 * 1024;//
                 Registry.SetValue(ksPath, "AppRotate", maxBytes, RegistryValueKind.ExpandString);
                 logger.Info("AppRotateBytes: {0}", maxBytes);
                 kPath.Close();
@@ -271,18 +302,16 @@ namespace Deployment
         public static void install_mh_nw()
         {
             //installing master template
-            Form1.StageReporter("", "Importing master");
+            Deploy.StageReporter("", "Importing master");
             logger.Info("Importing master");
-            bool b_res = import_templ("master");
+            bool b_res = import_templ_task("master");
 
             // installing management template
-            Form1.StageReporter("", "Importing management");
-            //b_res = import_templ("management");
+            Deploy.StageReporter("", "Importing management");
             b_res = import_templ_task("management");
             if (!b_res)
             {
                 logger.Info("trying import management again");
-                //b_res = import_templ("management");
                 b_res = import_templ_task("management");
                 if (!b_res)
                 {
@@ -292,13 +321,16 @@ namespace Deployment
                 }
             }
             string ssh_res = "";
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", 
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai management_network detect");
-            logger.Info("Import management address: {0}", ssh_res);
-
-            if (Deploy.com_out(ssh_res, 0) != "0")
+            logger.Info("Import management address returned: {0}", ssh_res);
+            string rhIP = Deploy.com_out(ssh_res, 1);
+            logger.Info("Import management address: {0}", rhIP);
+            //check if IPv4 address returned
+            string[] ips = rhIP.Split('.');
+            if (ips.Length != 4)
             {
-                logger.Error("import management failed second time", "Management template was not installed");
+                logger.Error("import management failed ", "Management template was not installed");
                 Program.ShowError("Management template was not installed, installation failed, removing", "Management template was not imported");
                 Program.form1.Visible = false;
             }
@@ -307,7 +339,7 @@ namespace Deployment
         public static void install_mh_lc(PrivateKeyFile[] privateKeys)
         {
             //installing master template
-            Form1.StageReporter("", "Importing master");
+            Deploy.StageReporter("", "Importing master");
             logger.Info("Importing master");
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import master 2>&1 > master_log");
 
@@ -316,7 +348,7 @@ namespace Deployment
             logger.Info("Import master log: {0}", ssh_res);
 
             // installing management template
-            Form1.StageReporter("", "Importing management");
+            Deploy.StageReporter("", "Importing management");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", privateKeys, "sudo echo -e 'y' | sudo subutai -d import management 2>&1 > management_log ");
             logger.Info("Import management: {0}", ssh_res);
             if (Deploy.com_out(ssh_res, 0) != "0")
@@ -360,7 +392,12 @@ namespace Deployment
                 logger.Info("Import {0}",  tname);
                 while (true)
                 {
-                    Thread.Sleep(20000);
+                    Thread.Sleep(5000);
+                    if (token.IsCancellationRequested)
+                    {
+                        logger.Info("Watcher cancelled");
+                        break;
+                    }
                     string res = check_templ(tname);
                     logger.Info("res = {0}", res);
                     if (res == res0)
@@ -372,6 +409,7 @@ namespace Deployment
                             //stop 
                             logger.Info("Cancelling from watcher");
                             tokenSource.Cancel();
+                            //break;
                         }
                     }
                     res0 = res;
@@ -415,13 +453,13 @@ namespace Deployment
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);
 
-            if (sterr == "Empty")
-            {
-                Form1.StageReporter("", $"Downloaded {stres} bytes, err: {sterr}");
-            } else
-            {
-                Form1.StageReporter("", $"Download error: {sterr}, trying restart import");
-            }
+            ////if (sterr.Contains("Empty"))
+            ////{
+            ////    Form1.StageReporter("", $"Importing {tname}");
+            ////} else
+            ////{
+            ////    Form1.StageReporter("", $"Download error: {sterr}, trying restart import");
+            ////}
             
             return stres;
         }

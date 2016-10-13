@@ -73,9 +73,9 @@
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label3.Location = new System.Drawing.Point(14, 91);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(46, 18);
+            this.label3.Size = new System.Drawing.Size(190, 18);
             this.label3.TabIndex = 5;
-            this.label3.Text = "Is x64";
+            this.label3.Text = "Processor architecture: x64";
             // 
             // label4
             // 
@@ -83,9 +83,9 @@
             this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label4.Location = new System.Drawing.Point(14, 126);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(82, 18);
+            this.label4.Size = new System.Drawing.Size(122, 18);
             this.label4.TabIndex = 7;
-            this.label4.Text = "OS version";
+            this.label4.Text = "Windows version";
             // 
             // label5
             // 
@@ -111,13 +111,14 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Arial", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label6.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label6.ForeColor = System.Drawing.Color.Red;
-            this.label6.Location = new System.Drawing.Point(494, 9);
+            this.label6.Location = new System.Drawing.Point(496, 5);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(96, 19);
+            this.label6.Size = new System.Drawing.Size(93, 23);
             this.label6.TabIndex = 12;
-            this.label6.Text = "ATTENTION";
+            this.label6.Text = "Attention!";
+            this.label6.UseMnemonic = false;
             // 
             // label7
             // 
@@ -183,12 +184,13 @@
             // 
             this.tb_Info.AcceptsReturn = true;
             this.tb_Info.AcceptsTab = true;
-            this.tb_Info.BackColor = System.Drawing.Color.Gainsboro;
+            this.tb_Info.BackColor = System.Drawing.SystemColors.ControlLight;
             this.tb_Info.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.tb_Info.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tb_Info.Location = new System.Drawing.Point(386, 37);
             this.tb_Info.Multiline = true;
             this.tb_Info.Name = "tb_Info";
+            this.tb_Info.ReadOnly = true;
             this.tb_Info.Size = new System.Drawing.Size(321, 195);
             this.tb_Info.TabIndex = 21;
             this.tb_Info.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -216,8 +218,7 @@
             // Preinstall_check
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.AutoScroll = true;
-            this.BackColor = System.Drawing.Color.Gainsboro;
+            this.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ClientSize = new System.Drawing.Size(719, 292);
             this.Controls.Add(this.l_VB);
             this.Controls.Add(this.label9);
@@ -235,11 +236,12 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Preinstall_check";
-            this.Text = "Checking Subutai system requirements";
+            this.Text = "Checking Subutai Social system requirements";
             this.TopMost = true;
             this.Load += new System.EventHandler(this.Preinstall_check_Load);
             this.ResumeLayout(false);

@@ -37,16 +37,17 @@ namespace Deployment
                     {
                         cnt++;
                         logger.Info("vbox0 Name = {0}, cnt = {1}", adapter.Description.ToString(), cnt);
-                        if (unicast_address_info.Address.ToString() == "192.168.56.1")
-                        {
+                        //if (unicast_address_info.Address.ToString() == "192.168.56.1")
+                        //{
                             return (adapter.Description.ToString());
-                        }
+                        //}
                     }
                 }
             }
             return "Not defined";
         }
 
+        //Defining name of host-only interface name
          public static string gateway_if()
         {
             var gateway_address = NetworkInterface.GetAllNetworkInterfaces()
@@ -120,6 +121,7 @@ namespace Deployment
             return network1.Equals(network2);
         }
 
+        //Define gateway interface name using netstat - as another way does not work for wired adapters
         public static string gw_from_netstat()
         {
             string res = Deploy.LaunchCommandLineApp("cmd.exe", " /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0");

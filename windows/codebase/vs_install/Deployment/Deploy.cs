@@ -26,8 +26,8 @@ namespace Deployment
 {
     public class Deploy
     {
-        private const string RestFileinfoURL = "/kurjun/rest/file/info?name=";
-        private const string RestFileURL = "/kurjun/rest/file/get?id=";
+        private const string RestFileinfoURL = "/kurjun/rest/raw/info?name=";
+        private const string RestFileURL = "/kurjun/rest/raw/get?id=";
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -38,29 +38,44 @@ namespace Deployment
 
         public void SetEnvironmentVariables()
         {
-            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("VirtualBox"))
+            string sysDrive = FD.sysDrive();
+            //string path_orig = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine);
+            string path_orig = Environment.GetEnvironmentVariable("Path");
+            logger.Info("Orig: {0}", path_orig);
+            if (!path_orig.Contains("VirtualBox"))
             {
-                Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\Oracle\\VirtualBox"
-                );
+                path_orig += $";{sysDrive}Program Files\\Oracle\\VirtualBox";
+                //logger.Info("VirtualBox: {0}", path_orig);
             }
 
-            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("TAP-Windows"))
-            {
-                Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{Environment.GetEnvironmentVariable("SystemDrive")}\\Program Files\\TAP-Windows\\bin"
-                );
+            if (!path_orig.Contains("TAP-Windows"))
+                {
+                path_orig += $";{sysDrive}Program Files\\TAP-Windows\\bin";
+                //logger.Info("TAP-Windowsx: {0}", path_orig);
             }
 
-            if (!$"{Environment.GetEnvironmentVariable("PATH")}".Contains("Subutai"))
+            if (!path_orig.Contains("Subutai"))
             {
-                Environment.SetEnvironmentVariable("PATH",
-                $"{Environment.GetEnvironmentVariable("PATH")};{_arguments["appDir"]}bin"
-                );
+                path_orig += $";{_arguments["appDir"]}bin";
+                path_orig += $";{_arguments["appDir"]}bin\\tray";
+               
             }
-            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("PATH"));
-         }
-       
+
+            //            logger.Info("Path changed: {0}", Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine));
+
+            Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
+            logger.Info("Pat machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
+            logger.Info("Path Process: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Process);
+
+            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
+
+            logger.Info("Subutai machine: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Machine);
+            logger.Info("Subutai Process: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Process);
+
+        }
+
         #region HELPERS: Download
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)
         {
@@ -80,7 +95,6 @@ namespace Deployment
                 if (!Program.form1.PrerequisiteFilesInfo.ContainsKey(destination))
                 {
                     Program.form1.PrerequisiteFilesInfo.Add(destination, info);
-                    //logger.Info("Adding {0} into PrerequisiteFilesInfo", destination);
                 }
                 logger.Info("Getting file {0} from kurjun, md5sum:{1}", destination, md5);
             }
@@ -109,11 +123,7 @@ namespace Deployment
                     shouldWeDownload = false;
                 }
             }
-            //if (destination.Contains(".snap") && _arguments["peer"] == "client-only")
-            //{
-            //    shouldWeDownload = false;//no need to download snap if client-only
-            //}
-
+   
             if (destination.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
             {
                 shouldWeDownload = false;
@@ -136,7 +146,7 @@ namespace Deployment
                     logger.Info("Directory created: {0}", destination);
                 }
 
-                Form1.StageReporter("", report);
+                StageReporter("", report);
                 var webClient = new WebClient();
 
                 if (onComplete != null)
@@ -175,8 +185,8 @@ namespace Deployment
             //MessageBox.Show(e.ProgressPercentage.ToString());
             Program.form1.Invoke((MethodInvoker) delegate
             {
-                Program.form1.progressBarControl1.EditValue =
-                    e.ProgressPercentage;
+                //Program.form1.progressBarControl1.EditValue = e.ProgressPercentage;
+                UpdateProgress(e.ProgressPercentage);
             });
         }
         #endregion
@@ -210,6 +220,7 @@ namespace Deployment
 
         public void unzip_files(string folderPath)
         {
+            logger.Info("Unzipping files from {0}", folderPath);
             var filenames = Directory.GetFiles(folderPath, "*.zip", SearchOption.AllDirectories).Select(Path.GetFullPath).ToArray();
             foreach (var filename in filenames)
             {
@@ -221,16 +232,15 @@ namespace Deployment
 
         public void unzip_file(string source, string dest, bool remove)
         {
-            Program.form1.progressPanel1.Parent.Invoke((MethodInvoker) delegate
-            {
-                Program.form1.progressPanel1.Description = "Extracting: " + new FileInfo(source).Name;
-            });
+            //Program.form1.progressPanel1.Parent.Invoke((MethodInvoker) delegate
+            //{
+            //    Program.form1.progressPanel1.Description = "Extracting: " + new FileInfo(source).Name;
+            //});
+            Program.form1.label_SubStage.Text = "Extracting: " + new FileInfo(source).Name;
 
             ZipFile zf = null;
             try
             {
-                //long maxProcessed = 0;
-
                 FileStream fs = File.OpenRead(source);
                 zf = new ZipFile(fs);
                 if (!String.IsNullOrEmpty(""))
@@ -263,22 +273,25 @@ namespace Deployment
 
                     using (FileStream streamWriter = File.Create(fullZipToPath))
                     {
-                        
                         var progressHandler = new ProgressHandler(
                             (object o, ICSharpCode.SharpZipLib.Core.ProgressEventArgs ex) =>
                             {
                                 var percentage = ex.Processed * 100 / zipEntry.Size;
 
-                                Program.form1.progressBarControl1.Parent.Invoke((MethodInvoker)delegate
+                                Program.form1.prBar_.Parent.Invoke((MethodInvoker)delegate
                                 {
-                                    Program.form1.progressBarControl1.EditValue = percentage;
+                                    //Program.form1.progressBarControl1.EditValue = percentage;
+                                    Program.form1.prBar_.Value = (int)percentage;
                                 });
                             });
                         StreamUtils.Copy(zipStream, streamWriter, buffer, progressHandler, new TimeSpan(), Program.form1, "none", 100);
                     }
                 }
-
-                //new FileInfo(source).Delete();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                Program.ShowError("","Extracting zip");
             }
             finally
             {
@@ -304,7 +317,6 @@ namespace Deployment
             try
             {
                 kfi = new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
-                //return new System.Web.Script.Serialization.JavaScriptSerializer().Deserialize<KurjunFileInfo>(json);
                 return kfi;
             }
             catch (Exception ex)
@@ -321,7 +333,7 @@ namespace Deployment
         public static string LaunchCommandLineApp(string filename, string arguments)
         {
             // Use ProcessStartInfo class
-           var startInfo = new ProcessStartInfo
+            var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
                 UseShellExecute = false,
@@ -343,16 +355,57 @@ namespace Deployment
                     output = exeProcess.StandardOutput.ReadToEnd();
                     err  = exeProcess.StandardError.ReadToEnd();
                     exeProcess?.WaitForExit();
-                    return ($"executing: \"{filename}-{arguments}\"|{output}|{err}");
+                    return ($"executing: \"{filename} {arguments}\"|{output}|{err}");
                 }
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message, "can not run process");
-                Thread.Sleep(15000);
-                LaunchCommandLineApp(filename, arguments);
+                logger.Error(ex.Message, "can not run process {0}", filename);//try to repeat, counting 
+                Thread.Sleep(10000); //uncomment if need repeated tries 
+                //LaunchCommandLineApp(filename, arguments, 0);//will try 3 times
             }
-            return (filename + " was not executed");//never
+            return ($"1|{filename} was not executed|Error");
+        }
+
+        public static string LaunchCommandLineApp(string filename, string arguments, int try_counter)
+        {
+            // try execute desktop commant 3 times
+            int count = try_counter;
+            var startInfo = new ProcessStartInfo
+            {
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                FileName = filename,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            string output;
+            string err;
+            count++; 
+            logger.Info("trying to exe {0} {1} {2} time", filename, arguments, count);
+            try
+            {
+                // Start the process with the info we specified.
+                // Call WaitForExit and then the using statement will close.
+                using (var exeProcess = Process.Start(startInfo))
+                {
+                    output = exeProcess.StandardOutput.ReadToEnd();
+                    err = exeProcess.StandardError.ReadToEnd();
+                    exeProcess?.WaitForExit();
+                    return ($"executing: \"{filename} {arguments}\"|{output}|{err}");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (count > 3)
+                     return ($"command \"{filename} {arguments}\" can not run {try_counter} times");
+                logger.Error(ex.Message, "can not run process {0} {1} time(s)", filename, try_counter);
+                Thread.Sleep(10000);
+                LaunchCommandLineApp(filename, arguments, count); //try to execue again 
+            }
+            return ($"1|{filename} was not executed|Error");
         }
         #endregion
 
@@ -366,7 +419,7 @@ namespace Deployment
                 SshCommand scmd = client.RunCommand(command);
                 int exitstatus = scmd.ExitStatus;
                 string sresult = scmd.Result;
-                if (sresult == null || sresult == "")
+                if (sresult == null || sresult == "" || sresult == " " )
                     sresult = "Empty";
                 string serror = scmd.Error;
                 if (serror == null || serror == "")
@@ -515,11 +568,27 @@ namespace Deployment
 
         #region FORM HELPERS: show / hide marquee bar
 
+        public static void ShowMarquee_()
+        {
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                //Program.form1.marqueeProgressBarControl1.Visible = true;
+            });
+        }
+
+        public static void HideMarquee_()
+        {
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                //Program.form1.marqueeProgressBarControl1.Visible = false;
+            });
+        }
+
         public static void ShowMarquee()
         {
             Program.form1.Invoke((MethodInvoker)delegate
             {
-                Program.form1.marqueeProgressBarControl1.Visible = true;
+                   SetIndeterminate(true);
             });
         }
 
@@ -527,8 +596,72 @@ namespace Deployment
         {
             Program.form1.Invoke((MethodInvoker)delegate
             {
-                Program.form1.marqueeProgressBarControl1.Visible = false;
+                SetIndeterminate(false);
             });
+        }
+
+        public static void StageReporter(string stageName, string subStageName)
+        {
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                if (stageName != "")
+                {
+                    Program.form1.label_Stage.Text = stageName;
+                }
+                if (subStageName != "")
+                {
+                    //Program.form1.progressPanel1.Description = subStageName;
+                    Program.form1.label_SubStage.Text = subStageName;
+                }
+            });
+        }
+
+        public static void SetIndeterminate(bool isIndeterminate)
+        {
+            if (Program.form1.prBar_.InvokeRequired)
+            {
+                Program.form1.prBar_.BeginInvoke(
+                    new Action(() =>
+                    {
+                        if (isIndeterminate)
+                        {
+                            Program.form1.prBar_.Style = ProgressBarStyle.Marquee;
+                        }
+                        else
+                        {
+                            Program.form1.prBar_.Style = ProgressBarStyle.Blocks;
+                        }
+                    }
+                ));
+            }
+            else
+            {
+                if (isIndeterminate)
+                {
+                    Program.form1.prBar_.Style = ProgressBarStyle.Marquee;
+                }
+                else
+                {
+                    Program.form1.prBar_.Style = ProgressBarStyle.Blocks;
+                }
+            }
+        }
+
+        public static void UpdateProgress(int progress)
+        {
+            if (Program.form1.prBar_.InvokeRequired)
+            {
+                Program.form1.prBar_.BeginInvoke(
+                    new Action(() =>
+                    {
+                        Program.form1.prBar_.Value = progress;
+                    }
+                ));
+            }
+            else
+            {
+                Program.form1.prBar_.Value = progress;
+            }
         }
 
         #endregion
