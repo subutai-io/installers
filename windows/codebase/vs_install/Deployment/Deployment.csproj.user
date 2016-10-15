@@ -12,7 +12,7 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>params=deploy-redist,prepare-vbox,prepare-ssh,prepare-rh,dev,deploy-p2p network-installation=true kurjunUrl=https://kurjun.cdn.subutai.io:8338 repo_descriptor=repomd5 appDir=C:\Subutai peer=trial</StartArguments>
+    <StartArguments>params=deploy-redist,prepare-vbox,prepare-ssh,prepare-rh,dev,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev appDir=E:\Subutai peer=trial</StartArguments>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup>

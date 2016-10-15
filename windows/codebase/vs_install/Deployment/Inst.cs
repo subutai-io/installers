@@ -27,6 +27,7 @@ namespace Deployment
             return 1;
         }
 
+        //Get installation path to check if already installed
         public static string subutai_path()
         {
             string subkey86 = Path.Combine("SOFTWARE\\", "Subutai Social", "Subutai");
@@ -37,6 +38,27 @@ namespace Deployment
             }
             string path = rk.GetValue("Path").ToString();
             return path;
+        }
+
+        //Update uninstall string
+        public static bool update_uninstallString(string strUninst)
+        {
+            string subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Subutai";
+            RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey, true);
+            if (rk == null)
+            {
+                return false;
+            }
+            try
+            {
+                rk.SetValue("UninstallString", strUninst);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                string res = ex.Message;
+                return false;
+            }
         }
 
 

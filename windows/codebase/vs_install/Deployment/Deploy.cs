@@ -605,8 +605,9 @@ namespace Deployment
                 iconPath,
                 false);
 
-            //StartMenu\Programs
-            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.StartMenu),
+            //StartMenu/Programs
+            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), 
+                "Programs",
                 "Subutai.lnk");
             Deploy.CreateShortcut(
                 binPath,
@@ -614,8 +615,9 @@ namespace Deployment
                 "",
                 iconPath,
                 false);
-            //StartMenu\Startup
-            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),
+            
+            //StartMenu/Startup
+            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup),
                 "Subutai.lnk");
             Deploy.CreateShortcut(
                 binPath,
@@ -624,7 +626,7 @@ namespace Deployment
                 iconPath,
                 false);
             //Create App folder in Programs
-            string folderpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Subutai");
+            string folderpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "Subutai");
             destPath = Path.Combine(folderpath, "Subutai.lnk");
             try
             {

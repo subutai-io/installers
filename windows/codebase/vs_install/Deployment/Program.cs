@@ -11,8 +11,9 @@ namespace Deployment
         public static f_install form1;
         public static InstallationFinished form2;
 
-        //public static string[] cmd_args = Environment.GetCommandLineArgs();
-        public static string inst_args = "params=deploy-redist,prepare-vbox,dev,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev";
+        public static string[] cmd_args = Environment.GetCommandLineArgs();
+        public static string inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev";
+        public static string inst_type = "";
 
         public static bool stRun = false; 
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
@@ -29,7 +30,13 @@ namespace Deployment
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            PreventIfInstalled();
+            //PreventIfInstalled();
+            inst_type = InstType(cmd_args[1]); 
+            if (inst_type != "" && inst_type != null && inst_type != "prod")
+            {
+                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev";
+            }
+
             form_ = new f_confirm();
             form_.ShowDialog();
             if (stRun)
@@ -77,6 +84,26 @@ namespace Deployment
                 if (result == DialogResult.OK)
                     Environment.Exit(1);
             }
+        }
+
+        static string InstType(string inStr)
+        {
+            //string outStr = "";
+            // inStr.Substring(inStr.LastIndexOf('-'), inStr.Length - inStr.LastIndexOf('.') + 1);
+            //if (!outStr.Equals("dev") && !outStr.Equals("master"))
+            //{
+            //    return "";
+            //}
+            if (inStr.Contains("dev"))
+            {
+                return "dev";
+            }
+            if (inStr.Contains("master"))
+            {
+                return "master";
+
+            }
+            return "prod";
         }
     }
 }

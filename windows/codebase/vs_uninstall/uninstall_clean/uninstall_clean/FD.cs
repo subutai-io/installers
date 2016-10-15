@@ -124,30 +124,53 @@ namespace uninstall_clean
                 }
             }
         }
+
+        //Delete common and user's shortcuts 
         public static void delete_Shortcuts(string appName)
         {
-            //label1.Text = "Deleting shortcuts";
+            //Commom Desktop
             var shcutPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
-            //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            //delete_Shortcut(shcutPath, appName);
             delete_Shortcut(shcutPath, appName, false);
 
-            //shcutPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
-            //delete_Shortcut(shcutPath, appName);
-
+            //Common StartMenu/Programs
+            //This path to Common Start Menu will be used later
             var shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
-            //Folder files
-            shcutPath = Path.Combine(shcutStartPath, "Programs", appName);
-            //Uninstall.lnk
-            delete_Shortcut(shcutPath, "Uninstall", false);
-            //Subutai.lnk
-            delete_Shortcut(shcutPath, appName, false);
-
-            //Start Menu/Programs/Subutai.lnk
             shcutPath = Path.Combine(shcutStartPath, "Programs");
             delete_Shortcut(shcutPath, appName, false);
-            //Start Menu/Programs/Subutai
-            delete_Shortcut(shcutPath, appName, true);
+
+            //Common StartMenu/Startup
+            shcutPath = Path.Combine(shcutStartPath, "Programs", "Startup");
+            delete_Shortcut(shcutPath, appName, false);
+
+            //Common Subutai Folder files
+            shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms);
+            shcutPath = Path.Combine(shcutStartPath, appName);
+            //Subutai.lnk
+            delete_Shortcut(shcutPath, appName, false);
+            //Uninstall.lnk
+            delete_Shortcut(shcutPath, "Uninstall", false);
+
+            //Common Subutai folder
+            delete_Shortcut(shcutStartPath, appName, true);
+
+            //The same if we have shortcuts only for user 
+            //User StartMenu/Programs
+            shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
+            shcutPath = Path.Combine(shcutStartPath, "Programs");
+            delete_Shortcut(shcutPath, appName, false);
+
+            //Common StartMenu/Startup
+            shcutPath = Path.Combine(shcutStartPath, "Programs", "Startup");
+            delete_Shortcut(shcutPath, appName, false);
+
+            //User Subutai Folder files
+            shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            shcutPath = Path.Combine(shcutStartPath, appName);
+            //Subutai.lnk
+            delete_Shortcut(shcutPath, appName, false);
+            //Uninstall.lnk
+            delete_Shortcut(shcutPath, "Uninstall", false);
+            delete_Shortcut(shcutStartPath, appName, true);
         }
 
         public static string remove_from_Path(string str2delete)
@@ -181,6 +204,7 @@ namespace uninstall_clean
 
             string[] slPath = lPath.ToArray();
             string newPath = string.Join(";", slPath);
+            newPath = newPath.Replace(";;", ";");
 
             Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Machine);
             Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Process);

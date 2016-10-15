@@ -53,9 +53,9 @@ namespace Deployment
             catch (Exception ex)
             {
                 logger.Error(ex.Message);
-                return true;
+                return false;
             }
-            return true;
+            
         }
 
         //define download list

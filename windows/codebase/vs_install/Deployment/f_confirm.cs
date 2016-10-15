@@ -50,7 +50,10 @@ namespace Deployment
             l_VT.Text = hostVT;
             l_VB.Text = vboxVersion;
 
-            tb_Info.Text = "";// "* This value may need to be checked in BIOS. If installation fails, check if  hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
+                   
+            tb_Info.Text = "Subutai can be installed on Windows versions 7(Eng), 8, 8.1, 10.";// "* This value may need to be checked in BIOS. If installation fails, check if  hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
+            tb_Info.Text += Environment.NewLine;
+            tb_Info.Text += Environment.NewLine;
             checking();
         }
 
@@ -127,12 +130,12 @@ namespace Deployment
 
             if (res)
             {
-                btnInstall.Text = "Install Subutai";
+                btnInstall.Text = $"Install Subutai {Program.inst_type}";
                 if (shortVersion != "6.1")
                 {
                     
-                    label5.Text = "Subutai Social can be installed on Your system. Press Install button";
-                    label5.ForeColor = Color.Green;
+                    lblCheckResult.Text = "Subutai Social can be installed on Your system. Press Install button";
+                    lblCheckResult.ForeColor = Color.Green;
                     l_VT.ForeColor = Color.Green;
                     //tb_Info.Text = " ";
 
@@ -144,8 +147,8 @@ namespace Deployment
                 }
                 else
                 {
-                    label5.Text = "Impossible to check if VT-x is enabled.";
-                    label5.ForeColor = Color.Blue;
+                    lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
+                    lblCheckResult.ForeColor = Color.Blue;
                     l_VT.ForeColor = Color.DarkBlue;
                     tb_Info.Text = "Can not define if VT-x is enabled.";
                     tb_Info.Text += Environment.NewLine;
@@ -164,8 +167,8 @@ namespace Deployment
             else
             {
                 btnInstall.Text = "Exit";
-                label5.Text = "Sorry, Subutai Social can not be installed. Close form to cancel installation";
-                label5.ForeColor = Color.Red;
+                lblCheckResult.Text = "Sorry, Subutai Social can not be installed. Close form to cancel installation";
+                lblCheckResult.ForeColor = Color.Red;
                 tb_Info.Text = "Please check Subutai system requirements.";
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
@@ -274,6 +277,18 @@ namespace Deployment
         private void pictureBox1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void linkManual_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            linkManual.LinkVisited = true;
+            System.Diagnostics.Process.Start("https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual");
+        }
+
+        private void linkTutorials_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            linkTutorials.LinkVisited = true;
+            System.Diagnostics.Process.Start("https://subutai.io/first-launch.html");
         }
     }
 }
