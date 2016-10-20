@@ -42,6 +42,9 @@
             this.rbRHonly = new System.Windows.Forms.RadioButton();
             this.rbTrial = new System.Windows.Forms.RadioButton();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.btnBrowse = new System.Windows.Forms.Button();
+            this.linkTutorials = new System.Windows.Forms.LinkLabel();
+            this.lblAppDir = new System.Windows.Forms.Label();
             this.tb_Info = new System.Windows.Forms.TextBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.lblCheckResult = new System.Windows.Forms.Label();
@@ -58,8 +61,6 @@
             this.lblRAM = new System.Windows.Forms.Label();
             this.lblCPU = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.lblAppDir = new System.Windows.Forms.Label();
-            this.linkTutorials = new System.Windows.Forms.LinkLabel();
             this.gbxTypeInst.SuspendLayout();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -76,7 +77,6 @@
             this.label1.Size = new System.Drawing.Size(124, 24);
             this.label1.TabIndex = 2;
             this.label1.Text = "SubutaiSocial";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label2
             // 
@@ -88,7 +88,6 @@
             this.label2.Size = new System.Drawing.Size(166, 46);
             this.label2.TabIndex = 3;
             this.label2.Text = "Subutai ";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label3
             // 
@@ -121,7 +120,7 @@
             this.tbxAppDir.Location = new System.Drawing.Point(13, 250);
             this.tbxAppDir.Margin = new System.Windows.Forms.Padding(2);
             this.tbxAppDir.Name = "tbxAppDir";
-            this.tbxAppDir.Size = new System.Drawing.Size(396, 23);
+            this.tbxAppDir.Size = new System.Drawing.Size(310, 23);
             this.tbxAppDir.TabIndex = 7;
             // 
             // lblFreeSpace
@@ -134,7 +133,6 @@
             this.lblFreeSpace.Size = new System.Drawing.Size(383, 17);
             this.lblFreeSpace.TabIndex = 11;
             this.lblFreeSpace.Text = "Setup requires ~3 GB of free disk space";
-            this.lblFreeSpace.Click += new System.EventHandler(this.label7_Click);
             // 
             // btnInstall
             // 
@@ -198,6 +196,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.btnBrowse);
             this.panel1.Controls.Add(this.linkTutorials);
             this.panel1.Controls.Add(this.lblAppDir);
             this.panel1.Controls.Add(this.tb_Info);
@@ -211,6 +210,40 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(423, 428);
             this.panel1.TabIndex = 16;
+            // 
+            // btnBrowse
+            // 
+            this.btnBrowse.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnBrowse.Location = new System.Drawing.Point(329, 245);
+            this.btnBrowse.Name = "btnBrowse";
+            this.btnBrowse.Size = new System.Drawing.Size(75, 32);
+            this.btnBrowse.TabIndex = 25;
+            this.btnBrowse.Text = "Browse";
+            this.btnBrowse.UseVisualStyleBackColor = true;
+            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+            // 
+            // linkTutorials
+            // 
+            this.linkTutorials.AutoSize = true;
+            this.linkTutorials.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.linkTutorials.Location = new System.Drawing.Point(14, 60);
+            this.linkTutorials.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.linkTutorials.Name = "linkTutorials";
+            this.linkTutorials.Size = new System.Drawing.Size(118, 18);
+            this.linkTutorials.TabIndex = 24;
+            this.linkTutorials.TabStop = true;
+            this.linkTutorials.Text = "Subutai Tutorials";
+            this.linkTutorials.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkTutorials_LinkClicked);
+            // 
+            // lblAppDir
+            // 
+            this.lblAppDir.AutoSize = true;
+            this.lblAppDir.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblAppDir.Location = new System.Drawing.Point(13, 232);
+            this.lblAppDir.Name = "lblAppDir";
+            this.lblAppDir.Size = new System.Drawing.Size(244, 17);
+            this.lblAppDir.TabIndex = 23;
+            this.lblAppDir.Text = "Subutai will be installed into directory:";
             // 
             // tb_Info
             // 
@@ -386,30 +419,6 @@
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 18;
             this.pictureBox1.TabStop = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
-            // 
-            // lblAppDir
-            // 
-            this.lblAppDir.AutoSize = true;
-            this.lblAppDir.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAppDir.Location = new System.Drawing.Point(13, 232);
-            this.lblAppDir.Name = "lblAppDir";
-            this.lblAppDir.Size = new System.Drawing.Size(244, 17);
-            this.lblAppDir.TabIndex = 23;
-            this.lblAppDir.Text = "Subutai will be installed into directory:";
-            // 
-            // linkTutorials
-            // 
-            this.linkTutorials.AutoSize = true;
-            this.linkTutorials.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.linkTutorials.Location = new System.Drawing.Point(14, 60);
-            this.linkTutorials.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.linkTutorials.Name = "linkTutorials";
-            this.linkTutorials.Size = new System.Drawing.Size(118, 18);
-            this.linkTutorials.TabIndex = 24;
-            this.linkTutorials.TabStop = true;
-            this.linkTutorials.Text = "Subutai Tutorials";
-            this.linkTutorials.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkTutorials_LinkClicked);
             // 
             // f_confirm
             // 
@@ -427,6 +436,7 @@
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "f_confirm";
             this.Text = "Initialization of the Subutai Social";
+            this.TopMost = true;
             this.gbxTypeInst.ResumeLayout(false);
             this.gbxTypeInst.PerformLayout();
             this.panel1.ResumeLayout(false);
@@ -471,5 +481,6 @@
         private System.Windows.Forms.TextBox tb_Info;
         private System.Windows.Forms.Label lblAppDir;
         private System.Windows.Forms.LinkLabel linkTutorials;
+        private System.Windows.Forms.Button btnBrowse;
     }
 }

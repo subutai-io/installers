@@ -29,7 +29,6 @@ namespace Deployment
             showing();
         }
 
-       
         private void showing()
         {
             tbxAppDir.Text = Inst.subutai_path();
@@ -222,26 +221,7 @@ namespace Deployment
             
         }
 
-        private void label2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label7_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            instFolder();
-        }
-
+       
         private void clbTypeInst_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -274,11 +254,6 @@ namespace Deployment
             }
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-
-        }
-
         private void linkManual_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             linkManual.LinkVisited = true;
@@ -289,6 +264,11 @@ namespace Deployment
         {
             linkTutorials.LinkVisited = true;
             System.Diagnostics.Process.Start("https://subutai.io/first-launch.html");
+        }
+
+        private void btnBrowse_Click(object sender, EventArgs e)
+        {
+            instFolder();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.Diagnostics;
 using System.Threading;
 using NLog;
 
@@ -35,6 +36,31 @@ namespace Deployment
             if (inst_type != "" && inst_type != null && inst_type != "prod")
             {
                 inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev";
+            }
+
+            string if_installer_run = cmd_args[2];
+            if (if_installer_run.Equals("Installer"))
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.UseShellExecute = true;
+                startInfo.WorkingDirectory = Environment.CurrentDirectory;
+                startInfo.FileName = Application.ExecutablePath;
+                startInfo.Arguments = $"{cmd_args[1]} Run";
+                startInfo.Verb = "runas";
+                try
+                {
+                    Thread.Sleep(3000);
+                    Process p = Process.Start(startInfo);
+                    Environment.Exit(0);
+                    //Application.Exit();
+                }
+                catch (System.ComponentModel.Win32Exception ex)
+                {
+                    MessageBox.Show("This utility requires elevated priviledges to complete correctly.", "Error: UAC Authorisation Required", MessageBoxButtons.OK);
+                    //                    Debug.Print(ex.Message);
+                    return;
+                    //Environment.Exit(1);
+                }
             }
 
             form_ = new f_confirm();

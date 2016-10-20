@@ -30,7 +30,7 @@ namespace Deployment
         //Get installation path to check if already installed
         public static string subutai_path()
         {
-            string subkey86 = Path.Combine("SOFTWARE\\", "Subutai Social", "Subutai");
+            string subkey86 = Path.Combine("SOFTWARE", "Subutai Social", "Subutai");
             RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey86);
             if (rk == null)
             {
@@ -355,19 +355,34 @@ namespace Deployment
                     Program.form1.Visible = false;
                 }
             }
-            string ssh_res = "";
+            string ssh_res = "", ssh_res_old = "";
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                "sudo bash subutai info ipaddr");
+            //todo: delete old
+            ssh_res_old = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai management_network detect");
-            logger.Info("Import management address returned: {0}", ssh_res);
+            logger.Info("Import management address returned by subutai info: {0}, by network_management: {1}", ssh_res, ssh_res_old);
+            
             string rhIP = Deploy.com_out(ssh_res, 1);
-            logger.Info("Import management address: {0}", rhIP);
-            //check if IPv4 address returned
-            string[] ips = rhIP.Split('.');
-            if (ips.Length != 4)
+            if (!is_ip_address(rhIP))
             {
                 logger.Error("import management failed ", "Management template was not installed");
                 Program.ShowError("Management template was not installed, installation failed, removing", "Management template was not imported");
                 Program.form1.Visible = false;
+            }
+        }
+
+        public static bool is_ip_address(string in_str)
+        {
+            string[] ips = in_str.Split('.');
+            if (ips.Length != 4)
+            {
+
+                return false;
+            }
+            else
+            {
+                return true;
             }
         }
 

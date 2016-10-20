@@ -45,9 +45,10 @@ namespace Deployment
             {
                 return false;
             }
+            
             try
             {
-                File.Copy(fpath, fpath_dest);
+                File.Copy(fpath, fpath_dest, true);
                 return true;
             }
             catch (Exception ex)

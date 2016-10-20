@@ -33,6 +33,38 @@ namespace Deployment
         private string st = " finished";
         //public static string snapFile = "";
 
+        public f_install(string args)
+        {
+            logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
+            InitializeComponent();
+            ParseArguments(args);
+            _deploy = new Deploy(_arguments);
+            timer1.Start();
+        }
+
+        private void f_install_Load(object sender, EventArgs e)
+        {
+            _deploy.SetEnvironmentVariables();
+            string strUninstall = "";
+            if (FD.copy_uninstall())
+            {
+                strUninstall = "";
+            }
+            else
+            {
+                strUninstall = _arguments["appDir"];
+            };
+
+            Inst.update_uninstallString(strUninstall);
+            if (_arguments["network-installation"].ToLower() == "true")
+            {
+                // DOWNLOAD REPO
+                Deploy.StageReporter("Downloading prerequisites", "");
+                Deploy.HideMarquee();
+                TC.download_repo();
+            }
+            //TC.deploy_p2p();
+        }
 
         private void ParseArguments(string _args)
         {
@@ -48,30 +80,6 @@ namespace Deployment
                 _arguments[splitted[0]] = splitted[1];
                 logger.Info("Arguments:  {0} =  {1}", splitted[0], splitted[1]);
             }
-        }
-
-        public f_install(string args)
-        {
-            logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
-            InitializeComponent();
-            ParseArguments(args);
-            _deploy = new Deploy(_arguments);
-            timer1.Start();
-        }
-
-        private void f_install_Load(object sender, EventArgs e)
-        {
-            _deploy.SetEnvironmentVariables();
-            FD.copy_uninstall();
-
-            if (_arguments["network-installation"].ToLower() == "true")
-            {
-                // DOWNLOAD REPO
-                Deploy.StageReporter("Downloading prerequisites", "");
-                Deploy.HideMarquee();
-                TC.download_repo();
-            }
-            //TC.deploy_p2p();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -111,7 +119,7 @@ namespace Deployment
 
                .ContinueWith((prevTask) =>
                {
-                   //Installing prerequisites
+                   //Unzipping .zip
                    Exception ex = prevTask.Exception;
                    if (prevTask.IsFaulted)
                    {
@@ -136,7 +144,7 @@ namespace Deployment
 
                .ContinueWith((prevTask) =>
                {
-                   //Unzipping .zip
+                   //Installing prerequisites
                    Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -188,6 +196,7 @@ namespace Deployment
 
                 .ContinueWith((prevTask) =>
                 {
+                    //Prepare RH
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -214,6 +223,7 @@ namespace Deployment
 
                 .ContinueWith((prevTask) =>
                 {
+                    //Install and configure P2P
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -240,6 +250,7 @@ namespace Deployment
 
                 .ContinueWith((prevTask) =>
                 {
+                    //Create shortcuts
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {

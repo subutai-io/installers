@@ -121,4 +121,10 @@
   <data name="SS_Console_logo_700x700px-01" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\SS_Console_logo_700x700px-01.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Subutai_logo_4_Light" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Subutai_logo_4_Light.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="Subutai_logo_4_Dark" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Subutai_logo_4_Dark.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

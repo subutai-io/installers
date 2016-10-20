@@ -138,6 +138,8 @@
     <Content Include="Resources\SS_Console_logo_700x700px-01.png" />
     <None Include="SS_Console_logo_700x700px-01.png" />
     <Content Include="SS_Console_logo_700x700px_01.ico" />
+    <None Include="Subutai_logo_4_Light.png" />
+    <None Include="Subutai_logo_4_Dark.png" />
     <Content Include="Subutai_logo_4_Light_70x70.ico" />
     <EmbeddedResource Include="f_confirm.resx">
       <DependentUpon>f_confirm.cs</DependentUpon>
