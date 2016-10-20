@@ -246,7 +246,6 @@ namespace uninstall_clean
                   VBx.remove_vm();
                   //Remove Oracle VirtualBox
                   StageReporter("", "Removing Oracle Virtual Box software");
-                  //VBx.remove_app_vbox("Oracle VirtualBox");
                   VBx.remove_app_vbox_short("Oracle VirtualBox");
 
 
