@@ -9,24 +9,28 @@ using Renci.SshNet;
 
 namespace Deployment
 {
-    //Task factory Components
-    //Download components
+    /// <summary>
+    /// class TC
+    /// Task factory Components - methods actually performin installation steps,  called fron Task Factory
+    /// </summary>
     class TC
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private static readonly Dictionary<string, string> _arguments = Program.form1._arguments;
-        private static readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
+        private static readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";//name of VM for Subutai
         private static readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
-        public static string snapFile = "";
-        public static string[] rows;
-        public static string installation_type = "";
+        public static string snapFile = ""; //Name of snap file to be installed on VM
+        public static string[] rows; //rows read from repo descriptor file
+        public static string installation_type = ""; //installation type
 
+        /// <summary>
+        ///  public static void download_repo()
+        ///  Downloading nesessary files from kurjun(gorjun) repository accorfing to download list
+        /// </summary>
         public static void download_repo()
         {
-            //DOWNLOAD REPO
             Deploy.StageReporter("Downloading prerequisites", "");
 
-            //Deploy.HideMarquee();
             logger.Info("Downloading repo_descriptor");
             download_description_file("repo_descriptor");
             if (_arguments["params"].Contains("dev"))
@@ -49,6 +53,12 @@ namespace Deployment
             download_file(regfile, download_prerequisites);
         }
 
+        /// <summary>
+        /// private static void download_description_file(String arg_name)
+        /// Getting description file from repository
+        /// </summary>
+        /// <param name="arg_name">Argument name ("repo-desvriptor") containing name of file to be downloaded)</param>
+        /// 
         private static void download_description_file(String arg_name)
         {
             Deploy.StageReporter("", "Getting description file");
@@ -61,6 +71,14 @@ namespace Deployment
                 kurjun: true);
         }
 
+        /// <summary>
+        /// private static void download_file(String file_name, AsyncCompletedEventHandler cmplHandler)
+        /// Getting  file from repository
+        /// On complete calls itself
+        /// </summary>
+        /// <param name="cmplHandler">Handler for calling asynchronous process</param>
+        /// <param name="file_name">Name of file to be downloaded</param>
+        /// 
         private static void download_file(String file_name, AsyncCompletedEventHandler cmplHandler)
         {
             Deploy.StageReporter("", $"Getting file {file_name}");
@@ -74,8 +92,18 @@ namespace Deployment
                 kurjun: true);
         }
 
+        /// <summary>
+        /// Counter of downloaded files 
+        /// </summary>  
         private static int _prerequisitesDownloaded = 0;
 
+        /// <summary>
+        ///private static void download_prerequisites(object sender, AsyncCompletedEventArgs e)
+        /// Getting  file from repository
+        /// On complete calls itself
+        /// </summary>
+        /// <param name="sender">Handler for calling asynchronous process</param>
+        /// <param name="e">Info about previous download</param>
         private static void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
             //Check thread exception
@@ -152,7 +180,10 @@ namespace Deployment
             }
         }
 
-
+        /// <summary>
+        /// public static void check_md5()
+        /// Check md5 sum of all downloaded files
+        /// </summary>
         public static void check_md5()
         {
             //verify downloaded 
@@ -184,6 +215,11 @@ namespace Deployment
             }
             Deploy.StageReporter(" ", " ");
         }
+
+        /// <summary>
+        /// public static void unzip_extracted()
+        /// Unzipping *.zip files downloaded (tray.zip and ssh.zip)
+        /// </summary>
         public static void unzip_extracted()
         {
             // UNZIP FILES
@@ -195,6 +231,10 @@ namespace Deployment
             Deploy.StageReporter(" ", " ");
         }
 
+        /// <summary>
+        /// public static void deploy_redist()
+        /// Installing downloaded prerequisites, if not installed 
+        /// </summary>
         public static void deploy_redist()
         {
             // DEPLOY REDISTRIBUTABLES
@@ -233,6 +273,10 @@ namespace Deployment
             Deploy.StageReporter(" ", " ");
         }
 
+        /// <summary>
+        /// public static void prepare_vbox()
+        /// Setup VirtualBox for VM installation, configuring NAT network, importing snappy
+        /// </summary>
         public static void prepare_vbox()
         {
             // PREPARE VBOX
@@ -267,6 +311,12 @@ namespace Deployment
             Deploy.StageReporter(" ", " ");
         }
 
+        /// <summary>
+        /// public static void prepare_rh()
+        /// Preparing RH: clone VM, configure NAT for ssh needed for installation process
+        /// setting CPUs, RAM, timezone
+        /// setting up peer, import Management if needed
+        /// </summary>
         public static void prepare_rh()
         {
             // PREPARE RH
@@ -381,6 +431,11 @@ namespace Deployment
             Deploy.StageReporter(" ", " ");
         }
 
+        /// <summary>
+        /// public static void deploy_p2p()
+        /// Install, configure and start Subutai Social P2P service
+        /// Installation uses nssm 
+        /// </summary>
         public static void deploy_p2p()
         {
             // DEPLOYING P2P SERVICE

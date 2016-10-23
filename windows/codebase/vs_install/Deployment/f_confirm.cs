@@ -10,9 +10,17 @@ using System.Windows.Forms;
 
 namespace Deployment
 {
+    /// <summary>
+    /// public partial class f_confirm : Form
+    /// Form showing system settings and installation directory (chosen in installer)
+    /// Definition of peer type (trial (RH + MH + Client), RH only or Client only
+    /// </summary>
+    /// <param name="param1">Some Parameter.</param>
+    /// <returns>What this method returns.</returns>
+
     public partial class f_confirm : Form
     {
-        public static Boolean res = true;
+        public static Boolean res = true; //if false - can not install, will be set in checking()
         public static int hostCores; //number of logical processors
         public static Boolean host64;
         public static string hostOSversion;
@@ -26,38 +34,57 @@ namespace Deployment
         public f_confirm()
         {
             InitializeComponent();
+            
             showing();
         }
 
+        /// <summary>
+        /// private void showing()
+        /// Showing system and installation parameters form 
+        /// Installation is not possible if one of system parameters is red
+        /// For Windows 7 can not define if VT/x is enabled in BIOS
+        /// </summary>
         private void showing()
         {
-            tbxAppDir.Text = Inst.subutai_path();
-            hostOSversion = Environment.OSVersion.Version.ToString();
-            hostOSversion_user = SysCheck.OS_name();
-            shortVersion = hostOSversion.Substring(0, 3);
+            tbxAppDir.Text = Inst.subutai_path(); //Show Installation path, defined in installer
+            tbxAppDir.Enabled = false; //Change of installation type not allowed
+            tbxAppDir.ReadOnly = true;
+            //Defining system parameters
+            hostOSversion = Environment.OSVersion.Version.ToString(); //OS version (6.1, 6.2, 10)
+            hostOSversion_user = SysCheck.OS_name(); //OS name in human readable format
+            shortVersion = hostOSversion.Substring(0, 3); 
             hostCores = Environment.ProcessorCount; //number of logical processors
-            host64 = Environment.Is64BitOperatingSystem;
-            vboxVersion = SysCheck.vbox_version();
+            host64 = Environment.Is64BitOperatingSystem; //Processor architecture - x86 or x64
+            vboxVersion = SysCheck.vbox_version(); //Oracle VirtualBox version 
+            hostRam = (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;//RAM in MB
+            hostVT = SysCheck.check_vt(); //Checking if VT-x is enabled
 
-            hostRam = (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
-            hostVT = SysCheck.check_vt();
-
+            //Filling textboxes
             l_Proc.Text = SysCheck.hostCores.ToString();
             l_RAM.Text = hostRam.ToString();
             l_S64.Text = host64.ToString();
-            l_OS.Text = hostOSversion_user;//shortVersion;//hostOSversion.ToString();
+            l_OS.Text = hostOSversion_user;
             l_VT.Text = hostVT;
             l_VB.Text = vboxVersion;
-
                    
-            tb_Info.Text = "Subutai can be installed on Windows versions 7(Eng), 8, 8.1, 10.";// "* This value may need to be checked in BIOS. If installation fails, check if  hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
+            tb_Info.Text = "Subutai can be installed on Windows versions 7(Eng), 8, 8.1, 10.";
+            // "* This value may need to be checked in BIOS. If installation fails, check if 
+            //hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             tb_Info.Text += Environment.NewLine;
             tb_Info.Text += Environment.NewLine;
+            //Check if can install
             checking();
         }
 
+        /// <summary>
+        /// checking()
+        /// Check if Subutai can be installed - system parameters meet Subutai requirements
+        /// If parameter does not system requirements, it will be shown in red
+        /// For Windows 7 can not define if VT/x is enabled in BIOS
+        /// </summary>
         private void checking()
         {
+            //2 or more processor cores
             if (hostCores < 2)
             {
                 l_Proc.ForeColor = Color.Red;
@@ -72,6 +99,7 @@ namespace Deployment
                 l_Proc.ForeColor = Color.Green;
             }
 
+            //RAM > 4000 KB
             if ((long)hostRam < 4000) //2000
             {
                 l_RAM.ForeColor = Color.Red;
@@ -84,6 +112,7 @@ namespace Deployment
             {
                 l_RAM.ForeColor = Color.Green;
             }
+            //Processor architecture x64
             if (!host64)
             {
                 l_S64.ForeColor = Color.Red;
@@ -96,7 +125,7 @@ namespace Deployment
             {
                 l_S64.ForeColor = Color.Green;
             }
-
+            //VT-x enabled
             if (!hostVT.ToLower().Contains("true") && shortVersion != "6.1")//not Windows  7
             {
                 l_VT.ForeColor = Color.Red;
@@ -105,7 +134,7 @@ namespace Deployment
                 tb_Info.Text += "Please, enable hardware virtualization support (Vt-X/AMD-V) in BIOS!";
                 res = false;
             }
-
+            //Oracle Virtual Box version >5.0
             if (!SysCheck.vbox_version_fit(vb_version2fit, l_VB.Text))
             {
                 l_VB.ForeColor = Color.Red;
@@ -115,8 +144,7 @@ namespace Deployment
             {
                 l_VB.ForeColor = Color.Green;
             }
-
-            //Checking Windows version
+            //Checking Windows version >= 6.1, 6.1 is Windows 7
             if (!SysCheck.vbox_version_fit("6.1", shortVersion))
             {
                 l_OS.ForeColor = Color.Red;
@@ -132,7 +160,7 @@ namespace Deployment
                 btnInstall.Text = $"Install Subutai {Program.inst_type}";
                 if (shortVersion != "6.1")
                 {
-                    
+                    //Can install
                     lblCheckResult.Text = "Subutai Social can be installed on Your system. Press Install button";
                     lblCheckResult.ForeColor = Color.Green;
                     l_VT.ForeColor = Color.Green;
@@ -146,6 +174,7 @@ namespace Deployment
                 }
                 else
                 {
+                    //WE have Windows 7
                     lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
                     lblCheckResult.ForeColor = Color.Blue;
                     l_VT.ForeColor = Color.DarkBlue;
@@ -165,6 +194,7 @@ namespace Deployment
             }
             else
             {
+                //Can not install
                 btnInstall.Text = "Exit";
                 lblCheckResult.Text = "Sorry, Subutai Social can not be installed. Close form to cancel installation";
                 lblCheckResult.ForeColor = Color.Red;
@@ -178,6 +208,12 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// private void instFolder()
+        /// not used
+        /// Define installation folder with folder dialog, this function can be used if we will decline 
+        /// using of third-part installer
+        /// </summary>
         private void instFolder()
         {
             FolderBrowserDialog folderBrowserDlg = new FolderBrowserDialog();
@@ -191,6 +227,12 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// RadioButton getCheckedRadio(Control container)
+        /// Defines which radio is checked in RadioButtonGrop
+        /// for peer type
+        /// </summary>
+        /// <returns>Returns radio checked. If nothing checked, returns null</returns>
         RadioButton getCheckedRadio(Control container)
         {
             foreach (var control in container.Controls)
@@ -202,11 +244,16 @@ namespace Deployment
                     return radio;
                 }
             }
-
             return null;
         }
 
-        
+
+        /// <summary>
+        /// private string peerType(RadioButton btn_checked)
+        /// Defines installation parameter PeerType by checked radio button
+        /// for peer type
+        /// </summary>
+        /// <returns>Returns peer type. By default peer type is "trial" - RH + Management + Client will be installed</returns>
         private string peerType(RadioButton btn_checked)
         {
             if (btn_checked.Text.Equals("RH only"))
@@ -221,22 +268,13 @@ namespace Deployment
             
         }
 
-       
-        private void clbTypeInst_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void gbxTypeInst_Enter(object sender, EventArgs e)
-        {
-
-        }
-
+        /// <summary>
+        /// private void btnInstall_Click(object sender, EventArgs e)
+        /// If can install, starts installation. If not - exit
+        /// Forms parameters string (adds installation director
+        /// </summary>
         private void btnInstall_Click(object sender, EventArgs e)
         {
-            //params=deploy-redist,prepare-vbox,dev,prepare-rh,deploy-p2p 
-            //network-installation=true kurjunUrl=https://cdn.subut.ai:8338 
-            //repo_descriptor=repomd5-dev repo_tgt=repotgt appDir=[APPDIR] peer=[PEER_OPTION]
             if (btnInstall.Text.Equals("Exit"))
             {
                 Program.stRun = false;
@@ -254,6 +292,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// private void linkManual_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        /// private void linkTutorials_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        /// Opens Installation Manual and Tutorials pages
+        /// </summary>
         private void linkManual_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             linkManual.LinkVisited = true;
@@ -266,9 +309,14 @@ namespace Deployment
             System.Diagnostics.Process.Start("https://subutai.io/first-launch.html");
         }
 
+        /// <summary>
+        /// private void btnBrowse_Click(object sender, EventArgs e)
+        /// Runs instFolder() method to open folder dialog and choose installation folder
+        /// Not enabled now as we choose installation folder in installer
+        /// </summary>
         private void btnBrowse_Click(object sender, EventArgs e)
         {
-            instFolder();
+            //instFolder();
         }
     }
 }

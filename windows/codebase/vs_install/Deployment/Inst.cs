@@ -8,12 +8,21 @@ using Renci.SshNet;
 
 namespace Deployment
 {
+    /// <summary>
+    /// class Inst
+    /// Install components
+    /// </summary>
     class Inst
     {
         //Installation of components
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
-        //Define if application is installed
+        /// <summary>
+        /// public static int app_installed(string appName)
+        /// Define if application installed 
+        /// Looking in Registry
+        /// </summary>
+        /// <param name="appName">Application name (with Registry path)</param>
         public static int app_installed(string appName)
         {
             string subkey = Path.Combine("SOFTWARE\\Wow6432Node", appName);
@@ -27,7 +36,11 @@ namespace Deployment
             return 1;
         }
 
-        //Get installation path to check if already installed
+        /// <summary>
+        /// public static string subutai_path()
+        /// Get Subutai installation path to check if already installed
+        /// Looking in Registry
+        /// </summary>
         public static string subutai_path()
         {
             string subkey86 = Path.Combine("SOFTWARE", "Subutai Social", "Subutai");
@@ -40,7 +53,12 @@ namespace Deployment
             return path;
         }
 
-        //Update uninstall string
+        /// <summary>
+        /// public static bool update_uninstallString(string strUninst)
+        /// Update uninstall string
+        /// Changing in Registry
+        /// </summary>
+        /// <param name="strUninst">Uninstall string</param>
         public static bool update_uninstallString(string strUninst)
         {
             string subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Subutai";
@@ -62,7 +80,11 @@ namespace Deployment
         }
 
 
-        //Install TAP driver and utilities
+        /// <summary>
+        /// public static void inst_TAP(string instDir)
+        /// Install TAP driver and utilities
+        /// </summary>
+        /// <param name="instDir">Installation directory</param>
         public static void inst_TAP(string instDir)
         {
             string res = "";
@@ -103,7 +125,11 @@ namespace Deployment
             }
         }
 
-        //Install Chrome
+        /// <summary>
+        /// public static void inst_Chrome(string instDir)
+        /// Install Google Chrome Browser
+        /// </summary>
+        /// <param name="instDir">Installation directory</param>
         public static void inst_Chrome(string instDir)
         {
             string res = "";
@@ -121,7 +147,13 @@ namespace Deployment
             }
         }
 
-        //Install E2E extension - create subkey in Registry
+        /// <summary>
+        /// public static bool create_subkey(string keyPath, string subKeyPath)
+        /// Create subkey in Registry 
+        /// for E2E plugin installation
+        /// </summary>
+        /// <param name="keyPath">Parent key for subkey to be created</param>
+        /// <param name="subKeyPath">Subkey to be created</param>
         public static bool create_subkey(string keyPath, string subKeyPath)
         {
             string keyPath0 = keyPath; //"SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
@@ -173,6 +205,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// public static void inst_E2E()
+        /// Installation of E2E plugin
+        /// Can be installen only using Registry
+        /// </summary>
         public static void inst_E2E()
         {
             Deploy.StageReporter("", "Installing Chrome E2E extension");
@@ -202,6 +239,11 @@ namespace Deployment
             logger.Info("Chrome E2E extension values sat");
         }
 
+        /// <summary>
+        /// public static void inst_VBox(string instDir)
+        /// Installation of Oracle VirtualBox software
+        /// </summary>
+        /// <param name="instDir">Installation directory</param>
         public static void inst_VBox(string instDir)
         {
             string res = "";
@@ -245,6 +287,12 @@ namespace Deployment
             Net.set_fw_rules(VBoxPath.ToLower(), "virtualbox", false);
         }
 
+        /// <summary>
+        /// public static void inst_ssh(string instDir)
+        /// Create home folder (soft link) for ssh to create .ssh directory
+        /// to keep ssh files - known_hosts, keys etc
+        /// </summary>
+        /// <param name="instDir">Installation directory</param>
         public static void inst_ssh(string instDir)
         {
             string path_t = Path.Combine(FD.sysDrive(), "Users");
@@ -260,6 +308,12 @@ namespace Deployment
 
         }
 
+        /// <summary>
+        /// public static void remove_ssh(string instDir)
+        /// Removes home folder (soft link) 
+        /// before new installation (will fail if not deleted)
+        /// </summary>
+        /// <param name="instDir">Installation directory</param>
         public static void remove_ssh(string instDir)
         {
             //string path_t = Path.Combine(FD.sysDrive(), "Users");
@@ -271,7 +325,11 @@ namespace Deployment
             }
         }
 
-
+        /// <summary>
+        /// public static void service_stop(string serviceName)
+        /// Stops Subutai Social P2P service (in case if running - was not deleted by previous installation)
+        /// </summary>
+        /// <param name="serviceName">Name of service to be stopped</param>
         public static void service_stop(string serviceName)
         {
             string res = "";
@@ -280,6 +338,14 @@ namespace Deployment
             logger.Info("Stopping service {0}: {1}", serviceName, res);
         }
 
+        /// <summary>
+        /// public static void service_install(string serviceName, string binPath, string binArgument)
+        /// Installs Subutai Social P2P service 
+        /// using nssm
+        /// </summary>
+        /// <param name="serviceName">Name of service to be installed</param>
+        /// <param name="binPath">bath to binary</param>
+        /// <param name="binArgument">arguments</param>
         public static void service_install(string serviceName, string binPath, string binArgument)
         {
             string res = "";
@@ -289,6 +355,11 @@ namespace Deployment
             logger.Info("Installing P2P service: {0} {1}", cmd, res);
         }
 
+        /// <summary>
+        /// public static void service_start(string serviceName)
+        /// Starts Subutai Social P2P service 
+        /// </summary>
+        /// <param name="serviceName">Name of service to be installed</param>
         public static void service_start(string serviceName)
         {
             string res = "";
@@ -298,6 +369,11 @@ namespace Deployment
             Thread.Sleep(2000);
         }
 
+        /// <summary>
+        /// public static void service_config(string serviceName)
+        /// Starts Subutai Social P2P service 
+        /// </summary>
+        /// <param name="serviceName">Name of service to be installed</param>
         public static void service_config(string serviceName)
         {
             string res = "";
@@ -306,13 +382,18 @@ namespace Deployment
             Thread.Sleep(5000);
         }
 
-        public static void p2p_logs_config(string sname)
+        /// <summary>
+        /// public static void p2p_logs_config(string sname)
+        /// Config logging optiond for Subutai Social P2P service 
+        /// </summary>
+        /// <param name="serviceName">Name of service to be installed</param>
+        public static void p2p_logs_config(string serviceName)
         {
             string logPath = FD.logDir();
             logPath = Path.Combine(logPath, "p2p_log.txt");
             logger.Info("Logs are in {0}", logPath);
             //Create Registry keys for parameters
-            string sPath = $"System\\CurrentControlSet\\Services\\{sname}\\Parameters";
+            string sPath = $"System\\CurrentControlSet\\Services\\{serviceName}\\Parameters";
             string ksPath = $"HKEY_LOCAL_MACHINE\\{sPath}";
             logger.Info("Registry key", sPath);
             RegistryKey kPath = Registry.LocalMachine.OpenSubKey(sPath);
@@ -334,6 +415,10 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// public static void install_mh_nw()
+        /// Installing management host, ssh using name-password
+        /// </summary>
         public static void install_mh_nw()
         {
             //installing master template
@@ -372,6 +457,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// public static bool is_ip_address(string in_str)
+        /// Checks if string is likely ip address (To do - improve checking)
+        /// </summary>
+        /// <param name="in_str">String to be checked</param>
         public static bool is_ip_address(string in_str)
         {
             string[] ips = in_str.Split('.');
@@ -386,6 +476,12 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// public static void install_mh_lc(PrivateKeyFile[] privateKeys)
+        /// Installing management host, ssh using private keys
+        /// </summary>/// Checks if string is likely ip address (To do - improve checking)
+        /// </summary>
+        /// <param name="privateKeys">Private keys array</param>
         public static void install_mh_lc(PrivateKeyFile[] privateKeys)
         {
             //installing master template
@@ -409,7 +505,11 @@ namespace Deployment
             }
         }
 
-        //public async static Task<bool> import_templ(string tname)
+        /// <summary>
+        /// public static bool import_templ(string tname)
+        /// import template 
+        /// </summary>
+        /// <param name="tname">Template name</param>
         public static bool import_templ(string tname)
         {
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
@@ -428,6 +528,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// public static bool import_templ_task(string tname)
+        /// import template in separate task to know if import is running
+        /// </summary>
+        /// <param name="tname">Template name</param>
         public static bool import_templ_task(string tname)
         {
             // Cancellation token to cancel watcher when import is finished or cancelled
@@ -495,6 +600,11 @@ namespace Deployment
             return b_res;
        }
 
+        /// <summary>
+        /// private static  string check_templ(string tname)
+        /// Check if import template is running, runs as separate task
+        /// </summary>
+        /// <param name="tname">Template name</param>
         private static  string check_templ(string tname)
         {
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
@@ -502,15 +612,6 @@ namespace Deployment
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);
-
-            ////if (sterr.Contains("Empty"))
-            ////{
-            ////    Form1.StageReporter("", $"Importing {tname}");
-            ////} else
-            ////{
-            ////    Form1.StageReporter("", $"Download error: {sterr}, trying restart import");
-            ////}
-            
             return stres;
         }
     }

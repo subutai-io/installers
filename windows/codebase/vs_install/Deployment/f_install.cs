@@ -15,24 +15,25 @@ namespace Deployment
 {
     public partial class f_install : Form
     {
-        //private readonly string[] _args = Environment.GetCommandLineArgs();
         public readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
         public readonly Deploy _deploy;
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
-        //public static string[] rows;
-        //public static string installation_type = "";
-
         //private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
         //private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
-        private static CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private static CancellationTokenSource tokenSource = new CancellationTokenSource(); //token sourse to cancel all threads
 
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private static int stage_counter = 0;
         public int finished = 0;
         private string st = " finished";
-        //public static string snapFile = "";
 
+        /// <summary>
+        /// public f_install(string args)
+        /// Performs all installation steps
+        /// </summary>
+        /// <param name="args">Parameter string formed from command line arguments and confirmation form</param>
+        
         public f_install(string args)
         {
             logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
@@ -42,6 +43,12 @@ namespace Deployment
             timer1.Start();
         }
 
+        /// <summary>
+        /// private void f_install_Load(object sender, EventArgs e)
+        /// On form load: Changes environment variables - %Path% and %Subutai%
+        /// updates uninstall string (in Windows Registry)
+        /// and starts downloading
+        /// </summary>
         private void f_install_Load(object sender, EventArgs e)
         {
             _deploy.SetEnvironmentVariables();
@@ -63,15 +70,18 @@ namespace Deployment
                 Deploy.HideMarquee();
                 TC.download_repo();
             }
-            //TC.deploy_p2p();
         }
 
+        /// <summary>
+        /// private void ParseArguments(string _args)
+        /// Creates Dictionary to keep arguments
+        /// Dictionary<string, string> _arguments
+        /// </summary>
+        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         private void ParseArguments(string _args)
         {
             //"params=deploy-redist,prepare-vbox,dev,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev ";
-            //var args_eq = _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2);
             string[] s_args = _args.Split(' '); ;
-            //foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
             foreach (string s_splitted in s_args)
             {
                 string[] splitted = s_splitted.Split('=');
@@ -82,11 +92,21 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// private void timer1_Tick(object sender, EventArgs e)
+        /// Timer tick
+        /// </summary>
+        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         private void timer1_Tick(object sender, EventArgs e)
         {
             Invoke((MethodInvoker)Refresh);
         }
 
+        /// <summary>
+        /// public string installDir()
+        /// Define installation directory
+        /// </summary>
+        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         public string installDir()
         {
             string sTmp = _arguments["appDir"].ToString();
@@ -94,7 +114,12 @@ namespace Deployment
         }
 
         #region TASKS FACTORY
-
+        /// <summary>
+        /// Task factory to perform all installation steps 
+        /// with TaskContinuationOptions.OnlyOnRanToCompletion for each step 
+        /// so tasks are chained. On complete (failed or successful) runs InstallationFinished form
+        /// </summary>
+        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         public void TaskFactory(object sender, AsyncCompletedEventArgs e)
         {
             //var token = tokenSource.Token;
@@ -310,6 +335,11 @@ namespace Deployment
         }
         #endregion
 
+        /// <summary>
+        /// private void show_finished()
+        /// Calls Finished form with parameter defined by "finished" value to show
+        /// Finished form with proper message
+        /// </summary>
         private void show_finished()
         {
             switch (finished)
@@ -349,6 +379,10 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// private void f_install_VisibleChanged(object sender, EventArgs e)
+        /// For this form if visible == false calls show_finished()
+        /// </summary>
         private void f_install_VisibleChanged(object sender, EventArgs e)
         {
             int Vis = -1;
@@ -368,6 +402,11 @@ namespace Deployment
                 show_finished();
             }
         }
+
+        /// <summary>
+        /// f_install_FormClosing(object sender, FormClosingEventArgs e)
+        /// On Close defines reason of closing and logs message to log
+        /// </summary>
         private void f_install_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)

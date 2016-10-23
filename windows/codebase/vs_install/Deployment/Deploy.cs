@@ -25,6 +25,10 @@ using Microsoft.Win32;
 
 namespace Deployment
 {
+    /// <summary>
+    /// public class Deploy
+    /// Contains different utilitites
+    /// </summary>
     public class Deploy
     {
         private const string RestFileinfoURL = "/kurjun/rest/raw/info?name=";
@@ -35,13 +39,20 @@ namespace Deployment
         private const string SubutaiUninstallIconName = "uninstall.ico";
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
-        
 
+        /// <summary>
+        /// public Deploy
+        /// </summary>
+        /// <param name="arguments">arguments dictionary</param>
         public Deploy(Dictionary<string, string> arguments)
         {
             this._arguments = arguments;
         }
 
+        /// <summary>
+        /// public void SetEnvironmentVariables()
+        /// Set environment variables %PAth% and %Subutai%
+        /// </summary>
         public void SetEnvironmentVariables()
         {
             string sysDrive = FD.sysDrive();
@@ -83,6 +94,17 @@ namespace Deployment
         }
 
         #region HELPERS: Download
+        /// <summary>
+        /// public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, 
+        /// string report, bool async, bool kurjun)
+        /// Performing file download according to download list
+        /// </summary>
+        /// <param name="url">URL to download from</param>
+        /// <param name="destination">destination path\file</param>
+        /// <param name="onComplete">What will be executed on complete</param>
+        /// <param name="report">String to be written to installation form </param>
+        /// <param name="async">If async download</param>
+        /// <param name="kurjun">If download from kurjun</param>
         public void DownloadFile(string url, string destination, AsyncCompletedEventHandler onComplete, string report, bool async, bool kurjun)
         {
             var md5 = "";
@@ -186,6 +208,12 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
+        /// Updates progress on installation form
+        /// </summary>
+        /// <param name="sender">sender</param>
+        /// <param name="e">DownloadProgressChangedEventArgs</param>
         private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
             //MessageBox.Show(e.ProgressPercentage.ToString());

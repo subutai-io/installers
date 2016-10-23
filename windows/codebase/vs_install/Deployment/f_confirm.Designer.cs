@@ -115,7 +115,6 @@
             // 
             // tbxAppDir
             // 
-            this.tbxAppDir.Enabled = false;
             this.tbxAppDir.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tbxAppDir.Location = new System.Drawing.Point(13, 250);
             this.tbxAppDir.Margin = new System.Windows.Forms.Padding(2);
@@ -157,7 +156,6 @@
             this.gbxTypeInst.Size = new System.Drawing.Size(219, 88);
             this.gbxTypeInst.TabIndex = 15;
             this.gbxTypeInst.TabStop = false;
-            this.gbxTypeInst.Enter += new System.EventHandler(this.gbxTypeInst_Enter);
             // 
             // rbClientOnly
             // 
@@ -213,6 +211,7 @@
             // 
             // btnBrowse
             // 
+            this.btnBrowse.Enabled = false;
             this.btnBrowse.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnBrowse.Location = new System.Drawing.Point(329, 245);
             this.btnBrowse.Name = "btnBrowse";
@@ -434,6 +433,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2);
+            this.MaximizeBox = false;
             this.Name = "f_confirm";
             this.Text = "Initialization of the Subutai Social";
             this.TopMost = true;
