@@ -1,9 +1,22 @@
 # Subutai Windows Installer
+Subutai installation consists of two parts:
+1. Installer, created using Visual Studio Installation Project extention, performs mimimal job: copies files, needed for further installation, on target machine, defines installation directory, creates \Software\Subutai Social\Subutai subkeys in HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE hives, and runs executable.
+2. Binary, created with Visual Studio 2015 project, performs the main stage of installation process:
+<ul>
+	<li> Change environment variabled %Path% and %Subutai%</li>
+	<li> Download files needed for further installation</li>
+	<li> Verify MD5 checksums </li>
+	<li> Install software needed</li>
+	<li> Setup virtual machine </li>
+	<li> Setup virtual machine network</li>
+	<li> Install/configure/start Subutai Social P2P service </li>
+	<li> Create shortcuts </li>
+</ul>
 
 # How to install
-Run installer w/Administrative privileges on fresh Windows 7/8/10 x64 machine </br>
-Wait until installation process and shell scripts finish installation </br>
-After installation finished You will see SubutaiTray login form, log in with Your Hub account, SubutaiTray icon will appera in Windows tray. </br> 
+Run installer w/Administrative privileges on fresh Windows 7-eng/8/10 x64 machine </br>
+Wait until installation process finish install </br>
+After installation finished You will see SubutaiTray login form, log in with Your Hub account, SubutaiTray icon will appear in Windows tray. </br> 
 Right click on the SubutaiTray icon to open menu. Now You can open management dashbord with Launch->Launch to SS console menu.</br>
 
 
@@ -11,27 +24,24 @@ Right click on the SubutaiTray icon to open menu. Now You can open management da
 You need the following tools to build the installer:
 	<ul>
 		<li> Visual Studio 2015 </li>
+		<li> Visual Studio 2015 Installation Project extention</li>
+		<li> 7-zip sowtware</li>
 	</ul>
 
-# Build the installer
-Build Visual Studio project and copy Deployment.exe to \bin folder of Advanced Installer project
-	Run the Build process from Advanced installer (you can use CLI http://www.advancedinstaller.com/user-guide/command-line.html)
 
-# Test the installer
-You can Build and Run the installer inside VM right from Advanced installer
+# Build the installer
+Build Visual Studio project placed in vs_install folder and copy Deployment.exe to installation_files\bin folder. 
+Build Visual Studio project placed in vs_uninstall\uninstall_clean folder and copy uninstall-clean.exe (it will run on uninstall) to installation_files\bin folder.
+Open Installation project in vs_setup folder. Right click on solution ->View->Custom Actions. Click on Deployment.exe, in Properties->Arguments type arguments:  desired installation type ("prod/dev/master") and "Install". Build Project.
+Two files will be created in bin/Release folder: Subutai.msi ans setup.exe. Copy both files into SubutaiInstaller\<InstallationType> folders. Create 7-zip archive inside folder and copy it into SubutaiInstaller folder (..).
+Copy file 7zS.sfx from 7-zip\bin folder to SubutaiInstaller folder. We need to create self-extracting archive and run setup.exe after uncompressing.
+From command-line interface execute command:
+copy /b 7zS.sfx + config.txt + <archive_name>.7z subutai-network-installer<-installation type>.exe
+Names for installers should be: subutai-network-installer.exe for production, subutai-network-installer-dev.exe for dev and subutai-network-installer-master.exe for master installations.
+
 
 # Overview
-## Deployment tool
-And we use Deployment.exe tool developed under Visual Studio to handle the second part of installation.
-### Features:
-<ul>
-	<li> Download prerequisites from Kurjun </li>
-	<li> Verify MD5 checksums </li>
-	<li> Configuring resourse host </li>
-	<li> Setting up P2P service </li>
-</ul>
-
-### Flags (case-sensitive):
+## Deployment Tool Parameters (case-sensitive):
 <ul>
 	<li>
 		params - activities to perform during installation. Order of parameters does not matter. All parameters should be separated w/comma
@@ -49,11 +59,11 @@ And we use Deployment.exe tool developed under Visual Studio to handle the secon
 	</li>
 </ul>
 
-### Flags examples:
+### Parameters examples:
 <ul>
 	<li> params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p </li>
 	<li> network-installation=true </li>
-	<li> kurjunUrl=https://kurjun.cdn.subutai.io:8338/ </li>
+	<li> kurjunUrl=https://cdn.subut.ai/ </li>
 	<li> repo_descriptor=repomd5 </li>
 	<li> appDir=C:\Subutai </li>
 	<li> peer=trial </li>
@@ -82,15 +92,4 @@ peer type can be:
 	redist/subutai | subutai_4.0.<VN>_amd64.snap - Subutai package for Ubuntu Snappy 	redist/subutai | subutai_4.0.<VN>_amd64-dev.snap - Subutai package for Ubuntu Snappy built from dev branch
 	redist/subutai | subutai_4.0.<VN>_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
 
-VN - SubVersion Number
-
-
-
-# Vagrant Box for Windows Installer
-We prepared a Vagrant box for you with all required environment to build / change the installer as you wish.
-<ul>
-	<li>RDP: localhost:43389 (you can change this in Vagrant file)</li>
-	<li>Username: user</li>
-	<li>Passord: user</li>
-	<li>Shared folders: please open Vagrant file and change synced folders as you wishm but the first one shares sources of Windows Installer w/the virtual machine</li>
-</ul>
+Installation Manual can be found here: https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual
