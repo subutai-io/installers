@@ -118,7 +118,7 @@ namespace uninstall_clean
 
         public static void remove_app_vbox_short(string app_name)
         {
-            DialogResult drs = MessageBox.Show($"Remove {app_name}?", $"Removing {app_name}",
+            DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
                   MessageBoxButtons.YesNo,
                   MessageBoxIcon.Question,
                   MessageBoxDefaultButton.Button1);
