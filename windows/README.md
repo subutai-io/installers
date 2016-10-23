@@ -30,14 +30,14 @@ You need the following tools to build the installer:
 
 
 # Build the installer
-Build Visual Studio project placed in vs_install folder and copy Deployment.exe to installation_files\bin folder. 
-Build Visual Studio project placed in vs_uninstall\uninstall_clean folder and copy uninstall-clean.exe (it will run on uninstall) to installation_files\bin folder.
-Open Installation project in vs_setup folder. Right click on solution ->View->Custom Actions. Click on Deployment.exe, in Properties->Arguments type arguments:  desired installation type ("prod/dev/master") and "Install". Build Project.
-Two files will be created in bin/Release folder: Subutai.msi ans setup.exe. Copy both files into SubutaiInstaller\<InstallationType> folders. Create 7-zip archive inside folder and copy it into SubutaiInstaller folder (..).
-Copy file 7zS.sfx from 7-zip\bin folder to SubutaiInstaller folder. We need to create self-extracting archive and run setup.exe after uncompressing.
-From command-line interface execute command:
-copy /b 7zS.sfx + config.txt + <archive_name>.7z subutai-network-installer<-installation type>.exe
-Names for installers should be: subutai-network-installer.exe for production, subutai-network-installer-dev.exe for dev and subutai-network-installer-master.exe for master installations.
+Build Visual Studio project placed in vs_install folder and copy Deployment.exe to installation_files\bin folder.</br>
+Build Visual Studio project placed in vs_uninstall\uninstall_clean folder and copy uninstall-clean.exe (it will run on uninstall) to installation_files\bin folder.</br>
+Open Installation project in vs_setup folder. Right click on solution ->View->Custom Actions. Click on Deployment.exe, in Properties->Arguments type arguments:  desired installation type ("prod/dev/master") and "Install". Build Project.</br>
+Two files will be created in bin/Release folder: Subutai.msi ans setup.exe. Copy both files into SubutaiInstaller\<InstallationType> folders. Create 7-zip archive inside folder and copy it into SubutaiInstaller folder (..).</br>
+Copy file 7zS.sfx from 7-zip\bin folder to SubutaiInstaller folder. We need to create self-extracting archive and run setup.exe after uncompressing.</br>
+From command-line interface execute command:</br>
+`copy /b 7zS.sfx + config.txt + <archive_name>.7z subutai-network-installer<-installation type>.exe</br>`
+Names for installers should be: subutai-network-installer.exe for production, subutai-network-installer-dev.exe for dev and subutai-network-installer-master.exe for master installations.</br>
 
 
 # Overview
