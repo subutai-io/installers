@@ -32,7 +32,7 @@ You need the following tools to build the installer:
 # Build the installer
 Build Visual Studio project placed in vs_install folder and copy Deployment.exe to installation_files\bin folder.</br>
 Build Visual Studio project placed in vs_uninstall\uninstall_clean folder and copy uninstall-clean.exe (it will run on uninstall) to installation_files\bin folder.</br>
-Open Installation project in vs_setup folder. Right click on solution ->View->Custom Actions. Click on Deployment.exe, in Properties->Arguments type arguments:  desired installation type ("prod/dev/master") and "Install". Build Project.</br>
+Open Installation project in vs_setup folder. Right click on solution ->View->Custom Actions. Click on Deployment.exe, in Properties->Arguments type 3 arguments:  desired installation type ("prod/dev/master"), name of repo-descriptor file (repomd5) and "Install". Build Project.</br>
 Two files will be created in bin/Release folder: Subutai.msi ans setup.exe. Copy both files into SubutaiInstaller\<InstallationType> folders. Create 7-zip archive inside folder and copy it into SubutaiInstaller folder (..).</br>
 Copy file 7zS.sfx from 7-zip\bin folder to SubutaiInstaller folder. We need to create self-extracting archive and run setup.exe after uncompressing.</br>
 From command-line interface execute command:</br>
