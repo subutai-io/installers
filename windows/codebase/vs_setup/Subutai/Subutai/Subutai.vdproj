@@ -15,6 +15,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_1B007FCF5CB54438A978231DDBF19D42"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_45A5A8D37862447EA8F4CDC14F45A37F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -152,7 +158,7 @@
             "Object" = "8:_7ABE4E40F229431D983D9E4E05353700"
             "FileType" = "3:2"
             "InstallAction" = "3:2"
-            "Arguments" = "8:master repomd5 Installer"
+            "Arguments" = "8:prod repomd5 Installer"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
             "Identifier" = "8:_CE9439E2_EEEB_48FD_819F_39058EA94933"
@@ -196,6 +202,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1B007FCF5CB54438A978231DDBF19D42"
+            {
+            "SourcePath" = "8:..\\..\\..\\installation_files_4_VS_Install\\redist\\subutai\\prepare-server.sh"
+            "TargetName" = "8:prepare-server.sh"
+            "Tag" = "8:"
+            "Folder" = "8:_8E610C4C12954F42AC1F771AF0D7ECA1"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_45A5A8D37862447EA8F4CDC14F45A37F"
             {
             "SourcePath" = "8:..\\..\\..\\installation_files_4_VS_Install\\Subutai_logo_4_Light_70x70.ico"
@@ -394,6 +420,28 @@
             "Property" = "8:TARGETDIR"
                 "Folders"
                 {
+                    "{9EF0B969-E518-4E46-987F-47570745A589}:_1F0AACAD0799408594AC14D1CF9DDE19"
+                    {
+                    "Name" = "8:redist"
+                    "AlwaysCreate" = "11:FALSE"
+                    "Condition" = "8:"
+                    "Transitive" = "11:FALSE"
+                    "Property" = "8:_B8BE267A57B74A27A3DBCFE8F6666795"
+                        "Folders"
+                        {
+                            "{9EF0B969-E518-4E46-987F-47570745A589}:_8E610C4C12954F42AC1F771AF0D7ECA1"
+                            {
+                            "Name" = "8:subutai"
+                            "AlwaysCreate" = "11:FALSE"
+                            "Condition" = "8:"
+                            "Transitive" = "11:FALSE"
+                            "Property" = "8:_7ED9B3650AEC442A96F1FD945DE9BD9C"
+                                "Folders"
+                                {
+                                }
+                            }
+                        }
+                    }
                     "{9EF0B969-E518-4E46-987F-47570745A589}:_5826AC6A9FE3494D99FCA893B7AF83A1"
                     {
                     "Name" = "8:bin"
@@ -446,14 +494,14 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Subutai"
         "ProductCode" = "8:{91FB0999-407B-4814-B71F-1DB8D0799D86}"
-        "PackageCode" = "8:{DCFCB903-41D6-4E3A-BAA9-FF49B3AC7CE8}"
+        "PackageCode" = "8:{CE62A768-A70E-4285-B99C-9B2504B95516}"
         "UpgradeCode" = "8:{1D979BDF-30D2-4A70-9732-3B23684A66F2}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:4.0.5"
+        "ProductVersion" = "8:4.0.4"
         "Manufacturer" = "8:Subutai Social"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
