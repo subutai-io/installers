@@ -23,7 +23,7 @@ namespace Deployment
         public static InstallationFinished form2; //Installation finished form
 
         public static string[] cmd_args = Environment.GetCommandLineArgs();
-        public static string inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev";
+        public static string inst_args = "";
         public static string inst_type = "";
 
         public static bool stRun = false; 
@@ -40,21 +40,27 @@ namespace Deployment
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             //Add installation type command line parameter to parameter string
-            inst_type = InstType(cmd_args[1]); 
+            inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338";
+            inst_type = InstType(cmd_args[1]);
+            string repo_desc = cmd_args[2];
+            
             if (inst_type != "" && inst_type != null && inst_type != "prod")
             {
-                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev";
+                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor={repo_desc}";
+            } else
+            {
+                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor={repo_desc}";
             }
-
+            logger.Info("Argument string: {0}", inst_args);
             //Check if_installer_run - if "Installer", will run application in new process - to close installer
-            string if_installer_run = cmd_args[2];
+            string if_installer_run = cmd_args[3];
             if (if_installer_run.Equals("Installer"))
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.UseShellExecute = true;
                 startInfo.WorkingDirectory = Environment.CurrentDirectory;
                 startInfo.FileName = Application.ExecutablePath;
-                startInfo.Arguments = $"{cmd_args[1]} Run";
+                startInfo.Arguments = $"{cmd_args[1]} {cmd_args[2]} Run";
                 startInfo.Verb = "runas";
                 try
                 {
