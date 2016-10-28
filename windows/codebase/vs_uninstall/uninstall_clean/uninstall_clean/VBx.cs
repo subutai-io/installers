@@ -18,7 +18,7 @@ namespace uninstall_clean
         
         public static void remove_app_vbox(string app_name)
         {
-            DialogResult drs = MessageBox.Show($"Remove {app_name}?", $"Removing {app_name}",
+            DialogResult drs = MessageBox.Show($"Remove {app_name}? Please, do not remove if uninstalling from Control Panel. Uninstall {app_name} separately."  , $"Removing {app_name}",
                               MessageBoxButtons.YesNo,
                               MessageBoxIcon.Question,
                               MessageBoxDefaultButton.Button1);
@@ -212,14 +212,6 @@ namespace uninstall_clean
                 }
             }
         }
-
-        //Find if registry cleaner exists 
-        //string rclean_path = logDir();
-        //if (rclean_path != "")
-        //{
-        //    rclean_path = Path.Combine(rclean_path, "subutai-clean-registry.reg");
-        //LaunchCommandLineApp("regedit.exe", $"/s {rclean_path}", false, true);
-        //}
 
         public static void vb_clean_reg()
         {
