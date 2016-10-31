@@ -5,11 +5,16 @@ using NLog;
 
 namespace Deployment
 {
+
+    /// <summary>
+    ///  class FD
+    /// Files and Directories Class
+    /// Working with Files and Directories
+    /// Download list definition based on peer type ("trial","rh-only","client-only") and installation type ("prod", "dev", "master" )
+    /// sysdrive and logdir definition
+    /// </summary>
     class FD
     {
-        //Working with Files and Directories
-        //Download list definition based on peer type ("trial","rh-only","client-only") and installation type ("prod", "dev", "master" )
-        //sysdrive and logdir definition
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private int[] md5Sum;
         private string name;
@@ -21,7 +26,13 @@ namespace Deployment
             get { return name; }
         }
 
-        //read description file and form download list for installation
+        /// <summary>
+        /// Reads description file and form download list for installation
+        /// </summary>
+        /// <param name="fpath">Path to repo descriptor file</param>
+        /// <param name="peer_type">Type of the peer - Trial(full - RH+MH+Client), RH only, Client only</param>
+        /// <param name="inst_type">Type of the installation - prod, dev, master</param>
+        /// <returns>String array of lines read from file</returns>
         public static string[] repo_rows(string fpath, string peer_type, string inst_type)
         {
             if (!File.Exists(fpath))
@@ -35,7 +46,11 @@ namespace Deployment
             return rows1;
         }
 
-        //copy uninstall program to temp
+        /// <summary>
+        /// Copy uninstall program to temp
+        /// We need it to be able to delete installation folder if user naswered Yes
+        /// </summary>
+        /// <returns></returns>
         public static bool copy_uninstall()
         {
             string binName = Deploy.SubutaiUninstallName;
@@ -59,7 +74,13 @@ namespace Deployment
             
         }
 
-        //define download list
+        /// <summary>
+        /// Define download list
+        /// </summary>
+        /// <param name="rows1">String array containig rows read from reo descriptor file</param>
+        /// <param name="peer_type">Type of the peer (Trial (Full), RH only, Client only - </param>
+        /// <param name="inst_type">Type of the insallation - prod, dev, master.</param>
+        /// <returns></returns>
         public static string[] rows2download(ref string[] rows1, string peer_type, string inst_type)
         {
             List<string> rows = new List<string>();
@@ -120,6 +141,10 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Define system drive
+        /// </summary>
+        /// <returns>System drive for example C:</returns>
         public static string sysDrive()
         {
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
@@ -127,6 +152,10 @@ namespace Deployment
             return sysDrive;
         }
 
+        /// <summary>
+        /// Define log directory (System_drive\temp\Subutai_Log)
+        /// </summary>
+        /// <returns>Log directory</returns>
         public static string logDir()
         {
             string logPath = Path.Combine(sysDrive(), "temp");
@@ -142,6 +171,12 @@ namespace Deployment
             return logPath;
         }
 
+        /// <summary>
+        /// Checks if all files persist in installation directory according to target file.
+        /// Not used now
+        /// </summary>
+        /// <param name="appDir">The application dir</param>
+        /// <param name="tgt">target file name</param>
         private void check_files(string appDir, string tgt)
         {
             Deploy.StageReporter("", "Performing file check");

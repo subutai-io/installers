@@ -12,12 +12,19 @@ using Microsoft.Win32;
 
 namespace Deployment
 {
-   
+
+    /// <summary>
+    /// Network related work
+    /// </summary>
     class Net
     { 
         static NLog.Logger logger = LogManager.GetCurrentClassLogger();
-    
-        //Name of Host-Only interface
+
+        /// <summary>
+        /// Define Name of Host-Only interface will be used by vboxmanage command.
+        /// In Windows terms this is actually network interfacr description.
+        /// </summary>
+        /// <returns>Name(Description) of Host-Only interface or "Not defined"</returns>
         public static string vm_vbox0_ifname()
         {
             int cnt = 0;
@@ -47,8 +54,11 @@ namespace Deployment
             return "Not defined";
         }
 
-        //Defining name of host-only interface name
-         public static string gateway_if()
+        /// <summary>
+        /// Define name (description) of gateway interface.
+        /// </summary>
+        /// <returns>Gateway interface name or "No Gateway" if gateway not defined</returns>
+        public static string gateway_if()
         {
             var gateway_address = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(e => e.OperationalStatus == OperationalStatus.Up
@@ -97,6 +107,13 @@ namespace Deployment
             return "No Gateway";
         }
 
+        /// <summary>
+        /// Gets the network address.
+        /// </summary>
+        /// <param name="address">The IP address.</param>
+        /// <param name="subnetMask">The subnet mask.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">Lengths of IP address and subnet mask do not match.</exception>
         public static IPAddress GetNetworkAddress(IPAddress address, IPAddress subnetMask)
         {
             byte[] ipAdressBytes = address.GetAddressBytes();
@@ -113,6 +130,15 @@ namespace Deployment
             return new IPAddress(broadcastAddress);
         }
 
+        /// <summary>
+        /// Determines whether IP address 1 is in same subnet with the specified IP address2.
+        /// </summary>
+        /// <param name="address2">The IP address2.</param>
+        /// <param name="address1">The IP address1.</param>
+        /// <param name="subnetMask">The subnet mask.</param>
+        /// <returns>
+        ///   <c>true</c> if adresses are in same subnet; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsInSameSubnet(IPAddress address2, IPAddress address1, IPAddress subnetMask)
         {
             IPAddress network1 = GetNetworkAddress(address1, subnetMask);
@@ -121,7 +147,10 @@ namespace Deployment
             return network1.Equals(network2);
         }
 
-        //Define gateway interface name using netstat - as another way does not work for wired adapters
+        /// <summary>
+        /// Define gateway interface name using netstat - as another way does not work for wired adapters.
+        /// </summary>
+        /// <returns>IP address of default gateway</returns>
         public static string gw_from_netstat()
         {
             string res = Deploy.LaunchCommandLineApp("cmd.exe", " /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0");
@@ -139,7 +168,13 @@ namespace Deployment
             return splitted[1];
         }
 
-  
+
+        /// <summary>
+        /// Sets firewall rules for application and service.
+        /// </summary>
+        /// <param name="ppath">The application path.</param>
+        /// <param name="rname">The Rule name.</param>
+        /// <param name="is_service">if set to <c>true</c> [is service].</param>
         public static void set_fw_rules(string ppath, string rname, bool is_service)
         {
             string res = "";

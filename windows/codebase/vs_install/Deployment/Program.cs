@@ -15,7 +15,7 @@ namespace Deployment
     /// <param name="command line parameters">Installation type (prod, dev, master and Install</param>
     /// <param name="params">deploy-redist,prepare-vbox,prepare-rh,deploy-p2p</param>
     /// <param name="kurjunUrl">kurjunUrl=https://cdn.subut.ai:8338</param>
-    /// <param name="repo_descripto">repo_descriptor=repomd5-dev, file with download matrix, downloaded first from kurjun</param>
+    /// <param name="repo_descriptor">repo_descriptor=repomd5-dev, file with download matrix, downloaded first from kurjun</param>
     static class Program
     {
         public static f_confirm form_; //Parameters confirmation form
@@ -155,7 +155,6 @@ namespace Deployment
         /// Define installtion type from command line parameters 
         /// </summary>
         /// <param name="inStr">Text for message box</param>
-        /// <param name="Caption">Caption for MessageBox</param>
         static string InstType(string inStr)
         {
             //string outStr = "";

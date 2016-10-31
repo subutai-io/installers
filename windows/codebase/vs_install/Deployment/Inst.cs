@@ -242,6 +242,7 @@ namespace Deployment
         /// <summary>
         /// public static void inst_VBox(string instDir)
         /// Installation of Oracle VirtualBox software
+        /// and adding firewall rules
         /// </summary>
         /// <param name="instDir">Installation directory</param>
         public static void inst_VBox(string instDir)
@@ -564,7 +565,7 @@ namespace Deployment
                             //stop 
                             logger.Info("Cancelling from watcher");
                             tokenSource.Cancel();
-                            //break;
+                            //break;      //////////////////check this!
                         }
                     }
                     res0 = res;

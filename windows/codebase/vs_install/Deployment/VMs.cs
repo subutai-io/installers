@@ -8,9 +8,18 @@ using NLog;
 
 namespace Deployment
 {
+    /// <summary>
+    /// Working with Virtual Machines
+    /// </summary>
     class VMs
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// Starts Virtual Machine.
+        /// </summary>
+        /// <param name="name">The name of virtual machine</param>
+        /// <returns>true if started, false if not</returns>
         public static bool start_vm(string name)
         {
             //Form1.StageReporter("", "Starting VM");
@@ -29,6 +38,11 @@ namespace Deployment
           return true;
         }
 
+        /// <summary>
+        /// Stops the VM.
+        /// </summary>
+        /// <param name="name">The name of virtual machine</param>
+        /// <returns>true if stopped, false if not</returns>
         public static bool stop_vm(string name)
         {
             Deploy.StageReporter("Stopping machine", "");
@@ -48,6 +62,11 @@ namespace Deployment
         }
 
         //Cloning VM
+        /// <summary>
+        /// Clones the VM.
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if cloned, false if not</returns>
         public static bool clone_vm(string vmName)
         {
             string res = "";
@@ -73,6 +92,12 @@ namespace Deployment
             return true;//check res
         }
 
+        /// <summary>
+        /// Sets VM's RAM. Minimum is 2GB.
+        /// If host's RAM is less than 16GB but more than 8GB VM's RAM will be (Host RAM)/2
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if RAM sat, false if not</returns>
         public static bool vm_set_RAM(string vmName)
         {
             string res = "";
@@ -103,6 +128,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Set up CPU quantity for VM
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool vm_set_CPUs(string vmName)
         {
             string res = "";
@@ -130,6 +160,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Set timezone for VM.
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool vm_set_timezone(string vmName)
         {
             string res = "";
@@ -146,6 +181,12 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Starts VN and tries to establish the ssh connection. If no success - restarts VM and waits again.
+        /// Successful connection means we can proceed with set up. 
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool waiting_4ssh(string name)
         {
             //Form1.StageReporter("", "Waiting for SSH ");
@@ -171,6 +212,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Sets the bridged interface on VM. It will be dafault gateway interface
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool set_bridged(string name)
         {
             Deploy.StageReporter("", "Setting nic1 bridged");
@@ -197,6 +243,11 @@ namespace Deployment
             return true;
          }
 
+        /// <summary>
+        /// Sets the nat interface for VM.
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool set_nat(string name)
         {
             //NAT (eth1) 
@@ -215,7 +266,11 @@ namespace Deployment
             return true;
         }
 
-        //Setting Host-Only
+        /// <summary>
+        /// Sets the host-only interface for VM.
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>Name of host-only interface.</returns>
         public static string set_hostonly(string name)
         {
             string netif_vbox0 = Net.vm_vbox0_ifname();
@@ -257,6 +312,12 @@ namespace Deployment
             return netif_vbox0;
         }
 
+        /// <summary>
+        /// Sets network interfaces and attempts to start VM.
+        /// If cannot start - tries to turm off host-only adapter and restart
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool vm_reconfigure_nic(string vmName)
         {
             //stop VM
@@ -298,7 +359,11 @@ namespace Deployment
             return true;
         }
 
-        //Run installation scripts
+        /// <summary>
+        /// Creates tmpfs folder, uploads snap file and prepare-server.sh. Runs installation scripts.
+        /// </summary>
+        /// <param name="appDir">The application dir.</param>
+        /// <param name="vmName">Name of the VM.</param>
         public static void run_scripts(string appDir, string vmName)
         {
             string ssh_res = "";

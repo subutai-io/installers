@@ -51,7 +51,7 @@ namespace Deployment
 
         /// <summary>
         /// public void SetEnvironmentVariables()
-        /// Set environment variables %PAth% and %Subutai%
+        /// Set environment variables %Path% and %Subutai%
         /// </summary>
         public void SetEnvironmentVariables()
         {
@@ -225,33 +225,12 @@ namespace Deployment
         }
         #endregion
 
-        #region HELPERS: Download file via P2P
-
-        public void DownloadViaP2P(string torrentFilePath, string destinationPath)
-        {
-            EngineSettings settings = new EngineSettings();
-            settings.AllowedEncryption = EncryptionTypes.All;
-            settings.SavePath = destinationPath;
-
-            if (!Directory.Exists(settings.SavePath))
-                Directory.CreateDirectory(settings.SavePath);
-
-            var engine = new ClientEngine(settings);
-
-            engine.ChangeListenEndpoint(new IPEndPoint(IPAddress.Any, 6969));
-
-            Torrent torrent = Torrent.Load(torrentFilePath);
-
-            TorrentManager manager = new TorrentManager(torrent, engine.Settings.SavePath, new TorrentSettings());
-
-            engine.Register(manager);
-
-            manager.Start();
-        }
-        #endregion
-
         #region HELPERS: Unzip files
 
+        /// <summary>
+        /// Unzips all files with .zip extention in folder.
+        /// </summary>
+        /// <param name="folderPath">The folder path.</param>
         public void unzip_files(string folderPath)
         {
             logger.Info("Unzipping files from {0}", folderPath);
@@ -264,14 +243,14 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Unzips the file.
+        /// </summary>
+        /// <param name="source">The source file path.</param>
+        /// <param name="dest">The destination path.</param>
+        /// <param name="remove">if set to <c>true</c> [remove] source file.</param>
         public void unzip_file(string source, string dest, bool remove)
         {
-            //Program.form1.progressPanel1.Parent.Invoke((MethodInvoker) delegate
-            //{
-            //    Program.form1.progressPanel1.Description = "Extracting: " + new FileInfo(source).Name;
-            //});
-            //Program.form1.label_SubStage.Text = "Extracting: " + new FileInfo(source).Name;
-
             ZipFile zf = null;
             try
             {
@@ -344,6 +323,13 @@ namespace Deployment
 
         #region HELPERS: retrieve fileinfo
 
+        /// <summary>
+        /// Requests the kurjun file information.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <param name="restURL">The rest URL.</param>
+        /// <param name="filename">The filename.</param>
+        /// <returns>KurjunFileInfo structure</returns>
         private KurjunFileInfo request_kurjun_fileInfo(string url, string restURL, string filename)
         {
             var json = rest_api_request(url + restURL + filename);
@@ -445,6 +431,15 @@ namespace Deployment
 
         #region UTILITIES: Send SSH command
 
+        /// <summary>
+        /// Sends the SSH command with username/password authentication.
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="command">The command.</param>
+        /// <returns></returns>
         public static string SendSshCommand(string hostname, int port, string username, string password, string command)
         {
             using (var client = new SshClient(hostname, port, username, password))
@@ -464,6 +459,15 @@ namespace Deployment
              }
         }
 
+        /// <summary>
+        /// Sends the SSH command with private key authentication.
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="keys">The private keys array.</param>
+        /// <param name="command">The command.</param>
+        /// <returns></returns>
         public static string SendSshCommand(string hostname, int port, string username, PrivateKeyFile[] keys, string command)
         {
             using (var client = new SshClient(hostname, port, username, keys))
@@ -490,7 +494,16 @@ namespace Deployment
             return sa[ind];
         }
 
-        //SSH.NET sftp to send files to virtual machine
+        /// <summary>
+        /// Sends the file to virtual machine using SSH.NET SFTP.
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="localFilesPath">The local files path.</param>
+        /// <param name="remotePath">The remote path.</param>
+        /// <returns></returns>
         public static string SendFileSftp(string hostname, int port, string username, string password, List<string> localFilesPath, string remotePath)
         {
             SftpClient client;
@@ -561,7 +574,14 @@ namespace Deployment
         #endregion
 
         #region UTILITIES: Create shortcut
-        //Shortcuts for VirtualBox
+        /// <summary>
+        /// Creates the shortcuts for VirtualBox.
+        /// </summary>
+        /// <param name="binPath">The path to binary.</param>
+        /// <param name="destination">The path to shortcut.</param>
+        /// <param name="arguments">Application arguments.</param>
+        /// <param name="iconPath">The shortcut icon path.</param>
+        /// <param name="runAsAdmin">if set to <c>true</c> [run as admin].</param>
         public static void CreateShortcut(string binPath, string destination, 
                                          string arguments, string iconPath, 
                                          bool runAsAdmin)
@@ -592,9 +612,13 @@ namespace Deployment
             }
         }
 
-        //Creates shortcut at the specified path
-        //
-        //
+        /// <summary>
+        /// Creates the shortcut at the specified path.
+        /// </summary>
+        /// <param name="binPath">The path to binary.</param>
+        /// <param name="destination">The path to shortcut.</param>
+        /// <param name="arguments">Application arguments.</param>
+        /// <param name="runAsAdmin">if set to <c>true</c> if application need to [run as admin].</param>
         private void CreateShortcut_(string binPath, string destination, 
                                     string arguments, 
                                     bool runAsAdmin)
@@ -617,6 +641,9 @@ namespace Deployment
                 }
             }
 
+        /// <summary>
+        /// Creates all shortcuts needed.
+        /// </summary>
         public void createAppShortCuts()
         {
             logger.Info("Creating shortcuts");
@@ -689,6 +716,11 @@ namespace Deployment
 
         #region UTILITIES: Request Kurjun REST API
 
+        /// <summary>
+        /// Rests the API request.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <returns></returns>
         private string rest_api_request(string url)
         {
             var request = WebRequest.Create(url) as HttpWebRequest;
@@ -730,22 +762,9 @@ namespace Deployment
 
         #region FORM HELPERS: show / hide marquee bar
 
-        public static void ShowMarquee_()
-        {
-            Program.form1.Invoke((MethodInvoker)delegate
-            {
-                //Program.form1.marqueeProgressBarControl1.Visible = true;
-            });
-        }
-
-        public static void HideMarquee_()
-        {
-            Program.form1.Invoke((MethodInvoker)delegate
-            {
-                //Program.form1.marqueeProgressBarControl1.Visible = false;
-            });
-        }
-
+        /// <summary>
+        /// Shows the marquee - sets the Progress bar to state showing that process is running without percentage.
+        /// </summary>
         public static void ShowMarquee()
         {
             Program.form1.Invoke((MethodInvoker)delegate
@@ -754,6 +773,9 @@ namespace Deployment
             });
         }
 
+        /// <summary>
+        /// Hides the marquee - sets the Progress bar to state showing percentage.
+        /// </summary>
         public static void HideMarquee()
         {
             Program.form1.Invoke((MethodInvoker)delegate
@@ -762,6 +784,11 @@ namespace Deployment
             });
         }
 
+        /// <summary>
+        /// Shows wich stage is performing now
+        /// </summary>
+        /// <param name="stageName">Name of the stage.</param>
+        /// <param name="subStageName">Name of the sub stage.</param>
         public static void StageReporter(string stageName, string subStageName)
         {
             Program.form1.Invoke((MethodInvoker)delegate
@@ -778,6 +805,10 @@ namespace Deployment
             });
         }
 
+        /// <summary>
+        /// Sets the ProgressBar's indeterminate state. Progress bar wil show that process runs without exact percentage
+        /// </summary>
+        /// <param name="isIndeterminate">if set to <c>true</c> [is indeterminate].</param>
         public static void SetIndeterminate(bool isIndeterminate)
         {
             if (Program.form1.prBar_.InvokeRequired)
@@ -809,6 +840,10 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Updates the progress.
+        /// </summary>
+        /// <param name="progress">The progress.</param>
         public static void UpdateProgress(int progress)
         {
             if (Program.form1.prBar_.InvokeRequired)
