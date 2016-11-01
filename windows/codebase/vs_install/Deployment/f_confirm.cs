@@ -15,22 +15,51 @@ namespace Deployment
     /// Form showing system settings and installation directory (chosen in installer)
     /// Definition of peer type (trial (RH + MH + Client), RH only or Client only
     /// </summary>
-    /// <param name="param1">Some Parameter.</param>
-    /// <returns>What this method returns.</returns>
-
+   
     public partial class f_confirm : Form
     {
+        /// <summary>
+        /// If false - can not install, will be set in checking()
+        /// </summary>
         public static Boolean res = true; //if false - can not install, will be set in checking()
-        public static int hostCores; //number of logical processors
+        /// <summary>
+        /// The number of logical processors
+        /// </summary>
+        public static int hostCores;
+        /// <summary>
+        /// If processor architecture is 64
+        /// </summary>
         public static Boolean host64;
+        /// <summary>
+        /// The host OS sversion
+        /// </summary>
         public static string hostOSversion;
+        /// <summary>
+        /// The host OS sversion in human-readable format (like Windows 8.1)
+        /// </summary>
         public static string hostOSversion_user;
         private static long hostRam;
+        /// <summary>
+        /// The VT-x is enamled in BIOS
+        /// </summary>
         public static string hostVT;
+        /// <summary>
+        /// The short version (first 2 numbers) of OS like 6.1
+        /// </summary>
         public static string shortVersion;
+        /// <summary>
+        /// The Oracle VirtualBox version
+        /// </summary>
         public static string vboxVersion;
+        /// <summary>
+        /// The minimal Oracle VirtualBox version needed 
+        /// </summary>
         public static string vb_version2fit = "5.1.0";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="f_confirm"/> class.
+        /// Form shows if Subutai can be installed and allows to choose installation type
+        /// </summary>
         public f_confirm()
         {
             InitializeComponent();

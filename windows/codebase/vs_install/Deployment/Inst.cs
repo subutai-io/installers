@@ -480,7 +480,6 @@ namespace Deployment
         /// <summary>
         /// public static void install_mh_lc(PrivateKeyFile[] privateKeys)
         /// Installing management host, ssh using private keys
-        /// </summary>/// Checks if string is likely ip address (To do - improve checking)
         /// </summary>
         /// <param name="privateKeys">Private keys array</param>
         public static void install_mh_lc(PrivateKeyFile[] privateKeys)

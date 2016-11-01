@@ -15,8 +15,17 @@ namespace Deployment
 {
     public partial class f_install : Form
     {
+        /// <summary>
+        /// The arguments string 
+        /// </summary>
         public readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
+        /// <summary>
+        /// The Deploy instance
+        /// </summary>
         public readonly Deploy _deploy;
+        /// <summary>
+        /// The prerequisite files information in dictionary
+        /// </summary>
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
         //private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
         //private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
@@ -25,6 +34,9 @@ namespace Deployment
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private static int stage_counter = 0;
+        /// <summary>
+        /// The finished - shows the installation state for Form.Closed - 3 - failed, 1, 11 - success, 2 - cancelled
+        /// </summary>
         public int finished = 0;
         private string st = " finished";
 
@@ -75,7 +87,7 @@ namespace Deployment
         /// <summary>
         /// private void ParseArguments(string _args)
         /// Creates Dictionary to keep arguments
-        /// Dictionary<string, string> _arguments
+        /// Dictionary _arguments
         /// </summary>
         /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         private void ParseArguments(string _args)
@@ -96,7 +108,6 @@ namespace Deployment
         /// private void timer1_Tick(object sender, EventArgs e)
         /// Timer tick
         /// </summary>
-        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         private void timer1_Tick(object sender, EventArgs e)
         {
             Invoke((MethodInvoker)Refresh);
@@ -106,7 +117,6 @@ namespace Deployment
         /// public string installDir()
         /// Define installation directory
         /// </summary>
-        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         public string installDir()
         {
             string sTmp = _arguments["appDir"].ToString();
@@ -119,7 +129,8 @@ namespace Deployment
         /// with TaskContinuationOptions.OnlyOnRanToCompletion for each step 
         /// so tasks are chained. On complete (failed or successful) runs InstallationFinished form
         /// </summary>
-        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
+        /// <param name="sender">object sender</param>
+        /// <param name="e">AsyncCompletedEventArgs e</param>
         public void TaskFactory(object sender, AsyncCompletedEventArgs e)
         {
             //var token = tokenSource.Token;
