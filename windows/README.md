@@ -84,12 +84,21 @@ peer type can be:
 ## Full content of repomd5 (all these files must persist on Kurjun):
 	bin | tray.zip - tray application
 	bin | p2p.exe - Subutai P2P service
+	bin | ssh.zip - ssh shell 
 	ova | snappy.ova - Ubuntu Snappy ViratualBox image
 	redist | chrome.msi - Google Chrome browser (https://www.google.com/work/chrome/browser/)
 	redist | tap-driver.exe - TAP driver (https://swupdate.openvpn.org/community/releases/tap-windows-9.21.1.exe)
 	redist | vcredist64.exe - Visual C++ Redistributables (https://www.microsoft.com/en-us/download/details.aspx?id=48145)
 	redist | virtualbox.exe - Oracle VirtualBox (http://download.virtualbox.org/virtualbox/5.0.16/VirtualBox-5.0.16-105871-Win.exe)
-	redist/subutai | subutai_4.0.<VN>_amd64.snap - Subutai package for Ubuntu Snappy 	redist/subutai | subutai_4.0.<VN>_amd64-dev.snap - Subutai package for Ubuntu Snappy built from dev branch
-	redist/subutai | subutai_4.0.<VN>_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
+	redist/subutai | subutai_4.0.<VN>_amd64.snap - Subutai package for Ubuntu Snappy 	
+redist/subutai | subutai_4.0.<VN + 1>_amd64-dev.snap - Subutai package for Ubuntu Snappy built from dev branch
+	redist/subutai | subutai_4.0.<VN + 1>_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
 
 Installation Manual can be found here: https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual
+
+NOTE
+#What need to be done if version changed (before release)
+In nothing changed except version number:
+
+1. Change 3 last lines of repo descriptor file: subutai_4.0.<VN>_amd64.snap  - VN is Version Number like 4.0.5; subutai_4.0.<VN + 1>_amd64-dev.snap - 4.0.6 if VN = 4.0.5; subutai_4.0.<VN + 1>_amd64-master.snap - 4.0.6.
+2. Open Visual Studio installation project, change version number for prod, master and dev, build project for each installation type and build installer for each installation type as described above )Build the installer)
