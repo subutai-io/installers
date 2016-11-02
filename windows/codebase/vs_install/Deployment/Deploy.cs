@@ -33,8 +33,14 @@ namespace Deployment
     {
         private const string RestFileinfoURL = "/kurjun/rest/raw/info?name=";
         private const string RestFileURL = "/kurjun/rest/raw/get?id=";
+        /// <summary>
+        /// The subutai tray application name
+        /// </summary>
         public static string SubutaiTrayName = "SubutaiTray.exe";
         private const string SubutaiIconName = "Subutai_logo_4_Light_70x70.ico";
+        /// <summary>
+        /// The subutai uninstall application name
+        /// </summary>
         public static string SubutaiUninstallName = "uninstall-clean.exe";
         private const string SubutaiUninstallIconName = "uninstall.ico";
         private readonly Dictionary<string, string> _arguments;
@@ -350,6 +356,12 @@ namespace Deployment
         #endregion
 
         #region UTILITIES: Launch commandline application
+        /// <summary>
+        /// Launches the command line application.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <returns></returns>
         public static string LaunchCommandLineApp(string filename, string arguments)
         {
             // Use ProcessStartInfo class
@@ -387,6 +399,13 @@ namespace Deployment
             return ($"1|{filename} was not executed|Error");
         }
 
+        /// <summary>
+        /// Launches the command line application with repeats.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="try_counter">The try counter.</param>
+        /// <returns></returns>
         public static string LaunchCommandLineApp(string filename, string arguments, int try_counter)
         {
             // try execute desktop commant 3 times
@@ -439,7 +458,7 @@ namespace Deployment
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <returns>exit code | output| error</returns>
         public static string SendSshCommand(string hostname, int port, string username, string password, string command)
         {
             using (var client = new SshClient(hostname, port, username, password))
@@ -467,7 +486,7 @@ namespace Deployment
         /// <param name="username">The username.</param>
         /// <param name="keys">The private keys array.</param>
         /// <param name="command">The command.</param>
-        /// <returns></returns>
+        /// <returns>exit code | output| error</returns>
         public static string SendSshCommand(string hostname, int port, string username, PrivateKeyFile[] keys, string command)
         {
             using (var client = new SshClient(hostname, port, username, keys))
@@ -488,6 +507,12 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Retrieves part of putput of Launch command (returning exit code | output| error)
+        /// </summary>
+        /// <param name="outstr">The outstr.</param>
+        /// <param name="ind">The ind.</param>
+        /// <returns></returns>
         public static string com_out(string outstr, int ind)
         {
             string[] sa = outstr.Split('|');
@@ -547,6 +572,16 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Checks the SSH connection until connected
+        /// If more than 300 tries unsuccessful (enough for VM start up)
+        /// return false
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <returns>true when connected, false if not connected more than 300 times</returns>
         public static bool  WaitSsh(string hostname, int port, string username, string password)
         {
             int cnt = 0;
@@ -740,6 +775,12 @@ namespace Deployment
 
         #region UTILITIES: Calc MD5
 
+        /// <summary>
+        /// Calculates the MD5 sum.
+        /// </summary>
+        /// <param name="filepath">The filepath.</param>
+        /// <param name="upperCase">if set to <c>true</c> if need to convert to [upper case].</param>
+        /// <returns>MD5 sun in string format</returns>
         public static string Calc_md5(string filepath, bool upperCase)
         {
             using (var md5 = MD5.Create())

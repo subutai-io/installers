@@ -12,16 +12,15 @@ namespace Deployment
     /// Parameters string, part of parameters goes from command line, part from confirmation form
     /// Before parameters were defined in installer, noe only command line arguments are defined in third-party installer
     /// </summary>
-    /// <param name="command line parameters">Installation type (prod, dev, master and Install</param>
-    /// <param name="params">deploy-redist,prepare-vbox,prepare-rh,deploy-p2p</param>
-    /// <param name="kurjunUrl">kurjunUrl=https://cdn.subut.ai:8338</param>
-    /// <param name="repo_descriptor">repo_descriptor=repomd5-dev, file with download matrix, downloaded first from kurjun</param>
     static class Program
     {
         public static f_confirm form_; //Parameters confirmation form
         public static f_install form1; //Installation form
         public static InstallationFinished form2; //Installation finished form
 
+        /// <summary>
+        /// Command line arguments: Installation type (prod, dev, master, Repo descriptor file name and "Install"
+        /// </summary>
         public static string[] cmd_args = Environment.GetCommandLineArgs();
         public static string inst_args = "";
         public static string inst_type = "";
@@ -69,7 +68,7 @@ namespace Deployment
                     Environment.Exit(0);
                     //Application.Exit();
                 }
-                catch (System.ComponentModel.Win32Exception ex)
+                catch (System.ComponentModel.Win32Exception)
                 {
                     MessageBox.Show("This utility requires elevated priviledges to complete correctly.", "Error: UAC Authorisation Required", MessageBoxButtons.OK);
                     //                    Debug.Print(ex.Message);

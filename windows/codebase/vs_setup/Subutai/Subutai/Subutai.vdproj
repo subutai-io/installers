@@ -494,14 +494,14 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Subutai"
         "ProductCode" = "8:{91FB0999-407B-4814-B71F-1DB8D0799D86}"
-        "PackageCode" = "8:{CE62A768-A70E-4285-B99C-9B2504B95516}"
+        "PackageCode" = "8:{4DB29E66-5662-4BFD-9332-65D73C6AB64D}"
         "UpgradeCode" = "8:{1D979BDF-30D2-4A70-9732-3B23684A66F2}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:FALSE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:4.0.4"
+        "ProductVersion" = "8:4.0.5"
         "Manufacturer" = "8:Subutai Social"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -687,7 +687,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_3A4E45C4AC88403081584EC7E0F3C967"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:Ход выполнения"
+                    "DisplayName" = "8:Progress"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdProgressDlg.wid"
@@ -737,7 +737,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_07B5500948A34B20B7E300AA50CF7C4C"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:Добро пожаловать!"
+                    "DisplayName" = "8:Welcome"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdWelcomeDlg.wid"
@@ -785,7 +785,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_656C59F7084A4ECFB50BE448D81EA891"
                     {
                     "Sequence" = "3:300"
-                    "DisplayName" = "8:Подтверждение установки"
+                    "DisplayName" = "8:Confirm Installation"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdConfirmDlg.wid"
@@ -807,7 +807,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_ABAB503D88C446B2BB9416759C18DF01"
                     {
                     "Sequence" = "3:200"
-                    "DisplayName" = "8:Папка установки"
+                    "DisplayName" = "8:Installation Folder"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdFolderDlg.wid"
@@ -851,7 +851,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_56652D03474D43A2A78C62128A92C218"
                     {
                     "Sequence" = "3:200"
-                    "DisplayName" = "8:Папка установки"
+                    "DisplayName" = "8:Installation Folder"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminFolderDlg.wid"
@@ -873,7 +873,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_A2CB8222A8E84B4E9F28E4B3491A5D03"
                     {
                     "Sequence" = "3:300"
-                    "DisplayName" = "8:Подтверждение установки"
+                    "DisplayName" = "8:Confirm Installation"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminConfirmDlg.wid"
@@ -895,7 +895,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_A39D6A7F7112484AB4B2CA0175D56DF9"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:Добро пожаловать!"
+                    "DisplayName" = "8:Welcome"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminWelcomeDlg.wid"
@@ -952,7 +952,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_0E986CB8CE2B4060909225A5EFD15B5A"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:Готово"
+                    "DisplayName" = "8:Finished"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminFinishedDlg.wid"
@@ -983,7 +983,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_9AF3CE26BB154017BEF3456680B71143"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:Готово"
+                    "DisplayName" = "8:Finished"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdFinishedDlg.wid"
@@ -1033,7 +1033,7 @@
                     "{688940B3-5CA9-4162-8DEE-2993FA9D8CBC}:_C220BC982D304FCFB614E607916F0331"
                     {
                     "Sequence" = "3:100"
-                    "DisplayName" = "8:Ход выполнения"
+                    "DisplayName" = "8:Progress"
                     "UseDynamicProperties" = "11:TRUE"
                     "IsDependency" = "11:FALSE"
                     "SourcePath" = "8:<VsdDialogDir>\\VsdAdminProgressDlg.wid"

@@ -12,7 +12,12 @@ namespace Deployment
         bool opacityChanging = false;
         bool need2clean = false;
         string dir2clean = "";
-       
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InstallationFinished"/> class.
+        /// </summary>
+        /// <param name="status">The status (failed, cancelled, success).</param>
+        /// <param name="appdir">The application directory.</param>
         public InstallationFinished(string status, string appdir)
         {
             InitializeComponent();
@@ -33,7 +38,6 @@ namespace Deployment
         {
             
             Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}");
-            //res = Deploy.LaunchCommandLineApp("regedit.exe", " /s c:\\temp\\subutai-clean-registry.reg");
         }
 
         private void InstallationFinished_Load(object sender, EventArgs e)
