@@ -33,12 +33,12 @@ You need the following tools to build the installer:
 Open vs-install or vs-uninstall project, modify if needed, build and put binaries into 'windows\codebase\installation_files_4_VS_Install\bin' folder. Sign binaries.
 
 Open installation script \windows\codebase\Inno\subutai-network-installer.iss with Inno Setuo compiler. Change version in #define section: <br> 
-#define MyAppName "Subutai"
-#define MyAppVersion "4.0.5"
-#define MyAppPublisher "Subutai Social"
-#define MyAppURL "http://subutai.io/"
-#define MyAppExeName "Deployment.exe"
-#define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files_4_VS_Install"  
+define MyAppName "Subutai"
+define MyAppVersion "4.0.5"
+define MyAppPublisher "Subutai Social"
+define MyAppURL "http://subutai.io/"
+define MyAppExeName "Deployment.exe"
+define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files_4_VS_Install"  
 <br>
 and parameters for Deployment.exe in Run section : <installation type> repo descriptor> <Run></br>
 Compile script, it will be placed into Inno directory. 
