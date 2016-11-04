@@ -270,7 +270,9 @@ namespace Deployment
         /// Sets the host-only interface for VM.
         /// </summary>
         /// <param name="name">The name of VM.</param>
-        /// <returns>Name of host-only interface.</returns>
+        /// <returns>
+        /// Name of host-only interface.
+        /// </returns>
         public static string set_hostonly(string name)
         {
             string netif_vbox0 = Net.vm_vbox0_ifname();
@@ -288,10 +290,10 @@ namespace Deployment
                     logger.Info("New Host-Only interface name: /{0}/", netif_vbox0);
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif ipconfig \"{netif_vbox0}\" --ip 192.168.56.1  --netmask 255.255.255.0");
                     logger.Info("hostonly ip config: {0}", res);
-                    res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
-                    logger.Info("dhcp server add: {0}", res);
-                    res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
-                    logger.Info("dhcp server modify: {0}", res);
+                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
+                    //logger.Info("dhcp server add: {0}", res);
+                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
+                    //logger.Info("dhcp server modify: {0}", res);
                 }
                 else
                 {
@@ -301,6 +303,17 @@ namespace Deployment
             logger.Info("Final Host-Only interface name: {0}", netif_vbox0);
             if (netif_vbox0 != "Not defined") // created, start
             {
+                //////////////////////Remove dhcp server present on interface
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver remove --ifname \"{netif_vbox0}\"");
+                logger.Info("dhcp server remove: {0}", res);
+                
+                //Add dhcp server
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
+                logger.Info("dhcp server add: {0}", res);
+
+                //Enable dhcp server
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
+                logger.Info("dhcp server modify: {0}", res);
                 //enable hostonly 
                 res = Deploy.LaunchCommandLineApp("vboxmanage", 
                     $"modifyvm {name} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"");
