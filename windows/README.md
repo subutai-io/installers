@@ -32,14 +32,16 @@ You need the following tools to build the installer:
 # Build the installer
 Open vs-install or vs-uninstall project, modify if needed, build and put binaries into 'windows\codebase\installation_files_4_VS_Install\bin' folder. Sign binaries.
 
-Open installation script \windows\codebase\Inno\subutai-network-installer.iss with Inno Setuo compiler. Change version in #define section: <br> 
-define MyAppName "Subutai"
-define MyAppVersion "4.0.5"
-define MyAppPublisher "Subutai Social"
-define MyAppURL "http://subutai.io/"
-define MyAppExeName "Deployment.exe"
-define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files_4_VS_Install"  
-<br>
+Open installation script \windows\codebase\Inno\subutai-network-installer.iss with Inno Setuo compiler. Change version in #define section: <br>
+<ul>
+	<li> define MyAppName "Subutai" </li>  
+	<li> define MyAppVersion "4.0.5" </li>  
+	<li> define MyAppPublisher "Subutai Social" </li>  
+	<li> define MyAppURL "http://subutai.io/" </li>  
+	<li> define MyAppExeName "Deployment.exe" </li>  
+	<li> define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files_4_VS_Install" </li>   
+</ul>
+  
 and parameters for Deployment.exe in Run section : <installation type> repo descriptor> <Run></br>
 Compile script, it will be placed into Inno directory. 
 </br>
@@ -107,4 +109,4 @@ NOTE
 In nothing changed except version number:
 
 1. Change 3 last lines of repo descriptor file: subutai_4.0.<VN>_amd64.snap  - VN is Version Number like 4.0.5; subutai_4.0.<VN + 1>_amd64-dev.snap - 4.0.6 if VN = 4.0.5; subutai_4.0.<VN + 1>_amd64-master.snap - 4.0.6.
-2. Open Visual Studio installation project, change version number for prod, master and dev, build project for each installation type and build installer for each installation type as described above )Build the installer)
+2. Open project script in Inno Sinstallation project, change version number for prod, master and dev, build project for each installation type and build installer for each installation type as described above (Build the installer section)
