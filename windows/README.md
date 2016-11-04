@@ -1,6 +1,6 @@
 # Subutai Windows Installer
 Subutai installation consists of two parts:
-1. Installer, created using Visual Studio Installation Project extention, performs mimimal job: copies files, needed for further installation, on target machine, defines installation directory, creates \Software\Subutai Social\Subutai subkeys in HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE hives, and runs executable.
+1. Installer, created using Inno Setup  (www.jrsoftware.org/isinfo.php), performs mimimal job: copies files, needed for further installation, on target machine, defines installation directory, creates \Software\Subutai Social\Subutai subkeys in HKEY_CURRENT_USER and HKEY_LOCAL_MACHINE hives, and runs executable.
 2. Binary, created with Visual Studio 2015 project, performs the main stage of installation process:
 <ul>
 	<li> Change environment variabled %Path% and %Subutai%</li>
@@ -15,7 +15,7 @@ Subutai installation consists of two parts:
 
 # How to install
 Run installer w/Administrative privileges on fresh Windows 7-eng/8/10 x64 machine </br>
-Wait until installation process finish install </br>
+Wait until installation process finishes install </br>
 After installation finished You will see SubutaiTray login form, log in with Your Hub account, SubutaiTray icon will appear in Windows tray. </br> 
 Right click on the SubutaiTray icon to open menu. Now You can open management dashbord with Launch->Launch to SS console menu.</br>
 
@@ -24,19 +24,25 @@ Right click on the SubutaiTray icon to open menu. Now You can open management da
 You need the following tools to build the installer:
 	<ul>
 		<li> Visual Studio 2015 </li>
-		<li> Visual Studio 2015 Installation Project extention</li>
+		<li> Inno Setup script compiler (www.jrsoftware.org/isinfo.php)</li>
 		<li> 7-zip sowtware</li>
 	</ul>
 
 
 # Build the installer
-Build Visual Studio project placed in vs_install folder and copy Deployment.exe to installation_files\bin folder.</br>
-Build Visual Studio project placed in vs_uninstall\uninstall_clean folder and copy uninstall-clean.exe (it will run on uninstall) to installation_files\bin folder.</br>
-Open Installation project in vs_setup folder. Right click on solution ->View->Custom Actions. Click on Deployment.exe, in Properties->Arguments type 3 arguments:  desired installation type ("prod/dev/master"), name of repo-descriptor file (repomd5) and "Install". Build Project.</br>
-Two files will be created in bin/Release folder: Subutai.msi ans setup.exe. Copy both files into SubutaiInstaller\<InstallationType> folders. Create 7-zip archive inside folder and copy it into SubutaiInstaller folder (..).</br>
-Copy file 7zS.sfx from 7-zip\bin folder to SubutaiInstaller folder. We need to create self-extracting archive and run setup.exe after uncompressing.</br>
-From command-line interface execute command:</br>
-`copy /b 7zS.sfx + config.txt + <archive_name>.7z subutai-network-installer<-installation type>.exe</br>`
+Open vs-install or vs-uninstall project, modify if needed, build and put binaries into 'windows\codebase\installation_files_4_VS_Install\bin' folder. Sign binaries.
+
+Open installation script \windows\codebase\Inno\subutai-network-installer.iss with Inno Setuo compiler. Change version in #define section: <br> 
+#define MyAppName "Subutai"
+#define MyAppVersion "4.0.5"
+#define MyAppPublisher "Subutai Social"
+#define MyAppURL "http://subutai.io/"
+#define MyAppExeName "Deployment.exe"
+#define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files_4_VS_Install"  
+<br>
+and parameters for Deployment.exe in Run section : <installation type> repo descriptor> <Run></br>
+Compile script, it will be placed into Inno directory. 
+</br>
 Names for installers should be: subutai-network-installer.exe for production, subutai-network-installer-dev.exe for dev and subutai-network-installer-master.exe for master installations.</br>
 
 
