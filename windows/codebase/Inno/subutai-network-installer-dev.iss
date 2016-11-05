@@ -67,7 +67,7 @@ Root: HKLM; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}\"; ValueType: strin
 
 
 [Run]
-Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "dev repomd5 Run"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "dev repomd5 Run"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent  runascurrentuser
 
 [UninstallRun]
 Filename: "{app}\bin\uninstall-clean.exe"; Flags: nowait 
