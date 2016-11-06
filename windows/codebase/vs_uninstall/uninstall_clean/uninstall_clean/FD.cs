@@ -14,8 +14,6 @@ namespace uninstall_clean
         {
             try
             {
-
-                //label1.Text = "Deleting " + dirName + " folder";
                 if (Directory.Exists(dirName))
                     Directory.Delete(dirName, true);
 
@@ -25,10 +23,9 @@ namespace uninstall_clean
             catch (Exception ex)
             {
 
-                //label1.Text = "Can not delete folder " + dirName + ". " + ex.Message.ToString();
                 return "Can not delete folder " + dirName + ". " + ex.Message.ToString();
             }
-        }//
+        }
 
         public static void deleteDirectory(string path, bool recursive)
         {
@@ -52,21 +49,19 @@ namespace uninstall_clean
                 // Is this file marked as 'read-only'?
                 if ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
                 {
-                    // Yes... Remove the 'read-only' attribute, then
+                    //Remove the 'read-only' attribute, then
                     File.SetAttributes(f, attr ^ FileAttributes.ReadOnly);
                 }
 
                 // Delete the file
                 File.Delete(f);
             }
-            // When we get here, all the files of the folder were
-            // already deleted, so we just delete the empty folder
+            //Delete the empty folder
             Directory.Delete(path);
         }
 
         public static void delete_Shortcut(string shPath, string aName, Boolean isDir)
         {
-
             var app = "";
             if (isDir)
             {
@@ -101,10 +96,6 @@ namespace uninstall_clean
                 {
                     str = ex.ToString();
                 }
-                finally
-                {
-                    //MessageBox.Show(str, fullname, MessageBoxButtons.OK);
-                }
             }
 
             if (if_Exists && isDir)
@@ -118,48 +109,66 @@ namespace uninstall_clean
                 {
                     str = ex.ToString();
                 }
-                finally
-                {
-                    //MessageBox.Show(str, fullname + " Folder", MessageBoxButtons.OK);
-                }
             }
         }
+
+        //Delete common and user's shortcuts 
         public static void delete_Shortcuts(string appName)
         {
-            //label1.Text = "Deleting shortcuts";
+            //Commom Desktop
             var shcutPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
-            //    Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            //delete_Shortcut(shcutPath, appName);
             delete_Shortcut(shcutPath, appName, false);
 
-            //shcutPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
-            //delete_Shortcut(shcutPath, appName);
-
+            //Common StartMenu/Programs
+            //This path to Common Start Menu will be used later
             var shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
-            //Folder files
-            shcutPath = Path.Combine(shcutStartPath, "Programs", appName);
-            //Uninstall.lnk
-            delete_Shortcut(shcutPath, "Uninstall", false);
-            //Subutai.lnk
-            delete_Shortcut(shcutPath, appName, false);
-
-            //Start Menu/Programs/Subutai.lnk
             shcutPath = Path.Combine(shcutStartPath, "Programs");
             delete_Shortcut(shcutPath, appName, false);
-            //Start Menu/Programs/Subutai
-            delete_Shortcut(shcutPath, appName, true);
+
+            //Common StartMenu/Startup
+            shcutPath = Path.Combine(shcutStartPath, "Programs", "Startup");
+            delete_Shortcut(shcutPath, appName, false);
+
+            //Common Subutai Folder files
+            shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms);
+            shcutPath = Path.Combine(shcutStartPath, appName);
+            //Subutai.lnk
+            delete_Shortcut(shcutPath, appName, false);
+            //Uninstall.lnk
+            delete_Shortcut(shcutPath, "Uninstall", false);
+
+            //Common Subutai folder
+            delete_Shortcut(shcutStartPath, appName, true);
+
+            //The same if we have shortcuts only for user 
+            //User StartMenu/Programs
+            shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
+            shcutPath = Path.Combine(shcutStartPath, "Programs");
+            delete_Shortcut(shcutPath, appName, false);
+
+            //Common StartMenu/Startup
+            shcutPath = Path.Combine(shcutStartPath, "Programs", "Startup");
+            delete_Shortcut(shcutPath, appName, false);
+
+            //User Subutai Folder files
+            shcutStartPath = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            shcutPath = Path.Combine(shcutStartPath, appName);
+            //Subutai.lnk
+            delete_Shortcut(shcutPath, appName, false);
+            //Uninstall.lnk
+            delete_Shortcut(shcutPath, "Uninstall", false);
+            delete_Shortcut(shcutStartPath, appName, true);
         }
 
+        //Remove Subutai from Path environment variable
         public static string remove_from_Path(string str2delete)
         {
             //logger.Info("Remove env");
 
             string strPath = AP.get_env_var("Path");
-            //Environment.GetEnvironmentVariable("Path");
             if (str2delete == "Subutai")
             {
                 str2delete = AP.get_env_var("Subutai");
-                //Environment.GetEnvironmentVariable("Subutai");
             }
 
             if (strPath == null || strPath == "")
@@ -181,6 +190,7 @@ namespace uninstall_clean
 
             string[] slPath = lPath.ToArray();
             string newPath = string.Join(";", slPath);
+            newPath = newPath.Replace(";;", ";");
 
             Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Machine);
             Environment.SetEnvironmentVariable("Path", newPath, EnvironmentVariableTarget.Process);
@@ -188,6 +198,7 @@ namespace uninstall_clean
             return newPath;
         }
 
+        //Define directory for logs: <SystemDrive>\temp\Subutai_Log
         public static string logDir()
         {
 
@@ -204,6 +215,7 @@ namespace uninstall_clean
             return logPath;
         }
 
+        //Remove old logs and uninstall-clean from log dir
         public static void remove_log_dir()
         {
             //Find if log directory exists 
@@ -217,7 +229,6 @@ namespace uninstall_clean
             {
                 if (!fi.Name.ToLower().Contains(today) && !fi.Name.ToLower().Contains(".reg"))
                 {
-                    //MessageBox.Show($"File: {fi.Name}", "Removing file from drivers", MessageBoxButtons.OK);
                     try
                     {
                         fi.Delete();
@@ -230,6 +241,7 @@ namespace uninstall_clean
             }
         }
 
+        //Remove <InstallDir>\home link (created for ssh to access user's home\.ssh\)
         public static string remove_home(string instDir)
         {
             if (instDir == "")
@@ -253,6 +265,7 @@ namespace uninstall_clean
             return path_l;
         }
 
+        //Remove known_hosts file
         public static string remove_from_home(string instDir)
         {
             string res = "1";

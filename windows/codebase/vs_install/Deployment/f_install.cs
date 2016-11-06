@@ -15,64 +15,122 @@ namespace Deployment
 {
     public partial class f_install : Form
     {
-        private readonly string[] _args = Environment.GetCommandLineArgs();
+        /// <summary>
+        /// The arguments string 
+        /// </summary>
         public readonly Dictionary<string, string> _arguments = new Dictionary<string, string>();
+        /// <summary>
+        /// The Deploy instance
+        /// </summary>
         public readonly Deploy _deploy;
+        /// <summary>
+        /// The prerequisite files information in dictionary
+        /// </summary>
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
-        //public static string[] rows;
-        //public static string installation_type = "";
-
         //private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
         //private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
-        private static CancellationTokenSource tokenSource = new CancellationTokenSource();
+        private static CancellationTokenSource tokenSource = new CancellationTokenSource(); //token sourse to cancel all threads
 
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private static int stage_counter = 0;
+        /// <summary>
+        /// The finished - shows the installation state for Form.Closed - 3 - failed, 1, 11 - success, 2 - cancelled
+        /// </summary>
         public int finished = 0;
         private string st = " finished";
-        //public static string snapFile = "";
 
-
-        private void ParseArguments()
+        /// <summary>
+        /// public f_install(string args)
+        /// Performs all installation steps
+        /// </summary>
+        /// <param name="args">Parameter string formed from command line arguments and confirmation form</param>
+        
+        public f_install(string args)
         {
-            foreach (var splitted in _args.Select(argument => argument.Split(new[] { "=" }, StringSplitOptions.None)).Where(splitted => splitted.Length == 2))
+            logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
+            InitializeComponent();
+            ParseArguments(args);
+            _deploy = new Deploy(_arguments);
+            timer1.Start();
+        }
+
+        /// <summary>
+        /// private void f_install_Load(object sender, EventArgs e)
+        /// On form load: Changes environment variables - %Path% and %Subutai%
+        /// updates uninstall string (in Windows Registry)
+        /// and starts downloading
+        /// </summary>
+        private void f_install_Load(object sender, EventArgs e)
+        {
+            _deploy.SetEnvironmentVariables();
+            string strUninstall = "";
+            if (FD.copy_uninstall())
             {
+                strUninstall = "";
+            }
+            else
+            {
+                strUninstall = _arguments["appDir"];
+            };
+
+            Inst.update_uninstallString(strUninstall);
+            if (_arguments["network-installation"].ToLower() == "true")
+            {
+                // DOWNLOAD REPO
+                Deploy.StageReporter("Downloading prerequisites", "");
+                Deploy.HideMarquee();
+                TC.download_repo();
+            }
+        }
+
+        /// <summary>
+        /// private void ParseArguments(string _args)
+        /// Creates Dictionary to keep arguments
+        /// Dictionary _arguments
+        /// </summary>
+        /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
+        private void ParseArguments(string _args)
+        {
+            //"params=deploy-redist,prepare-vbox,dev,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev ";
+            string[] s_args = _args.Split(' '); ;
+            foreach (string s_splitted in s_args)
+            {
+                string[] splitted = s_splitted.Split('=');
+                if (splitted.Length != 2)
+                    continue;
                 _arguments[splitted[0]] = splitted[1];
                 logger.Info("Arguments:  {0} =  {1}", splitted[0], splitted[1]);
             }
         }
 
-        public f_install()
-        {
-            logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
-            InitializeComponent();
-            ParseArguments();
-            _deploy = new Deploy(_arguments);
-            timer1.Start();
-        }
-
-        private void f_install_Load(object sender, EventArgs e)
-        {
-            _deploy.SetEnvironmentVariables();
-
-            if (_arguments["network-installation"].ToLower() == "true")
-            {
-                //DOWNLOAD REPO
-                Deploy.StageReporter("Downloading prerequisites", "");
-                Deploy.HideMarquee();
-                TC.download_repo();
-            }
-            //TC.deploy_p2p();
-        }
-
+        /// <summary>
+        /// private void timer1_Tick(object sender, EventArgs e)
+        /// Timer tick
+        /// </summary>
         private void timer1_Tick(object sender, EventArgs e)
         {
             Invoke((MethodInvoker)Refresh);
         }
 
-        #region TASKS FACTORY
+        /// <summary>
+        /// public string installDir()
+        /// Define installation directory
+        /// </summary>
+        public string installDir()
+        {
+            string sTmp = _arguments["appDir"].ToString();
+            return sTmp;
+        }
 
+        #region TASKS FACTORY
+        /// <summary>
+        /// Task factory to perform all installation steps 
+        /// with TaskContinuationOptions.OnlyOnRanToCompletion for each step 
+        /// so tasks are chained. On complete (failed or successful) runs InstallationFinished form
+        /// </summary>
+        /// <param name="sender">object sender</param>
+        /// <param name="e">AsyncCompletedEventArgs e</param>
         public void TaskFactory(object sender, AsyncCompletedEventArgs e)
         {
             //var token = tokenSource.Token;
@@ -82,10 +140,10 @@ namespace Deployment
             {
                 logger.Info("Starting task factory");
             })
-               .ContinueWith((prevTask) =>
+               .ContinueWith((prevTask) =>  
                {
 
-                   // Handle any exceptions to prevent UnobservedTaskException.             
+                   //Checking if files downloaded without errors      
                    logger.Info("Stage: {0} {1}", _arguments["network-installation"].ToLower(), "checkmd5");
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
@@ -97,6 +155,7 @@ namespace Deployment
 
                .ContinueWith((prevTask) =>
                {
+                   //Unzipping .zip
                    Exception ex = prevTask.Exception;
                    if (prevTask.IsFaulted)
                    {
@@ -111,6 +170,7 @@ namespace Deployment
                     
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
+                       Deploy.StageReporter(" ", " ");
                        TC.unzip_extracted();
                        logger.Info("Stage unzip: {0}", "unzip-extracted");
                    }
@@ -120,7 +180,8 @@ namespace Deployment
 
                .ContinueWith((prevTask) =>
                {
-                    Exception ex = prevTask.Exception;
+                   //Installing prerequisites
+                   Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
                        //unzipping faulted with exception
@@ -145,6 +206,7 @@ namespace Deployment
 
                 .ContinueWith((prevTask) =>
                 {
+                    //Prepare vbox
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -170,6 +232,7 @@ namespace Deployment
 
                 .ContinueWith((prevTask) =>
                 {
+                    //Prepare RH
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -193,8 +256,10 @@ namespace Deployment
                     logger.Info("Stage prepare-rh: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
+
                 .ContinueWith((prevTask) =>
                 {
+                    //Install and configure P2P
                     Exception ex = prevTask.Exception;
                     if (prevTask.IsFaulted)
                     {
@@ -214,23 +279,45 @@ namespace Deployment
                         TC.deploy_p2p();
                         logger.Info("Stage: {0}", "deploy-p2p");
                     }
+
                     stage_counter++;
                     logger.Info("Stage deploy-p2p: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-               .ContinueWith((prevTask) =>
+                .ContinueWith((prevTask) =>
+                {
+                    //Create shortcuts
+                    Exception ex = prevTask.Exception;
+                    if (prevTask.IsFaulted)
+                    {
+                        //deploy p2p faulted with exception
+                        while (ex is AggregateException && ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            logger.Error(ex.Message, "deploy p2p faulted");
+                        }
+                        finished = 3;
+                        //Program.ShowError(ex.Message, "deploy p2p faulted");
+                    }
+
+                    _deploy.createAppShortCuts();
+                    stage_counter++;
+                    logger.Info("Stage create shortcuts: {0}", stage_counter);
+                }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
+              .ContinueWith((prevTask) =>
                {
                    Exception ex = prevTask.Exception;
                    if (prevTask.IsFaulted)
                    {
-                       //deploy p2p faulted with exception
+                       //create shortcuts faulted with exception
                        while (ex is AggregateException && ex.InnerException != null)
                        {
                            ex = ex.InnerException;
-                           logger.Error(ex.Message, "deploy p2p faulted");
+                           logger.Error(ex.Message, "create shortcuts faulted");
                        }
                        finished = 3;
-                       //Program.ShowError(ex.Message, "deploy p2p faulted");
+                       Program.ShowError(ex.Message, "Create shortcuts faulted");
                    }
 
                    logger.Info("stage_counter = {0}", stage_counter);
@@ -253,16 +340,17 @@ namespace Deployment
                {
                    logger.Info("finished = {0}", finished);
                    if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") //|| finished == 11)
-                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\SubutaiTray.exe", "");
+                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\{Deploy.SubutaiTrayName}", "");
                    //Environment.Exit(0);
                });
         }
         #endregion
 
-        #region TASK FACTORY COMPONENTS
-        #endregion
-
-
+        /// <summary>
+        /// private void show_finished()
+        /// Calls Finished form with parameter defined by "finished" value to show
+        /// Finished form with proper message
+        /// </summary>
         private void show_finished()
         {
             switch (finished)
@@ -302,6 +390,10 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// private void f_install_VisibleChanged(object sender, EventArgs e)
+        /// For this form if visible == false calls show_finished()
+        /// </summary>
         private void f_install_VisibleChanged(object sender, EventArgs e)
         {
             int Vis = -1;
@@ -321,6 +413,11 @@ namespace Deployment
                 show_finished();
             }
         }
+
+        /// <summary>
+        /// f_install_FormClosing(object sender, FormClosingEventArgs e)
+        /// On Close defines reason of closing and logs message to log
+        /// </summary>
         private void f_install_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)

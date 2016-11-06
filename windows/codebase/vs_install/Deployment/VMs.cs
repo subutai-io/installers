@@ -8,9 +8,18 @@ using NLog;
 
 namespace Deployment
 {
+    /// <summary>
+    /// Working with Virtual Machines
+    /// </summary>
     class VMs
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// Starts Virtual Machine.
+        /// </summary>
+        /// <param name="name">The name of virtual machine</param>
+        /// <returns>true if started, false if not</returns>
         public static bool start_vm(string name)
         {
             //Form1.StageReporter("", "Starting VM");
@@ -29,6 +38,11 @@ namespace Deployment
           return true;
         }
 
+        /// <summary>
+        /// Stops the VM.
+        /// </summary>
+        /// <param name="name">The name of virtual machine</param>
+        /// <returns>true if stopped, false if not</returns>
         public static bool stop_vm(string name)
         {
             Deploy.StageReporter("Stopping machine", "");
@@ -48,6 +62,11 @@ namespace Deployment
         }
 
         //Cloning VM
+        /// <summary>
+        /// Clones the VM.
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if cloned, false if not</returns>
         public static bool clone_vm(string vmName)
         {
             string res = "";
@@ -73,6 +92,12 @@ namespace Deployment
             return true;//check res
         }
 
+        /// <summary>
+        /// Sets VM's RAM. Minimum is 2GB.
+        /// If host's RAM is less than 16GB but more than 8GB VM's RAM will be (Host RAM)/2
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if RAM sat, false if not</returns>
         public static bool vm_set_RAM(string vmName)
         {
             string res = "";
@@ -103,6 +128,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Set up CPU quantity for VM
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool vm_set_CPUs(string vmName)
         {
             string res = "";
@@ -130,6 +160,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Set timezone for VM.
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool vm_set_timezone(string vmName)
         {
             string res = "";
@@ -146,6 +181,12 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Starts VN and tries to establish the ssh connection. If no success - restarts VM and waits again.
+        /// Successful connection means we can proceed with set up. 
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool waiting_4ssh(string name)
         {
             //Form1.StageReporter("", "Waiting for SSH ");
@@ -171,6 +212,11 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Sets the bridged interface on VM. It will be dafault gateway interface
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool set_bridged(string name)
         {
             Deploy.StageReporter("", "Setting nic1 bridged");
@@ -197,6 +243,11 @@ namespace Deployment
             return true;
          }
 
+        /// <summary>
+        /// Sets the nat interface for VM.
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool set_nat(string name)
         {
             //NAT (eth1) 
@@ -215,7 +266,13 @@ namespace Deployment
             return true;
         }
 
-        //Setting Host-Only
+        /// <summary>
+        /// Sets the host-only interface for VM.
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>
+        /// Name of host-only interface.
+        /// </returns>
         public static string set_hostonly(string name)
         {
             string netif_vbox0 = Net.vm_vbox0_ifname();
@@ -233,10 +290,10 @@ namespace Deployment
                     logger.Info("New Host-Only interface name: /{0}/", netif_vbox0);
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif ipconfig \"{netif_vbox0}\" --ip 192.168.56.1  --netmask 255.255.255.0");
                     logger.Info("hostonly ip config: {0}", res);
-                    res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
-                    logger.Info("dhcp server add: {0}", res);
-                    res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
-                    logger.Info("dhcp server modify: {0}", res);
+                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
+                    //logger.Info("dhcp server add: {0}", res);
+                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
+                    //logger.Info("dhcp server modify: {0}", res);
                 }
                 else
                 {
@@ -246,6 +303,17 @@ namespace Deployment
             logger.Info("Final Host-Only interface name: {0}", netif_vbox0);
             if (netif_vbox0 != "Not defined") // created, start
             {
+                //////////////////////Remove dhcp server present on interface
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver remove --ifname \"{netif_vbox0}\"");
+                logger.Info("dhcp server remove: {0}", res);
+                
+                //Add dhcp server
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
+                logger.Info("dhcp server add: {0}", res);
+
+                //Enable dhcp server
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
+                logger.Info("dhcp server modify: {0}", res);
                 //enable hostonly 
                 res = Deploy.LaunchCommandLineApp("vboxmanage", 
                     $"modifyvm {name} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"");
@@ -257,6 +325,12 @@ namespace Deployment
             return netif_vbox0;
         }
 
+        /// <summary>
+        /// Sets network interfaces and attempts to start VM.
+        /// If cannot start - tries to turm off host-only adapter and restart
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if success, false if not</returns>
         public static bool vm_reconfigure_nic(string vmName)
         {
             //stop VM
@@ -298,7 +372,11 @@ namespace Deployment
             return true;
         }
 
-        //Run installation scripts
+        /// <summary>
+        /// Creates tmpfs folder, uploads snap file and prepare-server.sh. Runs installation scripts.
+        /// </summary>
+        /// <param name="appDir">The application dir.</param>
+        /// <param name="vmName">Name of the VM.</param>
         public static void run_scripts(string appDir, string vmName)
         {
             string ssh_res = "";
@@ -307,14 +385,18 @@ namespace Deployment
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             // copying snap
-            Deploy.StageReporter("", "Copying Subutai SNAP");
+            Deploy.StageReporter("", "Copying Subutai files");
 
-            Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+            string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 $"{appDir}/redist/subutai/prepare-server.sh",
                 $"{appDir}/redist/subutai/{TC.snapFile}"
                 }, "/home/ubuntu/tmpfs");
-            logger.Info("Copying Subutai SNAP: {0}, prepare-server.sh", TC.snapFile);
+            logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
 
+            if (!ftp_res.Equals("Uploaded"))
+            {
+                Program.ShowError("Cannot upload Subutai files to RH, canceling", "Setting up RH");
+            }
             // adopting prepare-server.sh
             Deploy.StageReporter("", "Adapting installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");

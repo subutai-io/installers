@@ -5,6 +5,14 @@ using NLog;
 
 namespace Deployment
 {
+
+    /// <summary>
+    ///  class FD
+    /// Files and Directories Class
+    /// Working with Files and Directories
+    /// Download list definition based on peer type ("trial","rh-only","client-only") and installation type ("prod", "dev", "master" )
+    /// sysdrive and logdir definition
+    /// </summary>
     class FD
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
@@ -12,7 +20,19 @@ namespace Deployment
         private string name;
         private static readonly string [] peerTypes = {"trial","rh-only","client-only"};
         private static readonly string[] instTypes = { "prod", "dev", "master" };
-        //read description file and form download list for installation
+
+        public string Name
+        {
+            get { return name; }
+        }
+
+        /// <summary>
+        /// Reads description file and form download list for installation
+        /// </summary>
+        /// <param name="fpath">Path to repo descriptor file</param>
+        /// <param name="peer_type">Type of the peer - Trial(full - RH+MH+Client), RH only, Client only</param>
+        /// <param name="inst_type">Type of the installation - prod, dev, master</param>
+        /// <returns>String array of lines read from file</returns>
         public static string[] repo_rows(string fpath, string peer_type, string inst_type)
         {
             if (!File.Exists(fpath))
@@ -26,7 +46,41 @@ namespace Deployment
             return rows1;
         }
 
-        //define download list
+        /// <summary>
+        /// Copy uninstall program to temp
+        /// We need it to be able to delete installation folder if user naswered Yes
+        /// </summary>
+        /// <returns></returns>
+        public static bool copy_uninstall()
+        {
+            string binName = Deploy.SubutaiUninstallName;
+            string fpath = Path.Combine(Program.form1._arguments["appDir"], "bin", binName);
+            string fpath_dest = Path.Combine(logDir(), binName);
+            if (!File.Exists(fpath))
+            {
+                return false;
+            }
+            
+            try
+            {
+                File.Copy(fpath, fpath_dest, true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                return false;
+            }
+            
+        }
+
+        /// <summary>
+        /// Define download list
+        /// </summary>
+        /// <param name="rows1">String array containig rows read from reo descriptor file</param>
+        /// <param name="peer_type">Type of the peer (Trial (Full), RH only, Client only - </param>
+        /// <param name="inst_type">Type of the insallation - prod, dev, master.</param>
+        /// <returns></returns>
         public static string[] rows2download(ref string[] rows1, string peer_type, string inst_type)
         {
             List<string> rows = new List<string>();
@@ -74,7 +128,7 @@ namespace Deployment
             return arows;
         }
 
-    public string Md5Sum
+        public string Md5Sum
         {
             get
             {
@@ -87,12 +141,21 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Define system drive
+        /// </summary>
+        /// <returns>System drive for example C:</returns>
         public static string sysDrive()
         {
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             string sysDrive = Path.GetPathRoot(sysPath);
             return sysDrive;
         }
+
+        /// <summary>
+        /// Define log directory (System_drive\temp\Subutai_Log)
+        /// </summary>
+        /// <returns>Log directory</returns>
         public static string logDir()
         {
             string logPath = Path.Combine(sysDrive(), "temp");
@@ -108,48 +171,49 @@ namespace Deployment
             return logPath;
         }
 
-        public string Name
+        /// <summary>
+        /// Checks if all files persist in installation directory according to target file.
+        /// Not used now
+        /// </summary>
+        /// <param name="appDir">The application dir</param>
+        /// <param name="tgt">target file name</param>
+        private void check_files(string appDir, string tgt)
         {
-            get { return name; }
-        }
-        
-                private void check_files(string appDir, string tgt)
-                {
-                    Deploy.StageReporter("", "Performing file check");
-                    string pth = $"{appDir}{tgt}";
-                    //Form1.download_file($"{pth}", null);
+            Deploy.StageReporter("", "Performing file check");
+            string pth = $"{appDir}{tgt}";
+            //Form1.download_file($"{pth}", null);
                    
-                    try
-                    {
-                        var rows = File.ReadAllLines(pth);
-                        foreach (var row in rows)
-                        {
-                            var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
-                            var folderpath = folderFile[0].Trim();
-                            var filename = folderFile[1].Trim();
-                            String fullFolderPath = $"{appDir}/{folderpath.ToString()}";
-                            String fullFileName = $"{appDir}/{folderpath.ToString()}/{filename.ToString()}";
-                            Deploy.StageReporter("", folderpath.ToString() + "/" + filename.ToString());
+            try
+            {
+                var rows = File.ReadAllLines(pth);
+                foreach (var row in rows)
+                {
+                    var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
+                    var folderpath = folderFile[0].Trim();
+                    var filename = folderFile[1].Trim();
+                    String fullFolderPath = $"{appDir}/{folderpath.ToString()}";
+                    String fullFileName = $"{appDir}/{folderpath.ToString()}/{filename.ToString()}";
+                    Deploy.StageReporter("", folderpath.ToString() + "/" + filename.ToString());
 
-                            if (!Directory.Exists(fullFolderPath))
-                            {
-                                logger.Info("Directory {0} not found.", fullFolderPath);
-                                Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFolder" + fullFolderPath + "does not exist. \n Please uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
-                                Program.form1.Visible = false;
-                            }
-                            if (!File.Exists(fullFileName))
-                            {
-                                logger.Info("file {0}/{1} not found.", fullFolderPath, filename);
-                                Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFile " + fullFileName + " does not exist. \n\nPlease uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "File not exist");
-                                Program.form1.Visible = false;
-                            }
-                        }
-                    }
-                    catch (Exception ex)
+                    if (!Directory.Exists(fullFolderPath))
                     {
-                        logger.Error(ex.Message);
+                        logger.Info("Directory {0} not found.", fullFolderPath);
+                        Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFolder" + fullFolderPath + "does not exist. \n Please uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "Folder not exist");
+                        Program.form1.Visible = false;
+                    }
+                    if (!File.Exists(fullFileName))
+                    {
+                        logger.Info("file {0}/{1} not found.", fullFolderPath, filename);
+                        Program.ShowError("We are sorry, but something was wrong with Subutai installation. \nFile " + fullFileName + " does not exist. \n\nPlease uninstall Subutai, turn off all antivirus software, firewalls and SmartScreen and try again.", "File not exist");
+                        Program.form1.Visible = false;
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+            }
+        }
         
     }
 }

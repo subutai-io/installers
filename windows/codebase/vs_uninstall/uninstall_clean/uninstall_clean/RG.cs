@@ -8,96 +8,81 @@ namespace uninstall_clean
 {
     class RG
     {
+        //Clean Registry
         public static void delete_from_reg()
         {
             //user environment
-            string SubutaiProdID = @"CF66AAA126027D4479D5BB7808A6CDA7";
-            string InstallerProdID = @"{1AAA66FC-2062-44D7-975D-BB87806ADC7A}";
+            string SubutaiProdName = "Subutai";
+            string SubutaiProdID = "{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1";
+            string SubutaiVendor = "Subutai Social";
+            string SubutaiTrayVendor = "Optimal-dynamics";
+            string SubutaiTrayKeyName = "SS_Tray";
+            string SubutaiE2E = "kpmiofpmlciacjblommkcinncmneeoaa";
             //label1.Text = "Cleanig Registry";
             string subkey;
             RegistryKey rk;
-            clean.SetIndeterminate(true);
+            //clean.SetIndeterminate(true);
             clean.UpdateProgress(0);
-            //HKEY_CLASSES_ROOT\Installer\Products\CF66AAA126027D4479D5BB7808A6CDA7
-            subkey = "Installer\\Products";
-            DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.ClassesRoot);
-            clean.UpdateProgress(5);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Installer\Products\CF66AAA126027D4479D5BB7808A6CDA7
-            subkey = "SOFTWARE\\Classes\\Installer\\Products";
-            DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.LocalMachine);
-            clean.UpdateProgress(10);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\Folders
-            subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\Folders";
-            //DeleteValueFound(subkey, "Subutai", RegistryHive.LocalMachine);
-            clean.UpdateProgress(25);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S - 1 - 5 - 18\Components\001B050B63BD23B49988FFEB639D2F61
-            //Components
-            subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Components";
-            //DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
-            clean.UpdateProgress(30);
-            //********************************************************
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\CF66AAA126027D4479D5BB7808A6CDA7
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Products\CF66AAA126027D4479D5BB7808A6CDA7
 
-            //var hklm = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-            subkey = @"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Products";
-            DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.LocalMachine);
-            clean.UpdateProgress(35);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{ 1AAA66FC - 2062 - 44D7 - 975D - BB87806ADC7A}
-            subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-            DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.LocalMachine);
+            //Removing main string 
+            //HKCU\Software\Microsoft\Installer\Products
+            subkey = "Software\\Microsoft\\Installer\\Products";
+            DeleteKeyByValue(subkey, "Subutai", RegistryHive.CurrentUser);
+
+            //HKEY_CLASSES_ROOT\Installer\Products\9990BF19B70441847BF1D18B0D97D968
+            subkey = "Installer\\Installer\\Products";
+            DeleteKeyByValue(subkey, "Subutai", RegistryHive.ClassesRoot);
+            clean.UpdateProgress(20);
+
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Installer\Products\9990BF19B70441847BF1D18B0D97D968
+            subkey = "SOFTWARE\\Classes\\Installer\\Products";
+            DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
+
+            //Removing registration string
+            //HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai
+            subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+            DeleteSubKeyTree(SubutaiProdName, subkey, RegistryHive.LocalMachine);
             clean.UpdateProgress(40);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.07
-            //Uninstalling version key is CLOSED
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Subutai 4.0.2
+
+            //Removing registration string
+            //HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall
+            //HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1
+            //"C:\Subutai\unins000.exe" / SILENT  - uninstal string
 
             subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-            DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
-            clean.UpdateProgress(45);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\LZMA\{ 1AAA66FC - 2062 - 44D7 - 975D - BB87806ADC7A}
-            subkey = "SOFTWARE\\Wow6432Node\\Caphyon\\Advanced Installer\\LZMA";
             DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.LocalMachine);
             clean.UpdateProgress(50);
-            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Subutai Social
+
+            //HKLM\SOFTWARE\Wow6432Node\Subutai Social\Subutai
             subkey = "SOFTWARE\\Wow6432Node";
-            DeleteSubKeyTree("Subutai Social", subkey, RegistryHive.LocalMachine);
-            clean.UpdateProgress(55);
-            //HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Environment
-            //Path, Subutai
-            subkey = "SYSTEM\\ControlSet001\\Control\\Session Manager\\Environment";
-            DeleteValueFound(subkey, "Subutai", RegistryHive.LocalMachine);
+            DeleteSubKeyTree(SubutaiVendor, subkey, RegistryHive.LocalMachine);
             clean.UpdateProgress(60);
-            //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-            subkey = "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment";
-            DeleteSubKeyTree("Subutai", subkey, RegistryHive.LocalMachine);
-            clean.UpdateProgress(65);
-            //HKEY_LOCAL_MACHINE\SYSTEM\VritualRoot\MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S - 1 - 5 - 18\Components\336320F1CCE3E3F45A57FD0D4E46AB34
-            subkey = "SYSTEM\\VritualRoot\\MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Installer\\UserData\\S-1-5-18\\Components";
-            DeleteKeyByValue(subkey, "Subutai", RegistryHive.LocalMachine);
+
+            //HKCU\Software\Subutai Social\Subutai
+            subkey = "SOFTWARE";
+            DeleteSubKeyTree(SubutaiVendor, subkey, RegistryHive.CurrentUser);
             clean.UpdateProgress(70);
-            //HKEY_LOCAL_MACHINE\SYSTEM\VritualRoot\MACHINE\SOFTWARE\Wow6432Node\Caphyon\Advanced Installer\LZMA
-            subkey = "SYSTEM\\VritualRoot\\MACHINE\\SOFTWARE\\Wow6432Node\\Caphyon\\Advanced Installer\\LZMA";
-            DeleteSubKeyTree(InstallerProdID, subkey, RegistryHive.LocalMachine);
-            clean.UpdateProgress(75);
-            subkey = "SYSTEM\\VritualRoot\\MACHINE\\SOFTWARE\\Wow6432Node";
-            DeleteSubKeyTree("Subutai Social", subkey, RegistryHive.LocalMachine);
-            clean.UpdateProgress(80);
+
+            //Optimal-dynamics key for SubutayTray
             //HKEY_CURRENT_USER\Software\Optimal-dynamics
-            //HKEY_CURRENT_USER\Software\Optimal - dynamics\SS_Tray
-
-            //subkey = "Software\\Optimal-dynamics";
-            //DeleteSubKeyTree("SS_Tray", subkey, RegistryHive.CurrentUser);
-
-            subkey = "Software";
+            subkey = Path.Combine("Software", SubutaiTrayVendor);
             rk = Registry.CurrentUser.OpenSubKey(subkey, true);
-            DeleteSubKeyTree("Optimal-dynamics", subkey, RegistryHive.CurrentUser);
-            clean.UpdateProgress(90);
-            //HKEY_CURRENT_USER\Environment
-            subkey = "Environment";
-            DeleteSubKeyTree("Subutai", subkey, RegistryHive.CurrentUser);
+            DeleteSubKeyTree(SubutaiTrayKeyName, subkey, RegistryHive.CurrentUser);
+            subkey = "Software";
+            DeleteSubKeyTree(SubutaiTrayVendor, subkey, RegistryHive.CurrentUser);
+            clean.UpdateProgress(80);
+            
+            //Google E2E plugin
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Google\Chrome\Extensions\kpmiofpmlciacjblommkcinncmneeoaa
+            subkey = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
+            rk = Registry.LocalMachine.OpenSubKey(subkey, true);
+            DeleteSubKeyTree(SubutaiE2E, subkey, RegistryHive.LocalMachine);
+            
             clean.UpdateProgress(100);
         }
 
+        //Delete key by name
         public bool DeleteKey(string KeyName, ref RegistryKey baseKey)
         {
             try
@@ -123,6 +108,7 @@ namespace uninstall_clean
             }
         }
 
+        //Delete key and all subkeys
         public static bool DeleteSubKeyTree(string KeyName, string KeyPath, RegistryHive rh)
         {
             var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
@@ -244,9 +230,6 @@ namespace uninstall_clean
         }
 
         //Delete subkey in root key
-
-
-
         public static void DeleteValueFound(string subkey, string str_2_find, RegistryHive rh)
         {
             var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
@@ -285,6 +268,7 @@ namespace uninstall_clean
             }
         }
 
+        //Read Value from Registry
         public static string get_value(string subkey, string vname, RegistryHive rh)
         {
             var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
@@ -307,6 +291,7 @@ namespace uninstall_clean
             return kvalue;
         }
 
+        //Frind and read valye by name
         public static string find_and_get_value(string subkey, string name2find, string value2get, RegistryHive rh)
         {
             var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);

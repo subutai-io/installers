@@ -13,14 +13,14 @@ function jsonval {
 }
 
 function download {
-	json=`curl -k -s -X GET https://cdn.subut.ai:8338/kurjun/rest/file/info?name=$filename`
+	json=`curl -k -s -X GET https://cdn.subut.ai:8338/kurjun/rest/raw/info?name=$filename`
 	prop='id'
 	id=`jsonval`
 	if [ -e $target ]; then
-		if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
-		else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
+		if [ "`md5 $target | awk '{print $4}'`" = "$id" ]; then :
+		else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/raw/get\?id\=$id
 		fi
-	else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/file/get\?id\=$id
+	else curl -k -o $target https://cdn.subut.ai:8338/kurjun/rest/raw/get\?id\=$id
 	fi
 	# if [ "`md5 $target | awk '{print $4}'`" = "`echo $id | cut -d '.' -f 2`" ]; then :
 	# 	download
@@ -33,7 +33,7 @@ function get_ova {
 
 function get_snap {
 	mkdir /Applications/Subutai/snap/
-	target="/Applications/Subutai/snap/subutai_4.0.1_amd64.snap"; filename="subutai_4.0.1_amd64.snap"; download
+	target="/Applications/Subutai/snap/subutai_latest.snap"; filename="subutai_subutaiversion_amd64.snap"; download
 }
 
 # function install_tuntap {
@@ -83,7 +83,7 @@ if [ -e /Applications/VirtualBox.app ]; then
 $(echo $vboxmanage_version | cut -d '.' -f 2 | xargs printf "%02d")\
 $(echo $vboxmanage_version | cut -d '.' -f 3 | xargs printf "%02d")
 
-	if [ $(printf '%d\n' $virtualbox_version) -ge 50014 ]; then :
+	if [ $(printf '%d\n' $virtualbox_version) -ge 50100 ]; then :
 	else install_vbox
 	fi
 else install_vbox
@@ -183,7 +183,7 @@ EOF
 }
 
 function install_subutai {
-scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-server /Applications/Subutai/snap/subutai_4.0.1_amd64.snap ubuntu@localhost:~/
+scp -P4567 -o StrictHostKeyChecking=no /Applications/Subutai/scripts/prepare-server /Applications/Subutai/snap/subutai_latest.snap ubuntu@localhost:~/
 ssh -o StrictHostKeyChecking=no ubuntu@localhost -p4567 "sudo /home/ubuntu/prepare-server"
 }
 
