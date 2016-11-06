@@ -13,7 +13,7 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 ;AppId={{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}
-AppId={{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}
+AppId=D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -21,34 +21,31 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
+ArchitecturesAllowed=x64
 DefaultDirName=C:\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
+DisableWelcomePage=no
 OutputDir=E:\Projects\Subutai_Installer_4Git\installers\windows\codebase\Inno
 OutputBaseFilename=subutai-network-installer-dev
 SetupIconFile={#MySRCFiles}\Subutai_logo_4_Light_70x70.ico
 Compression=lzma
 SolidCompression=yes
 PrivilegesRequired=admin
+UsePreviousSetupType=False
+UsePreviousTasks=False
+MinVersion=0,6.1
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-
 [Files]
-
 Source: "{#MySRCFiles}\bin\Deployment.exe"; DestDir: "{app}\bin"; Flags: replacesameversion
 Source: "{#MySRCFiles}\bin\*"; DestDir: "{app}\bin"; Flags: replacesameversion recursesubdirs createallsubdirs
 Source: "{#MySRCFiles}\redist\*"; DestDir: "{app}\redist"; Flags: replacesameversion recursesubdirs createallsubdirs
 Source: "{#MySRCFiles}\Subutai_logo_4_Light_70x70.ico"; DestDir: "{app}"; Flags: replacesameversion
 Source: "{#MySRCFiles}\uninstall.ico"; DestDir: "{app}"; Flags: replacesameversion
-
-;Source: "E:\Projects\Subutai_Installer\Inno\bin\Deployment.exe"; DestDir: "{app}\bin"; Flags: replacesameversion
-;Source: "E:\Projects\Subutai_Installer\Inno\bin\*"; DestDir: "{app}\bin"; Flags: replacesameversion recursesubdirs createallsubdirs
-;Source: "E:\Projects\Subutai_Installer\Inno\redist\*"; DestDir: "{app}\redist"; Flags: replacesameversion recursesubdirs createallsubdirs
-;Source: "E:\Projects\Subutai_Installer\Inno\Subutai_logo_4_Light_70x70.ico"; DestDir: "{app}"; Flags: replacesameversion
-;Source: "E:\Projects\Subutai_Installer\Inno\uninstall.ico"; DestDir: "{app}"; Flags: replacesameversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+Source: "{#MySRCFiles}\redist\Framework\dotNetFx45_Full_setup.exe"; DestDir: "{tmp}"; Flags: 64bit deleteafterinstall; Check: FrameworkIsNotInstalled; AfterInstall: InstallFramework
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -65,9 +62,52 @@ Root: HKLM; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}\"; Flags: uninsdele
 Root: HKLM; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}\"; ValueType: string; ValueName: "Path"; ValueData: "{app}\"
 Root: HKLM; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}\"; ValueType: string; ValueName: "Version"; ValueData: "{#MyAppVersion}"
 
+[Code]
+procedure InstallFramework_;
+var
+  ResultCode: Integer;
+begin
+  if not Exec(ExpandConstant('{tmp}\dotNetFx45_Full_setup.exe'), '/q /norestart', '', SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+  begin
+    // you can interact with the user that the installation failed
+    MsgBox('.NET installation failed with code: ' + IntToStr(ResultCode) + '.',
+      mbError, MB_OK);
+  end;
+end;
+
+procedure InstallFramework;
+var
+  StatusText: string;
+  ResultCode: Integer;
+  begin
+  StatusText := WizardForm.StatusLabel.Caption;
+  WizardForm.StatusLabel.Caption := 'Installing .NET framework...';
+  WizardForm.ProgressGauge.Style := npbstMarquee;
+  
+  try
+    Exec(ExpandConstant('{tmp}\dotNetFx45_Full_setup.exe'), '/q /norestart', '', SW_SHOW, ewWaitUntilTerminated, ResultCode);
+  except
+    MsgBox('.NET installation failed with code: ' + IntToStr(ResultCode) + '.',
+      mbError, MB_OK);
+  finally
+    WizardForm.StatusLabel.Caption := StatusText;
+    WizardForm.ProgressGauge.Style := npbstNormal;
+  end;
+end;
+
+function FrameworkIsNotInstalled: Boolean;
+begin
+  Result := not RegKeyExists(HKEY_LOCAL_MACHINE, 'Software\Microsoft\.NETFramework\policy\v4.0');   
+end;
 
 [Run]
 Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "dev repomd5 Run"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent  runascurrentuser
 
 [UninstallRun]
 Filename: "{app}\bin\uninstall-clean.exe"; Flags: nowait 
+
+[Messages]
+InstallingLabel=Please wait while first stage of [name] Setup  completed.
+FinishedHeadingLabel=Completing the [name] First Stage Setup
+FinishedLabel=Setup has finished the first stage of  [name] installation. Please do not uncheck Launch combo box. Close Setup and wait for Second Stage Window
+SetupLdrStartupMessage=This is the first stage of  %1 Installation. Do you wish to continue?

@@ -26,7 +26,9 @@ You need the following tools to build the installer:
 		<li> Visual Studio 2015 </li>
 		<li> Inno Setup script compiler (www.jrsoftware.org/isinfo.php)</li>
 		<li> 7-zip sowtware</li>
-	</ul>
+	</ul> 
+<br>
+Note: Inno Setup Studio provides UI to make work with Inno Setuo scripts more comfortable: https://www.kymoto.org/
 
 
 # Build the installer
@@ -109,4 +111,4 @@ NOTE
 In nothing changed except version number:
 
 1. Change 3 last lines of repo descriptor file: subutai_4.0.<VN>_amd64.snap  - VN is Version Number like 4.0.5; subutai_4.0.<VN + 1>_amd64-dev.snap - 4.0.6 if VN = 4.0.5; subutai_4.0.<VN + 1>_amd64-master.snap - 4.0.6.
-2. Open project script in Inno Sinstallation project, change version number for prod, master and dev, build project for each installation type and build installer for each installation type as described above (Build the installer section)
+2. Open project script in Inno Sinstallation project, change version number for prod, master and dev, build project for each installation type and build installer for each installation type as described above (Build the installer section). Do not change GUID.
