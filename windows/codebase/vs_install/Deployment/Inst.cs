@@ -47,8 +47,7 @@ namespace Deployment
             RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey86);
             if (rk == null)
             {
-                //return "NA";
-                return "E:\\Gubutai";
+                return "NA";
             }
             string path = rk.GetValue("Path").ToString();
             return path;

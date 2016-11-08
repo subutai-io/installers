@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NLog;
 
 namespace Deployment
 {
@@ -57,6 +58,11 @@ namespace Deployment
         public static string vb_version2fit = "5.1.0";
 
         /// <summary>
+        /// The logger, will log system information
+        /// </summary>
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="f_confirm"/> class.
         /// Form shows if Subutai can be installed and allows to choose installation type
         /// </summary>
@@ -101,6 +107,13 @@ namespace Deployment
             //hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             tb_Info.Text += Environment.NewLine;
             tb_Info.Text += Environment.NewLine;
+            //Log system info:
+            logger.Info("OS: {0}, {1}", hostOSversion, hostOSversion_user);
+            logger.Info("CPUs: {0}", hostCores);
+            logger.Info("Is 64x: {0}", host64);
+            logger.Info("RAM: {0}MB", hostRam);
+            logger.Info("VT/x enabled: {0}", hostVT);
+            logger.Info("Oracle VBox version: {0}", vboxVersion);
             //Check if can install
             checking();
         }

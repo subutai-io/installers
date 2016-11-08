@@ -48,7 +48,7 @@ namespace Deployment
 
         /// <summary>
         /// Copy uninstall program to temp
-        /// We need it to be able to delete installation folder if user naswered Yes
+        /// We need it to be able to delete installation folder if user answered Yes
         /// </summary>
         /// <returns></returns>
         public static bool copy_uninstall()
