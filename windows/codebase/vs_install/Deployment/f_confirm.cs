@@ -89,7 +89,7 @@ namespace Deployment
             hostVT = SysCheck.check_vt(); //Checking if VT-x is enabled
 
             //Filling textboxes
-            l_Proc.Text = SysCheck.hostCores.ToString();
+            l_Proc.Text = hostCores.ToString();//SysCheck.hostCores.ToString();
             l_RAM.Text = hostRam.ToString();
             l_S64.Text = host64.ToString();
             l_OS.Text = hostOSversion_user;
@@ -304,21 +304,31 @@ namespace Deployment
         /// </summary>
         private void btnInstall_Click(object sender, EventArgs e)
         {
-            if (btnInstall.Text.Equals("Exit"))
-            {
-                Program.stRun = false;
-                this.Close();
-            }
             string appDir = tbxAppDir.Text;//.Replace("/","//");
             string peerOption = peerType(getCheckedRadio(gbxTypeInst));
-            
-            if (appDir != null && appDir != "")
+            Program.inst_Dir = appDir;
+
+
+            if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {
                 Program.inst_args = $"{Program.inst_args} appDir={appDir} peer={peerOption}";
-                //MessageBox.Show(Program.inst_args, "", MessageBoxButtons.OK);
                 Program.stRun = true;
-                this.Close();
+                //Program.form_.Close();
+            } else
+            {
+                MessageBox.Show("Cannot define application folder for Subutai Social, please uinstall from Control Panel", 
+                    "Installation Folder error",
+                    MessageBoxButtons.OK);
+                Environment.Exit(1);
             }
+
+            if (btnInstall.Text.Contains("Exit"))
+            {
+                Program.stRun = false;
+                //Program.form_.Close();
+            }
+
+            Program.form_.Close();
         }
 
         /// <summary>

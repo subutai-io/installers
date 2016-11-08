@@ -24,8 +24,10 @@ namespace Deployment
         public static string[] cmd_args = Environment.GetCommandLineArgs();
         public static string inst_args = "";
         public static string inst_type = "";
+        public static string inst_Dir = "";
 
         public static bool stRun = false; 
+
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         //[STAThread]
@@ -86,6 +88,24 @@ namespace Deployment
                 Application.Run(form1);
             } else
             {
+                if (inst_Dir.Equals(""))
+                {
+                    inst_Dir = $"{Inst.subutai_path()}\\";
+                }
+               
+                string cmd = $"{inst_Dir}bin\\uninstall-clean.exe";
+                var startInfo = new ProcessStartInfo
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    FileName =  cmd,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Arguments = ""
+                    //,
+                    //RedirectStandardOutput = true,
+                    //RedirectStandardError = true
+                };
+                var exeProcess = Process.Start(startInfo);
                 Environment.Exit(1);
             }
         }
