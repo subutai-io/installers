@@ -13,7 +13,7 @@ namespace uninstall_clean
         {
             //user environment
             string SubutaiProdName = "Subutai";
-            string SubutaiProdID = "{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1";
+            string SubutaiProdID = "{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}";
             string SubutaiVendor = "Subutai Social";
             string SubutaiTrayVendor = "Optimal-dynamics";
             string SubutaiTrayKeyName = "SS_Tray";
@@ -51,7 +51,7 @@ namespace uninstall_clean
             //"C:\Subutai\unins000.exe" / SILENT  - uninstal string
 
             subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
-            DeleteSubKeyTree(SubutaiProdID, subkey, RegistryHive.LocalMachine);
+            DeleteSubKeyTree($"{SubutaiProdID}_is1", subkey, RegistryHive.LocalMachine);
             clean.UpdateProgress(50);
 
             //HKLM\SOFTWARE\Wow6432Node\Subutai Social\Subutai
