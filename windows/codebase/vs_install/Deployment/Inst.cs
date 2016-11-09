@@ -559,13 +559,17 @@ namespace Deployment
                     {
                         //will check 5 times more
                         cnt++;
-                        if (cnt >= 5)
+                        //wait 200 seconds for connection recovered
+                        if (cnt >= 10)
                         {
                             //stop 
                             logger.Info("Cancelling from watcher");
                             tokenSource.Cancel();
                             //break;      //////////////////check this!
-                        }
+                        } 
+                    } else
+                    {
+                        cnt = 0;
                     }
                     res0 = res;
                 }
@@ -588,9 +592,20 @@ namespace Deployment
                 }
                 return true;
             }, token);
-
-            import.Wait();//import finished
-            logger.Info("Cancelling from outer");
+            ////////////////////
+            while (import.Status != TaskStatus.RanToCompletion)
+            {
+                Thread.Sleep(5000);
+                if (token.IsCancellationRequested)
+                {
+                    logger.Info("Cancelled from Watcher ");
+                    break;
+                }
+            }
+            ///////////////////
+            //import.Wait();//import finished
+            ///////////////////
+            logger.Info("Cancelling from import");
             tokenSource.Cancel();//cancel  watcher
             bool b_res = false;
             if (import.IsCompleted)
