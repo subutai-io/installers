@@ -13,6 +13,10 @@ using Renci.SshNet;
 
 namespace Deployment
 {
+    /// <summary>
+    /// Form perform and reflects installation process
+    /// </summary>
+    /// <seealso cref="System.Windows.Forms.Form" />
     public partial class f_install : Form
     {
         /// <summary>

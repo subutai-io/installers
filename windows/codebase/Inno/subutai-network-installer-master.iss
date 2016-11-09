@@ -3,7 +3,7 @@
 
 #define MyAppName "Subutai"
 #define MyAppVersion "4.0.7-snapshot"
-#define MyAppType "dev"
+#define MyAppType "master"
 #define MyAppPublisher "Subutai Social"
 #define MyAppURL "http://subutai.io/"
 #define MyAppExeName "Deployment.exe"

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NLog;
 
 namespace Deployment
 {
@@ -57,6 +58,11 @@ namespace Deployment
         public static string vb_version2fit = "5.1.0";
 
         /// <summary>
+        /// The logger, will log system information
+        /// </summary>
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="f_confirm"/> class.
         /// Form shows if Subutai can be installed and allows to choose installation type
         /// </summary>
@@ -89,7 +95,7 @@ namespace Deployment
             hostVT = SysCheck.check_vt(); //Checking if VT-x is enabled
 
             //Filling textboxes
-            l_Proc.Text = SysCheck.hostCores.ToString();
+            l_Proc.Text = hostCores.ToString();//SysCheck.hostCores.ToString();
             l_RAM.Text = hostRam.ToString();
             l_S64.Text = host64.ToString();
             l_OS.Text = hostOSversion_user;
@@ -101,6 +107,13 @@ namespace Deployment
             //hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             tb_Info.Text += Environment.NewLine;
             tb_Info.Text += Environment.NewLine;
+            //Log system info:
+            logger.Info("OS: {0}, {1}", hostOSversion, hostOSversion_user);
+            logger.Info("CPUs: {0}", hostCores);
+            logger.Info("Is 64x: {0}", host64);
+            logger.Info("RAM: {0}MB", hostRam);
+            logger.Info("VT/x enabled: {0}", hostVT);
+            logger.Info("Oracle VBox version: {0}", vboxVersion);
             //Check if can install
             checking();
         }
@@ -304,21 +317,31 @@ namespace Deployment
         /// </summary>
         private void btnInstall_Click(object sender, EventArgs e)
         {
-            if (btnInstall.Text.Equals("Exit"))
-            {
-                Program.stRun = false;
-                this.Close();
-            }
             string appDir = tbxAppDir.Text;//.Replace("/","//");
             string peerOption = peerType(getCheckedRadio(gbxTypeInst));
-            
-            if (appDir != null && appDir != "")
+            Program.inst_Dir = appDir;
+
+
+            if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {
                 Program.inst_args = $"{Program.inst_args} appDir={appDir} peer={peerOption}";
-                //MessageBox.Show(Program.inst_args, "", MessageBoxButtons.OK);
                 Program.stRun = true;
-                this.Close();
+                //Program.form_.Close();
+            } else
+            {
+                MessageBox.Show("Cannot define application folder for Subutai Social, please uinstall from Control Panel", 
+                    "Installation Folder error",
+                    MessageBoxButtons.OK);
+                Environment.Exit(1);
             }
+
+            if (btnInstall.Text.Contains("Exit"))
+            {
+                Program.stRun = false;
+                //Program.form_.Close();
+            }
+
+            Program.form_.Close();
         }
 
         /// <summary>
