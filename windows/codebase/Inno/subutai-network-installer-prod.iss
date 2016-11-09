@@ -2,12 +2,13 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Subutai"
-#define MyAppVersion "4.0.7-snapshot"
-#define MyAppType "dev"
+#define MyAppVersion "4.0.6"
+#define MyAppType "prod"
 #define MyAppPublisher "Subutai Social"
 #define MyAppURL "http://subutai.io/"
 #define MyAppExeName "Deployment.exe"
 #define MySRCFiles "E:\Projects\Subutai_Installer_4Git\installers\windows\codebase\installation_files_4_VS_Install"
+
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -28,7 +29,7 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 DisableWelcomePage=no
 OutputDir=E:\Projects\Subutai_Installer_4Git\installers\windows\codebase\Inno
-OutputBaseFilename=subutai-network-installer-{#MyAppType}
+OutputBaseFilename=subutai-network-installer
 SetupIconFile={#MySRCFiles}\Subutai_logo_4_Light_70x70.ico
 Compression=lzma
 SolidCompression=yes
