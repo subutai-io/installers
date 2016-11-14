@@ -78,6 +78,7 @@ namespace Deployment
                     //Environment.Exit(1);
                 }
             }
+            
             form_ = new f_confirm();
             form_.ShowDialog();
             if (stRun)
@@ -101,9 +102,6 @@ namespace Deployment
                     FileName =  cmd,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     Arguments = ""
-                    //,
-                    //RedirectStandardOutput = true,
-                    //RedirectStandardError = true
                 };
                 var exeProcess = Process.Start(startInfo);
                 Environment.Exit(1);
