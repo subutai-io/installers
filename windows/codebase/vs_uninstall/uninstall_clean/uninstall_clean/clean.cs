@@ -233,11 +233,19 @@ namespace uninstall_clean
 
               .ContinueWith((prevTask) =>
               {
-                  StageReporter("Removing old logs", "");
+                  StageReporter("","Removing old logs");
                   //Remove log dir
                   FD.remove_log_dir();
 
               }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
+              .ContinueWith((prevTask) =>
+              {
+                   StageReporter("", "Removing Google Chrome");
+                   //Remove log dir
+                   AP.remove_chrome();
+
+               }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
               .ContinueWith((prevTask) =>
               {
