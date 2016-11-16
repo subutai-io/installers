@@ -82,6 +82,29 @@ namespace uninstall_clean
             }
         }
 
+        /// <summary>
+        /// Removes Google Chrome usefull when Chrome is not visible in Control Panel
+        /// </summary>
+        public static void remove_chrome()
+        {
+            DialogResult drs = MessageBox.Show($"Remove Google Chrome browser? NOTE: It's prefferable to delete Chrome from Control Panel->Programs.", $"Removing Google Chrome",
+                               MessageBoxButtons.YesNo,
+                               MessageBoxIcon.Question,
+                               MessageBoxDefaultButton.Button1);
+
+            if (drs == DialogResult.No)
+                return;
+
+            //Check if Chrome is running
+            SCP.stop_process("chrome.exe");
+            SCP.stop_process("Google Chrome");
+            SCP.stop_process("Google Chrome (32 bit)");
+            //Unpin from taskbar
+
+            RG.rg_clean_chrome();
+            FD.fd_clean_chrome();
+         }
+
         private void clean_all()
         {
             string SubutaiDir = clean.SubutaiDir;
@@ -142,7 +165,5 @@ namespace uninstall_clean
             MessageBox.Show("Subutai Social uninstalled", "Information", MessageBoxButtons.OK);
             Environment.Exit(0);
         }
-
-
     }
 }

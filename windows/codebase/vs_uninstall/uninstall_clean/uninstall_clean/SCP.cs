@@ -7,8 +7,10 @@ using System.Windows.Forms;
 
 namespace uninstall_clean
 {
+    /// <summary>
+    ///  class SCP - working with ServiCes and Processes
+    /// </summary>
     class SCP
-        // Working with services and processes
     {
         public static  string stop_service(string serviceName, int timeoutMilliseconds)
         {
@@ -122,8 +124,5 @@ namespace uninstall_clean
             }
             return ($"1|{filename} was not executed|Error");
         }
-
-
-
     }
 }

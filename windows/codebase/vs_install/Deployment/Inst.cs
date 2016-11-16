@@ -592,19 +592,17 @@ namespace Deployment
                 }
                 return true;
             }, token);
-            ////////////////////
+            //Waiting
             while (import.Status != TaskStatus.RanToCompletion)
             {
                 Thread.Sleep(5000);
                 if (token.IsCancellationRequested)
                 {
-                    logger.Info("Cancelled from Watcher ");
+                    logger.Info("Will cancel from Import ");
                     break;
                 }
             }
-            ///////////////////
-            //import.Wait();//import finished
-            ///////////////////
+            
             logger.Info("Cancelling from import");
             tokenSource.Cancel();//cancel  watcher
             bool b_res = false;
