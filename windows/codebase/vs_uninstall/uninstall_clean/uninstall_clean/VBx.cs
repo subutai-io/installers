@@ -1,14 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
-using System.ServiceProcess;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.Win32;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Security.AccessControl;
-using System.Security.Principal;
+
 
 namespace uninstall_clean
 {

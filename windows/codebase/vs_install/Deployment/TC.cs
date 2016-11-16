@@ -287,11 +287,17 @@ namespace Deployment
             Deploy.ShowMarquee();
             // prepare NAT network
             string res = "";
-            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork remove --netname natnet1 ");
-            logger.Info("Removing NAT network: {0}", res);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork list natnet1 ");
+            logger.Info("list NAT network natnet1: {0}", res);
+            if (res.Contains("natnet1"))
+            {
+                res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork remove --netname natnet1 ");
+                logger.Info("Removing NAT network: {0}", res);
+            }
+
             res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
             logger.Info("Configuring NAT network: {0}", res);
-            //if (Deploy.com_out(res,2) == "Error")
+            //if (Deploy.com_out(res,2) == "Error") remove
             if (res.ToLower().Contains("error"))
             {
                 logger.Error("Can not run command, please check if VirtualBox installed properly", "Configure VM");

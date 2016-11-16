@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using System.Windows.Forms;
 
 namespace uninstall_clean
 {
@@ -266,6 +267,11 @@ namespace uninstall_clean
         }
 
         //Remove known_hosts file
+        /// <summary>
+        /// Removes files from /home folder.
+        /// </summary>
+        /// <param name="instDir">The installation directory.</param>
+        /// <returns></returns>
         public static string remove_from_home(string instDir)
         {
             string res = "1";
@@ -354,5 +360,78 @@ namespace uninstall_clean
                 return false;
             }
          }
+
+        /// <summary>
+        /// Removes Chrome directories and shortcuts.
+        /// </summary>
+        public static void fd_clean_chrome()
+        {
+            
+            var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var dirPath = Path.Combine(dirApp, "Google", "Chrome");
+            //Deleting user's app folder
+            try
+            {
+                if (Directory.Exists(dirPath))
+                    Directory.Delete(dirPath, true);
+
+                //Thread.Sleep(5000);
+                //return "0";
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show("Can not delete folder " + dirPath + ". " + ex.Message.ToString());
+            }
+
+            //Deleting from Program Files
+            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+            dirPath = Path.Combine(dirApp, "Google", "Chrome");
+            //Deleting user's app folder
+            try
+            {
+                if (Directory.Exists(dirPath))
+                    Directory.Delete(dirPath, true);
+
+                //Thread.Sleep(5000);
+                //return "0";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Can not delete folder " + dirPath + ". " + ex.Message.ToString());
+            }
+
+            //Deleting from Program Files
+            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+            dirPath = Path.Combine(dirApp, "Google", "Chrome");
+            //Deleting user's app folder
+            try
+            {
+                if (Directory.Exists(dirPath))
+                    Directory.Delete(dirPath, true);
+
+                //Thread.Sleep(5000);
+                //return "0";
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show("Can not delete folder " + dirPath + ". " + ex.Message.ToString());
+            }
+
+            //C:\ProgramData\Microsoft\Windows\Start Menu\Programs
+            //C: \Users\Public\Desktop
+            //Commom Desktop
+            var shcutPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
+            delete_Shortcut(shcutPath, "Google Chrome", false);
+            //MessageBox.Show($"shcut {shcutPath} cleaned", "Chrome shortcuts", MessageBoxButtons.OK);
+
+            //Common StartMenu/Programs
+            //This path to Common Start Menu will be used later
+            shcutPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
+            shcutPath = Path.Combine(shcutPath, "Programs");
+            delete_Shortcut(shcutPath, "Google Chrome", false);
+            //MessageBox.Show($"shcut {shcutPath} cleaned", "Chrome shortcuts", MessageBoxButtons.OK);
+        }
     }
 }

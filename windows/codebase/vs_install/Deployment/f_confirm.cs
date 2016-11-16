@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 using NLog;
 
@@ -39,6 +34,9 @@ namespace Deployment
         /// The host OS sversion in human-readable format (like Windows 8.1)
         /// </summary>
         public static string hostOSversion_user;
+        /// <summary>
+        /// The host RAM in MB
+        /// </summary>
         private static long hostRam;
         /// <summary>
         /// The VT-x is enamled in BIOS
@@ -58,10 +56,25 @@ namespace Deployment
         public static string vb_version2fit = "5.1.0";
 
         /// <summary>
+        /// ContextMenuStrip for linkLabels
+        /// </summary>
+        private ContextMenuStrip cms = new ContextMenuStrip();
+
+        /// <summary>
+        /// The link URL for Manual and Tutorials
+        /// </summary>
+        private string linkURL = "";
+
+        /// <summary>
+        /// Coordinates to show right-click menu
+        /// </summary>
+        private int X;
+        private int Y;
+
+        /// <summary>
         /// The logger, will log system information
         /// </summary>
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
-
         /// <summary>
         /// Initializes a new instance of the <see cref="f_confirm"/> class.
         /// Form shows if Subutai can be installed and allows to choose installation type
@@ -70,6 +83,19 @@ namespace Deployment
         {
             InitializeComponent();
             
+            //showing();
+        }
+
+        /// <summary>
+        /// Handles the Load event of the f_confirm control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void f_confirm_Load(object sender, EventArgs e)
+        {
+            cms.Items.Add("Copy URL");
+            cms.ItemClicked += new ToolStripItemClickedEventHandler(cms_ItemClicked);
+
             showing();
         }
 
@@ -343,6 +369,14 @@ namespace Deployment
 
             Program.form_.Close();
         }
+        void cms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
+        {
+            //ToolStripItem item = e.ClickedItem;
+            Thread thread = new Thread(() => Clipboard.SetText(linkURL));
+            thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
+            thread.Start();
+            thread.Join();
+        }
 
         /// <summary>
         /// private void linkManual_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -351,16 +385,65 @@ namespace Deployment
         /// </summary>
         private void linkManual_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            linkManual.LinkVisited = true;
-            System.Diagnostics.Process.Start("https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual");
+            LinkLabel ll = (LinkLabel)sender;
+            linkURL = "https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual";
+
+            if (e.Button == MouseButtons.Right)
+            {
+                //Show Copy
+                cms.Show(this, new Point(panelRight.Bounds.X + ll.Bounds.X, ll.Bounds.Y));
+                //cms.Show(this, new Point(panelRight.Bounds.X + X, panelRight.Bounds.Y + Y));
+
+            }
+            else
+            {
+                linkManual.LinkVisited = true;
+                try
+                {
+                    System.Diagnostics.Process.Start(linkURL);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"{ex.Message}. Sorry, can not open link with default browser. Please, right click on the link to copy URL and open it manually", "Installation manual", MessageBoxButtons.OK);
+                }
+            }
         }
 
         private void linkTutorials_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            linkTutorials.LinkVisited = true;
-            System.Diagnostics.Process.Start("https://subutai.io/first-launch.html");
+            LinkLabel ll = (LinkLabel)sender;
+            linkURL = "https://subutai.io/first-launch.html";
+            if (e.Button == MouseButtons.Right)
+            {
+                //Show Copy
+                cms.Show(this, new Point(panelRight.Bounds.X + ll.Bounds.X, ll.Bounds.Y));
+                //cms.Show(this, new Point(panelRight.Bounds.X + X, panelRight.Bounds.Y + Y));
+            }
+            else
+            {
+                linkTutorials.LinkVisited = true;
+                try
+                {
+                    System.Diagnostics.Process.Start(linkURL);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"{ex.Message}. Sorry, can not open link with default browser. Please right click on the link to copy URL and open it manually", "Installation tutorials", MessageBoxButtons.OK);
+                }
+            }
         }
 
+        private void linkTutorials_MouseDown(object sender, MouseEventArgs e)
+        {
+            X = e.X;
+            Y = e.Y;
+        }
+
+        private void linkManual_MouseDown(object sender, MouseEventArgs e)
+        {
+            X = e.X;
+            Y = e.Y;
+        }
         /// <summary>
         /// private void btnBrowse_Click(object sender, EventArgs e)
         /// Runs instFolder() method to open folder dialog and choose installation folder

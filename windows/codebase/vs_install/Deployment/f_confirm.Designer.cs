@@ -41,12 +41,12 @@
             this.rbClientOnly = new System.Windows.Forms.RadioButton();
             this.rbRHonly = new System.Windows.Forms.RadioButton();
             this.rbTrial = new System.Windows.Forms.RadioButton();
-            this.panel1 = new System.Windows.Forms.Panel();
+            this.panelRight = new System.Windows.Forms.Panel();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.linkTutorials = new System.Windows.Forms.LinkLabel();
             this.lblAppDir = new System.Windows.Forms.Label();
             this.tb_Info = new System.Windows.Forms.TextBox();
-            this.panel2 = new System.Windows.Forms.Panel();
+            this.panelLeft = new System.Windows.Forms.Panel();
             this.lblCheckResult = new System.Windows.Forms.Label();
             this.l_VB = new System.Windows.Forms.Label();
             this.lblVirtualBox = new System.Windows.Forms.Label();
@@ -60,11 +60,11 @@
             this.lblArch = new System.Windows.Forms.Label();
             this.lblRAM = new System.Windows.Forms.Label();
             this.lblCPU = new System.Windows.Forms.Label();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pbSubutaiLogo = new System.Windows.Forms.PictureBox();
             this.gbxTypeInst.SuspendLayout();
-            this.panel1.SuspendLayout();
-            this.panel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.panelRight.SuspendLayout();
+            this.panelLeft.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbSubutaiLogo)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -112,6 +112,7 @@
             this.linkManual.TabStop = true;
             this.linkManual.Text = "Read Installation Manual";
             this.linkManual.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkManual_LinkClicked);
+            this.linkManual.MouseDown += new System.Windows.Forms.MouseEventHandler(this.linkManual_MouseDown);
             // 
             // tbxAppDir
             // 
@@ -192,22 +193,22 @@
             this.rbTrial.Text = "Full: RH + MH + Client";
             this.rbTrial.UseVisualStyleBackColor = true;
             // 
-            // panel1
+            // panelRight
             // 
-            this.panel1.Controls.Add(this.btnBrowse);
-            this.panel1.Controls.Add(this.linkTutorials);
-            this.panel1.Controls.Add(this.lblAppDir);
-            this.panel1.Controls.Add(this.tb_Info);
-            this.panel1.Controls.Add(this.tbxAppDir);
-            this.panel1.Controls.Add(this.gbxTypeInst);
-            this.panel1.Controls.Add(this.lblFreeSpace);
-            this.panel1.Controls.Add(this.btnInstall);
-            this.panel1.Controls.Add(this.label3);
-            this.panel1.Controls.Add(this.linkManual);
-            this.panel1.Location = new System.Drawing.Point(414, 8);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(423, 428);
-            this.panel1.TabIndex = 16;
+            this.panelRight.Controls.Add(this.btnBrowse);
+            this.panelRight.Controls.Add(this.linkTutorials);
+            this.panelRight.Controls.Add(this.lblAppDir);
+            this.panelRight.Controls.Add(this.tb_Info);
+            this.panelRight.Controls.Add(this.tbxAppDir);
+            this.panelRight.Controls.Add(this.gbxTypeInst);
+            this.panelRight.Controls.Add(this.lblFreeSpace);
+            this.panelRight.Controls.Add(this.btnInstall);
+            this.panelRight.Controls.Add(this.label3);
+            this.panelRight.Controls.Add(this.linkManual);
+            this.panelRight.Location = new System.Drawing.Point(414, 8);
+            this.panelRight.Name = "panelRight";
+            this.panelRight.Size = new System.Drawing.Size(423, 428);
+            this.panelRight.TabIndex = 16;
             // 
             // btnBrowse
             // 
@@ -233,6 +234,7 @@
             this.linkTutorials.TabStop = true;
             this.linkTutorials.Text = "Subutai Tutorials";
             this.linkTutorials.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkTutorials_LinkClicked);
+            this.linkTutorials.MouseDown += new System.Windows.Forms.MouseEventHandler(this.linkTutorials_MouseDown);
             // 
             // lblAppDir
             // 
@@ -258,25 +260,25 @@
             this.tb_Info.Size = new System.Drawing.Size(392, 139);
             this.tb_Info.TabIndex = 22;
             // 
-            // panel2
+            // panelLeft
             // 
-            this.panel2.Controls.Add(this.lblCheckResult);
-            this.panel2.Controls.Add(this.l_VB);
-            this.panel2.Controls.Add(this.lblVirtualBox);
-            this.panel2.Controls.Add(this.l_VT);
-            this.panel2.Controls.Add(this.l_OS);
-            this.panel2.Controls.Add(this.l_S64);
-            this.panel2.Controls.Add(this.l_RAM);
-            this.panel2.Controls.Add(this.l_Proc);
-            this.panel2.Controls.Add(this.lblHW);
-            this.panel2.Controls.Add(this.lblWindows);
-            this.panel2.Controls.Add(this.lblArch);
-            this.panel2.Controls.Add(this.lblRAM);
-            this.panel2.Controls.Add(this.lblCPU);
-            this.panel2.Location = new System.Drawing.Point(10, 137);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(393, 299);
-            this.panel2.TabIndex = 17;
+            this.panelLeft.Controls.Add(this.lblCheckResult);
+            this.panelLeft.Controls.Add(this.l_VB);
+            this.panelLeft.Controls.Add(this.lblVirtualBox);
+            this.panelLeft.Controls.Add(this.l_VT);
+            this.panelLeft.Controls.Add(this.l_OS);
+            this.panelLeft.Controls.Add(this.l_S64);
+            this.panelLeft.Controls.Add(this.l_RAM);
+            this.panelLeft.Controls.Add(this.l_Proc);
+            this.panelLeft.Controls.Add(this.lblHW);
+            this.panelLeft.Controls.Add(this.lblWindows);
+            this.panelLeft.Controls.Add(this.lblArch);
+            this.panelLeft.Controls.Add(this.lblRAM);
+            this.panelLeft.Controls.Add(this.lblCPU);
+            this.panelLeft.Location = new System.Drawing.Point(10, 137);
+            this.panelLeft.Name = "panelLeft";
+            this.panelLeft.Size = new System.Drawing.Size(393, 299);
+            this.panelLeft.TabIndex = 17;
             // 
             // lblCheckResult
             // 
@@ -407,17 +409,17 @@
             this.lblCPU.TabIndex = 24;
             this.lblCPU.Text = "Number of processors/cores ";
             // 
-            // pictureBox1
+            // pbSubutaiLogo
             // 
-            this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pictureBox1.Image = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
-            this.pictureBox1.InitialImage = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
-            this.pictureBox1.Location = new System.Drawing.Point(0, 8);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(145, 123);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox1.TabIndex = 18;
-            this.pictureBox1.TabStop = false;
+            this.pbSubutaiLogo.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.pbSubutaiLogo.Image = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
+            this.pbSubutaiLogo.InitialImage = global::Deployment.Properties.Resources.SS_Console_logo_700x700px_01;
+            this.pbSubutaiLogo.Location = new System.Drawing.Point(0, 8);
+            this.pbSubutaiLogo.Name = "pbSubutaiLogo";
+            this.pbSubutaiLogo.Size = new System.Drawing.Size(145, 123);
+            this.pbSubutaiLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pbSubutaiLogo.TabIndex = 18;
+            this.pbSubutaiLogo.TabStop = false;
             // 
             // f_confirm
             // 
@@ -425,9 +427,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
             this.ClientSize = new System.Drawing.Size(849, 441);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.panel1);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.panelLeft);
+            this.Controls.Add(this.panelRight);
+            this.Controls.Add(this.pbSubutaiLogo);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
@@ -437,13 +439,14 @@
             this.Name = "f_confirm";
             this.Text = "Initialization of the Subutai Social";
             this.TopMost = true;
+            this.Load += new System.EventHandler(this.f_confirm_Load);
             this.gbxTypeInst.ResumeLayout(false);
             this.gbxTypeInst.PerformLayout();
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
-            this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.panelRight.ResumeLayout(false);
+            this.panelRight.PerformLayout();
+            this.panelLeft.ResumeLayout(false);
+            this.panelLeft.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pbSubutaiLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -458,13 +461,13 @@
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.Label lblFreeSpace;
         private System.Windows.Forms.Button btnInstall;
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pbSubutaiLogo;
         private System.Windows.Forms.GroupBox gbxTypeInst;
         private System.Windows.Forms.RadioButton rbClientOnly;
         private System.Windows.Forms.RadioButton rbRHonly;
         private System.Windows.Forms.RadioButton rbTrial;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel panelRight;
+        private System.Windows.Forms.Panel panelLeft;
         private System.Windows.Forms.Label lblCheckResult;
         private System.Windows.Forms.Label l_VB;
         private System.Windows.Forms.Label lblVirtualBox;
