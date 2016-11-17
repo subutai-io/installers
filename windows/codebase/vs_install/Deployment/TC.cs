@@ -51,6 +51,7 @@ namespace Deployment
             string regfile = Path.Combine(FD.logDir(), "subutai-clean-registry.reg");
             Deploy.HideMarquee();
             download_file(regfile, download_prerequisites);
+       
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace Deployment
             Program.form1._deploy.DownloadFile(
                 url: _arguments["kurjunUrl"],
                 destination: $"{_arguments["appDir"]}{_arguments[arg_name]}",
-                onComplete: null,
+                onComplete: download_prerequisites,
                 report: "Getting repo descriptor",
                 async: false,
                 kurjun: true);
@@ -149,10 +150,10 @@ namespace Deployment
             var file = folderFile[1].Trim();
 
             //download tray-dev if installing -dev version
-            if (file.Contains("tray") && _arguments["params"].Contains("dev"))
-            {
-                file = file.Replace("tray.", "tray-dev.");
-            }
+            //if (file.Contains("tray") && _arguments["params"].Contains("dev"))
+            //{
+            //    file = file.Replace("tray.", "tray-dev.");
+            //}
 
             if (_prerequisitesDownloaded < rows.Length - 1) //For last row will change OnComplete
             {

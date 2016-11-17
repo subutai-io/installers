@@ -134,9 +134,14 @@ namespace Deployment
             }
 
             var shouldWeDownload = true;//will download in any case now
-            if (destination.Contains("tray-dev") )
+            if (destination.Contains("tray-dev"))
             {
                 destination = destination.Remove(destination.IndexOf('-'), 4);
+            }
+
+            if (destination.Contains("_dev"))
+            {
+                destination = destination.Remove(destination.IndexOf('_'), 4);
             }
 
             if (destination.Contains("-test") && !destination.Contains("repomd5"))
