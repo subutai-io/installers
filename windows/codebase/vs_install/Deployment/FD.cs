@@ -60,6 +60,19 @@ namespace Deployment
             {
                 return false;
             }
+
+            if (File.Exists(fpath_dest))
+            {
+                try
+                {
+                    File.Delete(fpath_dest);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message);
+                    return false;
+                }
+            }
             
             try
             {
