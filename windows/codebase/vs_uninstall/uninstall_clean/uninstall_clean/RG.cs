@@ -21,8 +21,8 @@ namespace uninstall_clean
             string SubutaiProdName = "Subutai";
             string SubutaiProdID = "{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}";
             string SubutaiVendor = "Subutai Social";
-            string SubutaiTrayVendor = "Optimal-dynamics";
-            string SubutaiTrayKeyName = "SS_Tray";
+            string SubutaiTrayKey = "subutai";
+            string SubutaiTraySubKey = "tray";
             string SubutaiE2E = "kpmiofpmlciacjblommkcinncmneeoaa";
             //label1.Text = "Cleanig Registry";
             string subkey;
@@ -70,13 +70,13 @@ namespace uninstall_clean
             DeleteSubKeyTree(SubutaiVendor, subkey, RegistryHive.CurrentUser);
             clean.UpdateProgress(70);
 
-            //Optimal-dynamics key for SubutayTray
-            //HKEY_CURRENT_USER\Software\Optimal-dynamics
-            subkey = Path.Combine("Software", SubutaiTrayVendor);
+            //subutai key for SubutayTray
+            //HKEY_CURRENT_USER\Software\subutai
+            subkey = Path.Combine("Software", SubutaiTrayKey);
             rk = Registry.CurrentUser.OpenSubKey(subkey, true);
-            DeleteSubKeyTree(SubutaiTrayKeyName, subkey, RegistryHive.CurrentUser);
+            DeleteSubKeyTree(SubutaiTraySubKey, subkey, RegistryHive.CurrentUser);
             subkey = "Software";
-            DeleteSubKeyTree(SubutaiTrayVendor, subkey, RegistryHive.CurrentUser);
+            DeleteSubKeyTree(SubutaiTrayKey, subkey, RegistryHive.CurrentUser);
             clean.UpdateProgress(80);
             
             //Google E2E plugin
