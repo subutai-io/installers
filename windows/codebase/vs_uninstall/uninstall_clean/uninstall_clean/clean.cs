@@ -239,13 +239,13 @@ namespace uninstall_clean
 
               }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-              .ContinueWith((prevTask) =>
-              {
-                   StageReporter("", "Removing Google Chrome");
-                   //Remove log dir
-                   AP.remove_chrome();
+              //.ContinueWith((prevTask) =>
+              //{
+              //     StageReporter("", "Removing Google Chrome");
+              //     //Remove log dir
+              //     AP.remove_chrome();
 
-               }, TaskContinuationOptions.OnlyOnRanToCompletion)
+              // }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
               .ContinueWith((prevTask) =>
               {
