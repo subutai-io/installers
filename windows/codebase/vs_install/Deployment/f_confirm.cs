@@ -173,7 +173,7 @@ namespace Deployment
                 l_RAM.ForeColor = Color.Red;
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Subutai needs more than 4000 MB of RAM.";
+                tb_Info.Text += "Subutai needs more than 3000 MB of RAM.";
                 res = false;
             }
             else

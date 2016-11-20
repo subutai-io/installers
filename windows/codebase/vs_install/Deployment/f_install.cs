@@ -174,7 +174,6 @@ namespace Deployment
                     
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
-                       Deploy.StageReporter(" ", " ");
                        TC.unzip_extracted();
                        logger.Info("Stage unzip: {0}", "unzip-extracted");
                    }

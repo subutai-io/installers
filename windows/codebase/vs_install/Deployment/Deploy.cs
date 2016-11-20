@@ -246,9 +246,12 @@ namespace Deployment
         {
             logger.Info("Unzipping files from {0}", folderPath);
             var filenames = Directory.GetFiles(folderPath, "*.zip", SearchOption.AllDirectories).Select(Path.GetFullPath).ToArray();
+            Deploy.StageReporter("Extracting files", "");
             foreach (var filename in filenames)
             {
                 var fileinfo = new FileInfo(filename);
+                //Deploy.StageReporter("Extracting files", "");
+                Deploy.StageReporter("", filename);
                 logger.Info("Unzipping file {0}", filename);
                 unzip_file(filename, fileinfo.DirectoryName, true);
             }

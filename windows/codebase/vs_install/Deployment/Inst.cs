@@ -707,9 +707,14 @@ namespace Deployment
         {
             //string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
             //        "ubuntu", "ubuntu", $"du -b {tname}_log"); //find size in bytes
-            string fname = $"{rhTemplatePlace}/{tname}-subutai-template_*";
+            //string fname = $"{rhTemplatePlace}/{tname}-subutai-template_*";
+            //string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+            //        "ubuntu", "ubuntu", $"du -b {fname}"); //find size in bytes
+
+            string fname = $"{rhTemplatePlace}/*.tar.gz --total | grep total";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
                     "ubuntu", "ubuntu", $"du -b {fname}"); //find size in bytes
+
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);
