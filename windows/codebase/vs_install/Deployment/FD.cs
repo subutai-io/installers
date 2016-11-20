@@ -69,7 +69,7 @@ namespace Deployment
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.Message);
+                    logger.Error(ex.Message + " deleting uninstall");
                     return false;
                 }
             }
@@ -77,11 +77,12 @@ namespace Deployment
             try
             {
                 File.Copy(fpath, fpath_dest, true);
+                logger.Info("File uninstall-clean.exe copied");
                 return true;
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message);
+                logger.Error(ex.Message + " copying uninstall");
                 return false;
             }
             

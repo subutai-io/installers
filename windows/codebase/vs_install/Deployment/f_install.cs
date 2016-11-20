@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Forms;
-using System.Net;
 using NLog;
 using Deployment.items;
-using Renci.SshNet;
+//using Renci.SshNet;
 
 namespace Deployment
 {
@@ -68,14 +66,16 @@ namespace Deployment
         private void f_install_Load(object sender, EventArgs e)
         {
             _deploy.SetEnvironmentVariables();
+            Inst.remove_repo_desc(_arguments["appDir"], _arguments["repo_descriptor"]);
+
             string strUninstall = "";
-            if (FD.copy_uninstall())
+            if (!FD.copy_uninstall())
             {
-                strUninstall = "";
+                strUninstall = Path.Combine(_arguments["appDir"], "bin", "uninstall-clean.exe");
             }
             else
             {
-                strUninstall = _arguments["appDir"];
+                strUninstall = Path.Combine(FD.logDir(), "uninstall-clean.exe");
             };
 
             Inst.update_uninstallString(strUninstall);
@@ -84,7 +84,7 @@ namespace Deployment
                 // DOWNLOAD REPO
                 Deploy.StageReporter("Downloading prerequisites", "");
                 Deploy.HideMarquee();
-                TC.download_repo();
+                  TC.download_repo();
             }
         }
 

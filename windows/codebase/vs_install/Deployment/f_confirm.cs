@@ -168,7 +168,7 @@ namespace Deployment
             }
 
             //RAM > 4000 KB
-            if ((long)hostRam < 4000) //2000
+            if ((long)hostRam < 3000) //2000
             {
                 l_RAM.ForeColor = Color.Red;
                 tb_Info.Text += Environment.NewLine;
@@ -347,7 +347,6 @@ namespace Deployment
             string peerOption = peerType(getCheckedRadio(gbxTypeInst));
             Program.inst_Dir = appDir;
 
-
             if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {
                 Program.inst_args = $"{Program.inst_args} appDir={appDir} peer={peerOption}";
@@ -355,7 +354,7 @@ namespace Deployment
                 //Program.form_.Close();
             } else
             {
-                MessageBox.Show("Cannot define application folder for Subutai Social, please uinstall from Control Panel", 
+                MessageBox.Show("Cannot define application folder for Subutai Social, please uninstall from Control Panel", 
                     "Installation Folder error",
                     MessageBoxButtons.OK);
                 Environment.Exit(1);

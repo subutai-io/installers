@@ -140,20 +140,15 @@ namespace Deployment
             else // e == null
             {
                 logger.Info("File not downloaded");
+
             }
 
             //Start download
-            var row = rows[_prerequisitesDownloaded];
+            var row = rows[_prerequisitesDownloaded];//here is error!
             var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
 
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
-
-            //download tray-dev if installing -dev version
-            //if (file.Contains("tray") && _arguments["params"].Contains("dev"))
-            //{
-            //    file = file.Replace("tray.", "tray-dev.");
-            //}
 
             if (_prerequisitesDownloaded < rows.Length - 1) //For last row will change OnComplete
             {

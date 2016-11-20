@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.Win32;
 using NLog;
 using Renci.SshNet;
@@ -16,6 +17,7 @@ namespace Deployment
     {
         //Installation of components
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        private static string rhTemplatePlace = "/mnt/lib/lxc/tmpdir";
 
         /// <summary>
         /// public static int app_installed(string appName)
@@ -47,11 +49,61 @@ namespace Deployment
             RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey86);
             if (rk == null)
             {
-                return "NA";            
+                return "NA";       
             }
             string path = rk.GetValue("Path").ToString();
             return path;
         }
+
+        /// <summary>
+        /// Defines the name of the unique identifier by app name.
+        /// </summary>
+        /// <param name="key">The key where to look.</param>
+        /// <param name="vname2check">The vname2check - name of variable containing app name.</param>
+        /// <param name="name2find">The name2find.</param>
+        /// <param name="rh">Registry Hive.</param>
+        /// <param name="isSubstring">if set to <c>true</c> [is substring] - will look for substrings.</param>
+        /// <returns></returns>
+        public static Dictionary<string, string> define_GUID_by_name(string key,
+            string vname2check,
+            string name2find,
+            RegistryHive rh,
+            bool isSubstring)
+        {
+            var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
+            RegistryKey rk = baseKey.OpenSubKey(key, true);//Components
+            Dictionary<string, string> dguids = new Dictionary<string, string>();
+            if (rk != null)
+            {
+                foreach (var skey in rk.GetSubKeyNames()) //Product
+                {
+                    RegistryKey rsk = rk.OpenSubKey(skey, true);
+                    if (rsk != null)
+                    {
+                        string name_value = Convert.ToString(rsk.GetValue(vname2check));
+                        if (isSubstring)
+                        {
+                            if (name_value.Contains(name2find))
+                            {
+                                dguids.Add(name_value, skey);
+                            }
+                        }
+                        else
+                        {
+                            if (name_value.Equals(name2find))
+                            {
+                                dguids.Add(name_value, skey);
+                            }
+                        }
+                        rsk.Close();
+                    }
+                }
+                rk.Close();
+            }
+            baseKey.Close();
+            return dguids;
+        }
+
 
         /// <summary>
         /// public static bool update_uninstallString(string strUninst)
@@ -61,24 +113,42 @@ namespace Deployment
         /// <param name="strUninst">Uninstall string</param>
         public static bool update_uninstallString(string strUninst)
         {
-            string subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Subutai";
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey, true);
-            if (rk == null)
+            string key = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+            Dictionary<string, string> guids = define_GUID_by_name(key, "DisplayName", "Subutai version", RegistryHive.LocalMachine, true);
+            string SubutaiGUID = "";
+            logger.Info("Updating uninstall string");
+            if (guids.Count > 0)
             {
-                return false;
+                foreach (string k in guids.Keys)
+                {
+                    SubutaiGUID = guids[k];
+                    logger.Info("Subutai GUIDs: {0}: {1}", k, SubutaiGUID);
+                    string subkey = $"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{SubutaiGUID}";
+                    //"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Subutai";
+                    RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey, true);
+                    if (rk == null)
+                    {
+                        return false;
+                    }
+                    try
+                    {
+                        rk.SetValue("UninstallString", strUninst);
+                        rk.SetValue("QuietUninstallString", strUninst);
+                        rk.Close();
+                        logger.Info("Updated uninstall strings");
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        string res = ex.Message;
+                        logger.Error(ex.Message + " Changing uninstall string");
+                        rk.Close();
+                        return false;
+                    }
+                }
             }
-            try
-            {
-                rk.SetValue("UninstallString", strUninst);
-                return true;
-            }
-            catch(Exception ex)
-            {
-                string res = ex.Message;
-                return false;
-            }
+            return false;
         }
-
 
         /// <summary>
         /// public static void inst_TAP(string instDir)
@@ -327,6 +397,23 @@ namespace Deployment
         }
 
         /// <summary>
+        /// public static void remove_repo_desc(string instDir, string repoName)
+        /// Removes the repo descriptor file if exists.
+        /// </summary>
+        /// <param name="instDir">The inst dir.</param>
+        /// <param name="repoName">Name of the repo descriptor file.</param>
+        public static void remove_repo_desc(string instDir, string repoName)
+        {
+            //string path_t = Path.Combine(FD.sysDrive(), "Users");
+            string path_l = Path.Combine(instDir, repoName);
+            if (File.Exists(path_l))
+            {
+                File.Delete(path_l);
+                logger.Info("repo description file exists, removing {0}", path_l);
+            }
+        }
+
+        /// <summary>
         /// public static void service_stop(string serviceName)
         /// Stops Subutai Social P2P service (in case if running - was not deleted by previous installation)
         /// </summary>
@@ -445,9 +532,7 @@ namespace Deployment
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai info ipaddr");
             //todo: delete old
-            ssh_res_old = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                "sudo bash subutai management_network detect");
-            logger.Info("Import management address returned by subutai info: {0}, by network_management: {1}", ssh_res, ssh_res_old);
+            logger.Info("Import management address returned by subutai info: {0}", ssh_res);
             
             string rhIP = Deploy.com_out(ssh_res, 1);
             if (!is_ip_address(rhIP))
@@ -620,8 +705,11 @@ namespace Deployment
         /// <param name="tname">Template name</param>
         private static  string check_templ(string tname)
         {
+            //string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+            //        "ubuntu", "ubuntu", $"du -b {tname}_log"); //find size in bytes
+            string fname = $"{rhTemplatePlace}/{tname}-subutai-template_*";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                    "ubuntu", "ubuntu", $"du -b {tname}_log"); //find size in bytes
+                    "ubuntu", "ubuntu", $"du -b {fname}"); //find size in bytes
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);

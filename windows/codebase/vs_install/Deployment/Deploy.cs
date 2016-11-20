@@ -8,19 +8,19 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
-using System.Reflection;
+//using System.Reflection;
 using System.Threading;
 using Deployment.items;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
 using NLog;
-using MonoTorrent.Client;
-using MonoTorrent.Client.Encryption;
-using MonoTorrent.Common;
+//using MonoTorrent.Client;
+//using MonoTorrent.Client.Encryption;
+//using MonoTorrent.Common;
 using Renci.SshNet;
 using File = System.IO.File;
-using Microsoft.Win32;
+//using Microsoft.Win32;
 
 
 namespace Deployment
@@ -596,15 +596,15 @@ namespace Deployment
                 {
                     try
                     {
-                        client.Connect();
+                        client.Connect();//takes ~30 seconds
                         break;
                     }
                     catch(Exception)
                     {
                         cnt++;
-                        if (cnt > 300)
-                        return false;
-                        Thread.Sleep(2000);
+                        if (cnt > 6) // 40*8 = 240 seconds 4 minutes
+                             return false;
+                        Thread.Sleep(10000);//check every 5 seconds
                     }
                 }
                 client.Disconnect();
