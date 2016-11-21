@@ -15,6 +15,7 @@ namespace uninstall_clean
         
         public static void remove_app_vbox(string app_name)
         {
+            
             DialogResult drs = MessageBox.Show($"Remove {app_name}? Please, do not remove if uninstalling from Control Panel. Uninstall {app_name} separately."  , $"Removing {app_name}",
                               MessageBoxButtons.YesNo,
                               MessageBoxIcon.Question,
@@ -193,16 +194,25 @@ namespace uninstall_clean
                         {
                             string vmName = wrd.Replace("\"", "");
 
-                            DialogResult drs = MessageBox.Show($"Remove virtual machine {wrd}?", "Subutai Virtual Machines",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question,
-                                MessageBoxDefaultButton.Button1);
-                            if (drs == DialogResult.Yes)
+                            if (!clean.isSilent)
                             {
-                                string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
-                                Thread.Sleep(5000);
-                                string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false);
-                                Thread.Sleep(5000);
+                                DialogResult drs = MessageBox.Show($"Remove virtual machine {wrd}?", "Subutai Virtual Machines",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Question,
+                                    MessageBoxDefaultButton.Button1);
+                                if (drs == DialogResult.Yes)
+                                {
+                                    string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
+                                    Thread.Sleep(5000);
+                                    string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false);
+                                    Thread.Sleep(5000);
+                                }
+                            }else
+                            {
+                                    string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
+                                    Thread.Sleep(5000);
+                                    string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false);
+                                    Thread.Sleep(5000);
                             }
                         }
                     }

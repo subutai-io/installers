@@ -11,26 +11,32 @@ namespace uninstall_clean
         //private static NLog.logger logger = LogManager.GetCurrentClasslogger();
         public static string sysDrive = "";
         public static string  SubutaiDir = AP.get_env_var("Subutai");
+        public static bool isSilent = false;
+        public static string[] cmd_args = Environment.GetCommandLineArgs();
         public clean()
         {
             InitializeComponent();
+            
             progressBar1.Visible = true;
             label2.Visible = true;
             label1.Text = "Removing Subutai Social";
+            isSilent = defineSilent(cmd_args[1]);
         }
 
         private void clean_Load(object sender, EventArgs e)
         {
-            DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
+            if (!isSilent)
+            {
+                DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
                  MessageBoxButtons.YesNo,
                  MessageBoxIcon.Question,
                  MessageBoxDefaultButton.Button1);
 
-            if (drs != DialogResult.Yes)
-            {
-                Environment.Exit(0);
+                if (drs != DialogResult.Yes)
+                {
+                    Environment.Exit(0);
+                }
             }
-
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             sysDrive = Path.GetPathRoot(sysPath);
             SubutaiDir = AP.get_env_var("Subutai");
@@ -165,18 +171,25 @@ namespace uninstall_clean
                      FD.delete_Shortcuts("Subutai");
                      //UpdateProgress(40);
                      StageReporter("", "Removing Subutai directories");
+                     mess = "";
                      if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
                      {
-                         DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
-                                         MessageBoxButtons.YesNo,
-                                         MessageBoxIcon.Question,
-                                         MessageBoxDefaultButton.Button1);
-                         mess = "";
-                         if (drs == DialogResult.Yes)
+                         if (!isSilent)
                          {
-                             mess = FD.delete_dir(SubutaiDir);
-                         }
+                             DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
+                                             MessageBoxButtons.YesNo,
+                                             MessageBoxIcon.Question,
+                                             MessageBoxDefaultButton.Button1);
 
+
+                             if (drs == DialogResult.Yes)
+                             {
+                                 mess = FD.delete_dir(SubutaiDir);
+                             }
+                         } else
+                         {
+                                mess = FD.delete_dir(SubutaiDir);
+                         }
                          if (mess.Contains("Can not"))
                          {
                              MessageBox.Show($"Folder {SubutaiDir} can not be removed. Please delete it manually",
@@ -254,21 +267,30 @@ namespace uninstall_clean
                   VBx.remove_vm();
                   //Remove Oracle VirtualBox
                   StageReporter("", "Removing Oracle Virtual Box software");
-                  VBx.remove_app_vbox_short("Oracle VirtualBox");
-
+                  if (!isSilent) {
+                      VBx.remove_app_vbox_short("Oracle VirtualBox");
+                  }
 
                   SetIndeterminate(false);
                   UpdateProgress(100);
                   StageReporter("", "Finished");
-                  MessageBox.Show("Subutai Social uninstalled", "Information", MessageBoxButtons.OK);
+                  MessageBox.Show("Subutai Social uninstalled. Please delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it", "Information", MessageBoxButtons.OK);
                   Environment.Exit(0);
                }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
 
- 
-    private void progressBar1_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Defines if uninstall shuold be silent.
+        /// </summary>
+        /// <param name="arg1">The arg1.</param>
+        /// <returns></returns>
+        private bool defineSilent(string arg1)
         {
-
+            if (arg1.ToLower().Contains("silent"))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

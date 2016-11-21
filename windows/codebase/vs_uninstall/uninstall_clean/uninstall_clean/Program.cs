@@ -8,6 +8,7 @@ namespace uninstall_clean
     static class Program
     {
         public static clean form1;
+        
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -16,7 +17,7 @@ namespace uninstall_clean
         {
             WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
             bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-
+            
             if (!hasAdministrativeRight)
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
