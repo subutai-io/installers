@@ -192,7 +192,7 @@ namespace uninstall_clean
                                     mess = FD.delete_dir(SubutaiDir);
                                  } else
                                  {
-                                    mess = FD.delete_dir(Path.Combine(SubutaiDir, "bin"));
+                                     mess = FD.delete_dir_bin(SubutaiDir);
                                  }
                              }
                          } else
@@ -203,12 +203,12 @@ namespace uninstall_clean
                              }
                              else
                              {
-                                 mess = FD.delete_dir(Path.Combine(SubutaiDir, "bin"));
+                                 mess = FD.delete_dir_bin(SubutaiDir);
                              }
                          }
                          if (mess.Contains("Can not"))
                          {
-                             MessageBox.Show($"Folder {SubutaiDir} can not be removed. Please delete it manually",
+                             MessageBox.Show($"Folder {SubutaiDir}\\bin can not be removed. Please delete it manually",
                                  "Removing Subutai folder", MessageBoxButtons.OK);
                          }
                      }
@@ -290,7 +290,8 @@ namespace uninstall_clean
                   SetIndeterminate(false);
                   UpdateProgress(100);
                   StageReporter("", "Finished");
-                  MessageBox.Show("Subutai Social uninstalled. Please delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it", "Information", MessageBoxButtons.OK);
+                  string mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it"); 
+                  MessageBox.Show( mesg, "Uninstall Subutai Social", MessageBoxButtons.OK);
                   Environment.Exit(0);
                }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }

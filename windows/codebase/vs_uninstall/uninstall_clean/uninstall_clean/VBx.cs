@@ -15,8 +15,10 @@ namespace uninstall_clean
         
         public static void remove_app_vbox(string app_name)
         {
-            
-            DialogResult drs = MessageBox.Show($"Remove {app_name}? Please, do not remove if uninstalling from Control Panel. Uninstall {app_name} separately."  , $"Removing {app_name}",
+
+            string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
+            //DialogResult drs = MessageBox.Show($"Remove {app_name}? Please, do not remove if uninstalling from Control Panel. Uninstall {app_name} separately."  , $"Removing {app_name}",
+            DialogResult drs = MessageBox.Show(mesg, $"Removing {app_name}",
                               MessageBoxButtons.YesNo,
                               MessageBoxIcon.Question,
                               MessageBoxDefaultButton.Button1);
@@ -109,14 +111,16 @@ namespace uninstall_clean
             FD.delete_Shortcut(shcutPath, appName, true);
             clean.StageReporter("", "Removing from %Path%");
             FD.remove_from_Path(dirStart);
-            String mesg = String.Format("Oracle VirtualBox removed from Your machine. \n\n Please do not forget to RESTART windows before new installation!");
+            mesg = string.Format("Oracle VirtualBox removed from Your machine. \n\n Please do not forget to RESTART windows before new installation!");
             MessageBox.Show(mesg, "Removing Oracle VirtualBox", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
         }
 
         public static void remove_app_vbox_short(string app_name)
         {
-            DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
+            string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
+            //DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
+            DialogResult drs = MessageBox.Show(mesg, $"Removing {app_name}",
                   MessageBoxButtons.YesNo,
                   MessageBoxIcon.Question,
                   MessageBoxDefaultButton.Button1);
@@ -160,14 +164,14 @@ namespace uninstall_clean
             }
             //MessageBox.Show(res, "Uninstalling VirtualBox", MessageBoxButtons.OK);
 
-            String mesg = "";
+            mesg = "";
             if (AP.app_installed("Oracle\\VirtualBox") == 0)
             {
-                mesg = String.Format("Oracle VirtualBox removed from Your machine. \n\n Please do not forget to RESTART windows before new installation!");
+                mesg = string.Format("Oracle VirtualBox removed from Your machine. \n\n Please do not forget to RESTART windows before new installation!");
             }
             else
             {
-                mesg = String.Format("Oracle VirtualBox was not removed from Your machine");
+                mesg = string.Format("Oracle VirtualBox was not removed from Your machine");
             }
             MessageBox.Show(mesg, "Removing Oracle VirtualBox", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
 
