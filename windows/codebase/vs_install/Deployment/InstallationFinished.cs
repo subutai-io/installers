@@ -37,7 +37,7 @@ namespace Deployment
         private void clean(string appdir)
         {
             
-            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}");
+            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}",  "Silent NoAll");
         }
 
         private void InstallationFinished_Load(object sender, EventArgs e)
@@ -60,7 +60,7 @@ namespace Deployment
             {
                 MessageBox.Show("Installation was interrupted, removing partially installed Subutai Social", "Installation failed", MessageBoxButtons.OK);
                 clean(dir2clean);
-                this.Close();//check can not to ve closed
+                this.Close();
             }
             if (!need2clean)
             {

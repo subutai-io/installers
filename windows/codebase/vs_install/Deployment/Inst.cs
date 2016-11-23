@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.Win32;
 using NLog;
 using Renci.SshNet;
+using System.Windows.Forms;
 
 namespace Deployment
 {
@@ -133,7 +134,7 @@ namespace Deployment
                     try
                     {
                         rk.SetValue("UninstallString", strUninst);
-                        rk.SetValue("QuietUninstallString", strUninst);
+                        rk.SetValue("QuietUninstallString", $"{strUninst} Silent NoAll");
                         rk.Close();
                         logger.Info("Updated uninstall strings");
                         return true;
@@ -517,18 +518,28 @@ namespace Deployment
             // installing management template
             Deploy.StageReporter("", "Importing management");
             b_res = import_templ_task("management");
+            string ssh_res = "";
             if (!b_res)
             {
                 logger.Info("trying import management again");
+                //need to remove previouis import
+                string killcmd = "sudo kill `ps -ef | grep import | grep -v grep | awk '{print $2}'`";
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                    killcmd);
+                logger.Info("Importing stuck first time, killing processes: {0}", ssh_res);
+
                 b_res = import_templ_task("management");
                 if (!b_res)
                 {
-                    logger.Info("import management failed second time");
-                    Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
-                    Program.form1.Visible = false;
+                    Program.form1.Invoke((MethodInvoker)delegate
+                    {
+                        logger.Info("import management failed second time");
+                        Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
+                        Program.form1.Visible = false;
+                    });
                 }
             }
-            string ssh_res = "", ssh_res_old = "";
+           
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai info ipaddr");
             //todo: delete old
@@ -632,7 +643,7 @@ namespace Deployment
                 logger.Info("Import {0}",  tname);
                 while (true)
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(20000);//checking every 20 seconds
                     if (token.IsCancellationRequested)
                     {
                         logger.Info("Watcher cancelled");
@@ -644,13 +655,12 @@ namespace Deployment
                     {
                         //will check 5 times more
                         cnt++;
-                        //wait 200 seconds for connection recovered
-                        if (cnt >= 10)
+                        //wait 300 seconds - 6 minutes for connection recovered
+                        if (cnt >= 15)
                         {
-                            //stop 
+                            //if waiting more than 6 minutes - stop 
                             logger.Info("Cancelling from watcher");
                             tokenSource.Cancel();
-                            //break;      //////////////////check this!
                         } 
                     } else
                     {
@@ -664,8 +674,9 @@ namespace Deployment
             {
                 string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
                         "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
-
+                
                 string stcode = Deploy.com_out(ssh_res, 0);
+                string stcout = Deploy.com_out(ssh_res, 1);
                 string sterr = Deploy.com_out(ssh_res, 2);
 
                 logger.Info("Import {0}: {1}, code: {2}, err: {3}",
@@ -701,19 +712,15 @@ namespace Deployment
         /// <summary>
         /// private static  string check_templ(string tname)
         /// Check if import template is running, runs as separate task
+        /// Checks sum of sizes of all *.tar.gz files in /mnt/liblxc/tmpdir
         /// </summary>
         /// <param name="tname">Template name</param>
         private static  string check_templ(string tname)
         {
-            //string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-            //        "ubuntu", "ubuntu", $"du -b {tname}_log"); //find size in bytes
-            //string fname = $"{rhTemplatePlace}/{tname}-subutai-template_*";
-            //string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-            //        "ubuntu", "ubuntu", $"du -b {fname}"); //find size in bytes
-
-            string fname = $"{rhTemplatePlace}/*.tar.gz --total | grep total";
+          
+            string fname = $"{rhTemplatePlace}/*.tar.gz";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                    "ubuntu", "ubuntu", $"du -b {fname}"); //find size in bytes
+                    "ubuntu", "ubuntu", $"du -b {fname} --total | grep total"); //find size in bytes
 
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);

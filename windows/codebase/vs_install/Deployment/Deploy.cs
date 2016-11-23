@@ -8,20 +8,14 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
-//using System.Reflection;
 using System.Threading;
 using Deployment.items;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
 using NLog;
-//using MonoTorrent.Client;
-//using MonoTorrent.Client.Encryption;
-//using MonoTorrent.Common;
 using Renci.SshNet;
 using File = System.IO.File;
-//using Microsoft.Win32;
-
 
 namespace Deployment
 {

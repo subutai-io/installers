@@ -84,7 +84,7 @@ namespace Deployment
                 // DOWNLOAD REPO
                 Deploy.StageReporter("Downloading prerequisites", "");
                 Deploy.HideMarquee();
-                  TC.download_repo();
+                TC.download_repo();
             }
         }
 

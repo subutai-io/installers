@@ -168,7 +168,7 @@ namespace Deployment
             }
 
             //RAM > 4000 KB
-            if ((long)hostRam < 3000) //2000
+            if ((long)hostRam < 3800) 
             {
                 l_RAM.ForeColor = Color.Red;
                 tb_Info.Text += Environment.NewLine;
