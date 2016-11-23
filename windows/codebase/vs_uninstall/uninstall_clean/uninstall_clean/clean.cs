@@ -12,15 +12,18 @@ namespace uninstall_clean
         public static string sysDrive = "";
         public static string  SubutaiDir = AP.get_env_var("Subutai");
         public static bool isSilent = false;
+        public static bool removeAll = true;
         public static string[] cmd_args = Environment.GetCommandLineArgs();
         public clean()
         {
             InitializeComponent();
-            
             progressBar1.Visible = true;
             label2.Visible = true;
             label1.Text = "Removing Subutai Social";
-            isSilent = defineSilent(cmd_args[1]);
+            if (cmd_args.Length > 1)
+                isSilent = defineSilent(cmd_args[1]);
+            if (cmd_args.Length > 2)
+                removeAll = defineDeleteAll(cmd_args[2]);
         }
 
         private void clean_Load(object sender, EventArgs e)
@@ -184,11 +187,24 @@ namespace uninstall_clean
 
                              if (drs == DialogResult.Yes)
                              {
-                                 mess = FD.delete_dir(SubutaiDir);
+                                 if (removeAll)
+                                 {
+                                    mess = FD.delete_dir(SubutaiDir);
+                                 } else
+                                 {
+                                    mess = FD.delete_dir(Path.Combine(SubutaiDir, "bin"));
+                                 }
                              }
                          } else
                          {
-                                mess = FD.delete_dir(SubutaiDir);
+                             if (removeAll)
+                             {
+                                 mess = FD.delete_dir(SubutaiDir);
+                             }
+                             else
+                             {
+                                 mess = FD.delete_dir(Path.Combine(SubutaiDir, "bin"));
+                             }
                          }
                          if (mess.Contains("Can not"))
                          {
@@ -280,17 +296,36 @@ namespace uninstall_clean
         }
 
         /// <summary>
-        /// Defines if uninstall shuold be silent.
+        /// Defines if uninstall should be silent.
         /// </summary>
-        /// <param name="arg1">The arg1.</param>
+        /// <param name="arg">The arg1.</param>
         /// <returns></returns>
-        private bool defineSilent(string arg1)
+        private bool defineSilent(string arg)
         {
-            if (arg1.ToLower().Contains("silent"))
+            if (arg.ToLower().Contains("silent"))
+            {
+                return true;
+            }
+
+            if (arg.ToLower().Contains("noall"))
             {
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Defines if uninstall should delete all from installation directory.
+        /// </summary>
+        /// <param name="arg">The arg1.</param>
+        /// <returns></returns>
+        private bool defineDeleteAll(string arg)
+        {
+            if (arg.ToLower().Contains("no"))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
