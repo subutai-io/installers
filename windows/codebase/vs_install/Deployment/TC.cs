@@ -17,7 +17,7 @@ namespace Deployment
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private static readonly Dictionary<string, string> _arguments = Program.form1._arguments;
-        private static readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";//name of VM for Subutai
+        public static readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";//name of VM for Subutai
         private static readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
         public static string snapFile = ""; //Name of snap file to be installed on VM
         public static string[] rows; //rows read from repo descriptor file

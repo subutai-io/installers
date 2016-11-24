@@ -337,14 +337,14 @@ namespace Deployment
                        Program.form1.Visible = false;
                    });
 
-                   Program.form2.Invoke((MethodInvoker)delegate
-                   {
+                   //Program.form2.Invoke((MethodInvoker)delegate
+                   //{
                        //logger.Info("show finished = {0}", finished);
                        InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
                        logger.Info("will show form2 from task factory");
                        form2.Show();
                        //show_finished();
-                   });
+                   //});
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
                .ContinueWith((prevTask) =>
                {

@@ -529,12 +529,36 @@ namespace Deployment
                     killcmd);
                 logger.Info("Importing stuck first time, killing processes: {0}", ssh_res);
 
+                if (ssh_res.Contains("Connection Error"))
+                {
+                    //restarting VM
+                    if (!VMs.stop_vm(TC._cloneName))
+                    {
+                        //can not stop VM
+                        Program.ShowError("Can not stop VM, please check VM state and try to install later", "Can not stop VM");
+
+                    };
+                    if (!VMs.start_vm(TC._cloneName))
+                    {
+                        //can not start VM
+                        Program.ShowError("Can not start VM, please check VM state and try to install later", "Can not start VM");
+
+                    };
+
+                    string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
+                    FD.edit_known_hosts(kh_path);
+
+                    if (!VMs.waiting_4ssh(TC._cloneName))
+                    {
+                        Program.ShowError("Can not establish connection with VM, please check VM state and try to install later", "Can not start VM");
+                    };
+                }
                 b_res = import_templ_task("management");
                 if (!b_res)
                 {
+                    logger.Info("import management failed second time");
                     Program.form1.Invoke((MethodInvoker)delegate
                     {
-                        logger.Info("import management failed second time");
                         Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
                         Program.form1.Visible = false;
                     });
@@ -630,28 +654,6 @@ namespace Deployment
                         break;
                     }
                     Thread.Sleep(10000);//checking every 10 seconds
-                    ////check if ssh connection works every 10 seconds + 29 seconds for connection
-                    //bool res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
-                    //logger.Info("Checking ssh connection: {0}", res_b);
-                    //if (!res_b)
-                    //{
-                    //    //no ssh connection
-                    //    Thread.Sleep(20000);
-                    //    cnt_ssh++;
-                    //    if (cnt_ssh > 3) //(~20 minu)
-                    //    {
-                    //        string mesg = string.Format("Cannot establish connection with Virtual Machine. \n\nPlease chack VM state and network state and restart installation");
-                    //        MessageBox.Show(mesg,
-                    //            "Cannot establish cinnection", 
-                    //            MessageBoxButtons.OK,
-                    //            MessageBoxIcon.Error);
-                    //        logger.Info("Cancelling from watcher - no ssh connection");
-                    //        tokenSource.Cancel();
-                    //    }
-                    //    continue;
-                    //}
-                    
-
                     string res = check_templ(tname);
                     logger.Info("res = {0}", res);
                     if (res.Contains("Connection Error"))
@@ -660,12 +662,8 @@ namespace Deployment
                         cnt_ssh++;
                         if (cnt_ssh > 5) //(~5 min)
                         {
-                            string mesg = string.Format("Cannot establish connection with Virtual Machine. \n\nPlease chack VM state and network state and restart installation");
-                            MessageBox.Show(mesg,
-                                "Cannot establish cinnection",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
                             logger.Info("Cancelling from watcher - no ssh connection");
+                            imported = false;
                             tokenSource.Cancel();
                          }
                         continue;

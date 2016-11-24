@@ -22,7 +22,7 @@ namespace Deployment
         /// <returns>true if started, false if not</returns>
         public static bool start_vm(string name)
         {
-            //Form1.StageReporter("", "Starting VM");
+            Deploy.StageReporter("Starting virtual machine", "");
             string res = Deploy.LaunchCommandLineApp("vboxmanage", 
                 $"startvm --type headless {name} ");
 
@@ -30,12 +30,13 @@ namespace Deployment
             logger.Info("vm 1: {0} stdout: {1}", name, Deploy.com_out(res, 1));
 
             string err = Deploy.com_out(res, 2);
-            if (err != null && err!="" )
+            //if (err != null && err!="" )
+            if (!res.Contains("successfully"))
             {
                 logger.Info("vm 1: {0} stdout: {1}", name, err);
                 return false;
             }
-          return true;
+            return true;
         }
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace Deployment
         /// <returns>true if stopped, false if not</returns>
         public static bool stop_vm(string name)
         {
-            Deploy.StageReporter("Stopping machine", "");
+            Deploy.StageReporter("Stopping virtual machine", "");
             string res = Deploy.LaunchCommandLineApp("vboxmanage", 
                 $"controlvm {name} poweroff soft");
             logger.Info("Stopping machine: {0}", res);
@@ -53,7 +54,8 @@ namespace Deployment
             logger.Info("vm 1: {0} stdout: {1}", name, Deploy.com_out(res, 1));
 
             string err = Deploy.com_out(res, 2);
-            if (err != null && err != "")
+            //if (err != null && err != "")
+            if (!res.Contains("100%"))
             {
                 logger.Info("vm 1: {0} stdout: {1}", name, err);
                 return false;
