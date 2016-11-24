@@ -175,7 +175,7 @@ namespace uninstall_clean
                      //UpdateProgress(40);
                      StageReporter("", "Removing Subutai directories");
                      mess = "";
-                      if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
+                     if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
                      {
                          if (!isSilent)
                          {

@@ -31,13 +31,13 @@ namespace uninstall_clean
 
         public static string delete_dir_bin(string dirName)
         {
+            string binDir = Path.Combine(dirName, "bin");
             try
             {
-                string binDir = Path.Combine(dirName, "bin");
-                if (Directory.Exists(dirName))
-                    Directory.Delete(dirName, true);
+                if (Directory.Exists(binDir))
+                    Directory.Delete(binDir, true);
 
-                string[] files = Directory.GetFiles(dirName, "*", SearchOption.TopDirectoryOnly);
+                string[] files = Directory.GetFiles(binDir, "*", SearchOption.TopDirectoryOnly);
                 foreach (string fl in files)
                 {
                     File.Delete(fl);
@@ -48,7 +48,7 @@ namespace uninstall_clean
             catch (Exception ex)
             {
 
-                return "Can not delete folder " + dirName + "\\bin and files. Please delete manually." + ex.Message.ToString();
+                return "Can not delete folder " + binDir + " and files. Please delete manually." + ex.Message.ToString();
             }
         }
         public static void deleteDirectory(string path, bool recursive)
