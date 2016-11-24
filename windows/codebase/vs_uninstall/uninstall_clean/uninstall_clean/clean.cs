@@ -30,7 +30,7 @@ namespace uninstall_clean
         {
             if (!isSilent)
             {
-                DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
+                 DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
                  MessageBoxButtons.YesNo,
                  MessageBoxIcon.Question,
                  MessageBoxDefaultButton.Button1);
@@ -175,7 +175,7 @@ namespace uninstall_clean
                      //UpdateProgress(40);
                      StageReporter("", "Removing Subutai directories");
                      mess = "";
-                     if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
+                      if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
                      {
                          if (!isSilent)
                          {
@@ -291,7 +291,7 @@ namespace uninstall_clean
                   UpdateProgress(100);
                   StageReporter("", "Finished");
                   string mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it"); 
-                  MessageBox.Show( mesg, "Uninstall Subutai Social", MessageBoxButtons.OK);
+                  MessageBox.Show( mesg, "Uninstall Subutai Social", MessageBoxButtons.OK, MessageBoxIcon.Information);
                   Environment.Exit(0);
                }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
