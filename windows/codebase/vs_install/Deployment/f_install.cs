@@ -279,8 +279,15 @@ namespace Deployment
 
                     if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
                     {
-                        TC.deploy_p2p();
-                        logger.Info("Stage: {0}", "deploy-p2p");
+                        if (Inst.imported)
+                        {
+                            TC.deploy_p2p();
+                            logger.Info("Stage: {0}", "deploy-p2p");
+                        } else
+                        {
+                            finished = 3;
+                            Program.ShowError("Import was not completed, please check network and VM state and reinstall", "prepare rh faulted");
+                        }
                     }
 
                     stage_counter++;

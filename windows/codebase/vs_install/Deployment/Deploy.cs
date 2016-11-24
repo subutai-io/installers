@@ -465,18 +465,25 @@ namespace Deployment
         {
             using (var client = new SshClient(hostname, port, username, password))
             {
-                client.Connect();
-                SshCommand scmd = client.RunCommand(command);
-                int exitstatus = scmd.ExitStatus;
-                string sresult = scmd.Result;
-                if (sresult == null || sresult == "" || sresult == " " )
-                    sresult = "Empty";
-                string serror = scmd.Error;
-                if (serror == null || serror == "")
-                    serror = "Empty";
-                client.Disconnect();
-                client.Dispose();
-                return exitstatus.ToString() + "|" + sresult + "|" + serror;
+                try
+                {
+                    client.Connect();
+                    SshCommand scmd = client.RunCommand(command);
+                    int exitstatus = scmd.ExitStatus;
+                    string sresult = scmd.Result;
+                    if (sresult == null || sresult == "" || sresult == " ")
+                        sresult = "Empty";
+                    string serror = scmd.Error;
+                    if (serror == null || serror == "")
+                        serror = "Empty";
+                    client.Disconnect();
+                    client.Dispose();
+                    return exitstatus.ToString() + "|" + sresult + "|" + serror;
+                }
+                catch (Exception ex)
+                {
+                    return "1" +  "|" + "Connection Error" + "|" + ex.Message;
+                }
              }
         }
 

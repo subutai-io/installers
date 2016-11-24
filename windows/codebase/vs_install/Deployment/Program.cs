@@ -101,7 +101,7 @@ namespace Deployment
                     UseShellExecute = false,
                     FileName =  cmd,
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    Arguments = ""
+                    Arguments = "Silent NoAll"
                 };
                 var exeProcess = Process.Start(startInfo);
                 Environment.Exit(1);

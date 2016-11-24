@@ -19,6 +19,7 @@ namespace Deployment
         //Installation of components
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private static string rhTemplatePlace = "/mnt/lib/lxc/tmpdir";
+        public static bool imported = false; 
 
         /// <summary>
         /// public static int app_installed(string appName)
@@ -602,29 +603,6 @@ namespace Deployment
         }
 
         /// <summary>
-        /// public static bool import_templ(string tname)
-        /// import template 
-        /// </summary>
-        /// <param name="tname">Template name</param>
-        public static bool import_templ(string tname)
-        {
-            string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
-
-            string stcode = Deploy.com_out(ssh_res, 0);
-            string sterr = Deploy.com_out(ssh_res, 2);
-
-            logger.Info("Import {0}: {1}, code: {2}, err: {3}",
-                tname, ssh_res, stcode, sterr);
-
-            if (stcode != "0") //&&  sterr != "Empty")
-            {
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// public static bool import_templ_task(string tname)
         /// import template in separate task to know if import is running
         /// </summary>
@@ -639,32 +617,78 @@ namespace Deployment
             var watcher = Task.Factory.StartNew(() =>
             {
                 string res0 = "";
-                int cnt = 0;
+                int cnt = 0; //counter for all checks
+                int cnt_download = 0; //counter for stuck download - downloaded size not changed
+                int cnt_ssh = 0; //counter for failed ssh - checks connection with RH
                 logger.Info("Import {0}",  tname);
                 while (true)
                 {
-                    Thread.Sleep(20000);//checking every 20 seconds
+                    cnt++;
                     if (token.IsCancellationRequested)
                     {
                         logger.Info("Watcher cancelled");
                         break;
                     }
+                    Thread.Sleep(10000);//checking every 10 seconds
+                    ////check if ssh connection works every 10 seconds + 29 seconds for connection
+                    //bool res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
+                    //logger.Info("Checking ssh connection: {0}", res_b);
+                    //if (!res_b)
+                    //{
+                    //    //no ssh connection
+                    //    Thread.Sleep(20000);
+                    //    cnt_ssh++;
+                    //    if (cnt_ssh > 3) //(~20 minu)
+                    //    {
+                    //        string mesg = string.Format("Cannot establish connection with Virtual Machine. \n\nPlease chack VM state and network state and restart installation");
+                    //        MessageBox.Show(mesg,
+                    //            "Cannot establish cinnection", 
+                    //            MessageBoxButtons.OK,
+                    //            MessageBoxIcon.Error);
+                    //        logger.Info("Cancelling from watcher - no ssh connection");
+                    //        tokenSource.Cancel();
+                    //    }
+                    //    continue;
+                    //}
+                    
+
                     string res = check_templ(tname);
                     logger.Info("res = {0}", res);
+                    if (res.Contains("Connection Error"))
+                    {
+                        logger.Info("No ssh connection: {0}", res);
+                        cnt_ssh++;
+                        if (cnt_ssh > 5) //(~5 min)
+                        {
+                            string mesg = string.Format("Cannot establish connection with Virtual Machine. \n\nPlease chack VM state and network state and restart installation");
+                            MessageBox.Show(mesg,
+                                "Cannot establish cinnection",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                            logger.Info("Cancelling from watcher - no ssh connection");
+                            tokenSource.Cancel();
+                         }
+                        continue;
+                    } else
+                    {
+                        cnt_ssh = 0;
+                    }
+                    
+                    
                     if (res == res0)
                     {
-                        //will check 5 times more
-                        cnt++;
+                        //will check 15 times more
+                        cnt_download++;
                         //wait 300 seconds - 6 minutes for connection recovered
-                        if (cnt >= 15)
+                        if (cnt_download >= 15)
                         {
                             //if waiting more than 6 minutes - stop 
-                            logger.Info("Cancelling from watcher");
+                            logger.Info("Cancelling from watcher - stuck download");
                             tokenSource.Cancel();
                         } 
                     } else
                     {
-                        cnt = 0;
+                        cnt_download = 0;
                     }
                     res0 = res;
                 }
@@ -705,6 +729,7 @@ namespace Deployment
             if (import.IsCompleted)
             {
                 b_res = import.Result;
+                imported = b_res;
             } 
             return b_res;
        }
@@ -721,7 +746,7 @@ namespace Deployment
             string fname = $"{rhTemplatePlace}/*.tar.gz";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
                     "ubuntu", "ubuntu", $"du -b {fname} --total | grep total"); //find size in bytes
-
+            logger.Info("Checking RH import: {0}", ssh_res);
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);

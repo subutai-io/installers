@@ -104,11 +104,12 @@ namespace Deployment
 
             var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
             ulong vmRam = 2048; //Minimal size
-            //Need to be tested for low-memory machines
-            //if (hostRam < 4100)
+            //Tested - NO
+            //if (hostRam < 2000)
             //{
             //    vmRam = 1024;
             //}
+
             if ((hostRam <= 16500) && (hostRam > 8100))
             {
                 vmRam = hostRam / 2;

@@ -168,6 +168,7 @@ namespace Deployment
             }
 
             //RAM > 4000 KB
+            //here: change
             if ((long)hostRam < 3800) 
             {
                 l_RAM.ForeColor = Color.Red;
@@ -246,9 +247,10 @@ namespace Deployment
                     lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
                     lblCheckResult.ForeColor = Color.Blue;
                     l_VT.ForeColor = Color.DarkBlue;
-                    tb_Info.Text = "Can not define if VT-x is enabled.";
+                    tb_Info.Text = $"Can not define if VT-x is enabled. \nPlease find in {tbxAppDir.Text}bin and run (As Administrator) Microsoft Hardware-assisted virtualization (HAV) detection tool: havdetectiontool.exe";
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "If not sure, close form, cancel installation and check in BIOS.";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "If VT-x is not enabled, close form, cancel installation and enable in BIOS.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += "If VT-x enabled, please turn off Antivirus software for installation time!";
@@ -363,7 +365,6 @@ namespace Deployment
             if (btnInstall.Text.Contains("Exit"))
             {
                 Program.stRun = false;
-                //Program.form_.Close();
             }
 
             Program.form_.Close();
