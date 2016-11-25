@@ -343,7 +343,6 @@ namespace Deployment
                        InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
                        logger.Info("will show form2 from task factory");
                        form2.Show();
-                       //show_finished();
                    //});
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
                .ContinueWith((prevTask) =>

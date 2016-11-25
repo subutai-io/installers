@@ -22,7 +22,7 @@ namespace Deployment
         /// <returns>true if started, false if not</returns>
         public static bool start_vm(string name)
         {
-            Deploy.StageReporter("Starting virtual machine", "");
+            Deploy.StageReporter("", "Starting virtual machine");
             string res = Deploy.LaunchCommandLineApp("vboxmanage", 
                 $"startvm --type headless {name} ");
 
@@ -46,7 +46,7 @@ namespace Deployment
         /// <returns>true if stopped, false if not</returns>
         public static bool stop_vm(string name)
         {
-            Deploy.StageReporter("Stopping virtual machine", "");
+            Deploy.StageReporter("", "Stopping virtual machine");
             string res = Deploy.LaunchCommandLineApp("vboxmanage", 
                 $"controlvm {name} poweroff soft");
             logger.Info("Stopping machine: {0}", res);
@@ -413,6 +413,7 @@ namespace Deployment
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
             Thread.Sleep(5000);
             bool res_b = VMs.vm_reconfigure_nic(vmName);//stop and start machine
+            Deploy.StageReporter("", "Waiting for SSH");
             logger.Info("Waiting for SSH - 2");
             res_b = VMs.waiting_4ssh(vmName);
             if (!res_b)

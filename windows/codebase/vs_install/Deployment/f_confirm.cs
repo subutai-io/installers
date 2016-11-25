@@ -128,7 +128,7 @@ namespace Deployment
             l_VT.Text = hostVT;
             l_VB.Text = vboxVersion;
                    
-            tb_Info.Text = "Subutai can be installed on Windows versions 7(Eng), 8, 8.1, 10.";
+            tb_Info.Text = "Subutai can be installed on Windows versions 7, 8, 8.1, 10.";
             // "* This value may need to be checked in BIOS. If installation fails, check if 
             //hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             tb_Info.Text += Environment.NewLine;
@@ -317,7 +317,6 @@ namespace Deployment
             return null;
         }
 
-
         /// <summary>
         /// private string peerType(RadioButton btn_checked)
         /// Defines installation parameter PeerType by checked radio button
@@ -369,6 +368,7 @@ namespace Deployment
 
             Program.form_.Close();
         }
+
         void cms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             //ToolStripItem item = e.ClickedItem;
@@ -409,6 +409,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Handles the LinkClicked event of the linkTutorials control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="LinkLabelLinkClickedEventArgs"/> instance containing the event data.</param>
         private void linkTutorials_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             LinkLabel ll = (LinkLabel)sender;

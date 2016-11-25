@@ -512,12 +512,10 @@ namespace Deployment
         public static void install_mh_nw()
         {
             //installing master template
-            Deploy.StageReporter("", "Importing master");
-            logger.Info("Importing master");
+            
             bool b_res = import_templ_task("master");
 
             // installing management template
-            Deploy.StageReporter("", "Importing management");
             b_res = import_templ_task("management");
             string ssh_res = "";
             if (!b_res)
@@ -536,13 +534,11 @@ namespace Deployment
                     {
                         //can not stop VM
                         Program.ShowError("Can not stop VM, please check VM state and try to install later", "Can not stop VM");
-
                     };
                     if (!VMs.start_vm(TC._cloneName))
                     {
                         //can not start VM
                         Program.ShowError("Can not start VM, please check VM state and try to install later", "Can not start VM");
-
                     };
 
                     string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
@@ -553,6 +549,17 @@ namespace Deployment
                         Program.ShowError("Can not establish connection with VM, please check VM state and try to install later", "Can not start VM");
                     };
                 }
+                //remove previously installed master
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                    "sudo subutai destroy master");
+                logger.Info("Destroying master to import second time: {0}", ssh_res);
+
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                    "sudo subutai destroy management");
+                logger.Info("Destroying management to import second time: {0}", ssh_res);
+
+                b_res = import_templ_task("master");
+
                 b_res = import_templ_task("management");
                 if (!b_res)
                 {
@@ -637,6 +644,9 @@ namespace Deployment
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
 
+            Deploy.StageReporter("", $"Importing {tname}");
+            logger.Info("Importing {0}", tname);
+            
             //Starting Watcher task as parent, import as child
             var watcher = Task.Factory.StartNew(() =>
             {
