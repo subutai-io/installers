@@ -8,6 +8,6 @@ redist | addtap.bat | 1 | 0 | 1 |1|1|1
 redist | deltapall.bat | 1 | 0 | 1 |1|1|1
 redist | vcredist64.exe | 1 | 0 | 1 |1|1|1
 redist | virtualbox-test.exe | 1 | 1 | 0 |1|1|1
-redist/subutai | subutai_4.0.7_amd64.snap  | 1 | 1 | 0 |1|0|0
-redist/subutai | subutai_4.0.8_amd64-dev.snap | 1 | 1 | 0 |0|1|0
-redist/subutai | subutai_4.0.8_amd64-master.snap | 1 | 1 | 0 |0|0|1
+redist/subutai | subutai_4.0.8_amd64.snap  | 1 | 1 | 0 |1|0|0
+redist/subutai | subutai_4.0.9_amd64-dev.snap | 1 | 1 | 0 |0|1|0
+redist/subutai | subutai_4.0.9_amd64-master.snap | 1 | 1 | 0 |0|0|1
