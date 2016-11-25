@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace Deployment
 {
-    public partial class InstallationFinished : Form//DevExpress.XtraEditors.XtraForm
+    public partial class InstallationFinished : Form
     {
         bool opacityChanging = false;
         bool need2clean = false;
@@ -33,11 +33,15 @@ namespace Deployment
                 dir2clean = appdir;
             } 
         }
-           
+
+        /// <summary>
+        /// Runs uninstall application
+        /// </summary>
+        /// <param name="appdir">The appdir - installation folder</param>
         private void clean(string appdir)
         {
             
-            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}");
+            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}",  "Silent NoAll");
         }
 
         private void InstallationFinished_Load(object sender, EventArgs e)
@@ -45,6 +49,9 @@ namespace Deployment
  
         }
 
+        /// <summary>
+        /// Changes the opacity of "finished" message.
+        /// </summary>
         private void ChangeOpacity()
         {
             for (var i = 1.0; i > 0; i -= 0.01)
@@ -60,7 +67,7 @@ namespace Deployment
             {
                 MessageBox.Show("Installation was interrupted, removing partially installed Subutai Social", "Installation failed", MessageBoxButtons.OK);
                 clean(dir2clean);
-                this.Close();//check can not to ve closed
+                this.Close();
             }
             if (!need2clean)
             {
@@ -70,8 +77,13 @@ namespace Deployment
                 });
             }
         }
-     
 
+
+        /// <summary>
+        /// Handles the Click event of the InstallationFinished control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void InstallationFinished_Click(object sender, EventArgs e)
         {
             if (!opacityChanging)
@@ -81,6 +93,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Handles the Click event of the label2 control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void label2_Click(object sender, EventArgs e)
         {
             if (!opacityChanging)
@@ -90,6 +107,11 @@ namespace Deployment
             }
        }
 
+        /// <summary>
+        /// Handles the FormClosing event of the InstallationFinished control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="FormClosingEventArgs"/> instance containing the event data.</param>
         private void InstallationFinished_FormClosing(object sender, FormClosingEventArgs e)
         {
            if (!opacityChanging)
@@ -99,6 +121,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Handles the MouseHover event of the InstallationFinished control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
         private void InstallationFinished_MouseHover(object sender, EventArgs e)
         {
             if (!opacityChanging)

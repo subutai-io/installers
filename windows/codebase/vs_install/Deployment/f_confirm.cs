@@ -128,7 +128,7 @@ namespace Deployment
             l_VT.Text = hostVT;
             l_VB.Text = vboxVersion;
                    
-            tb_Info.Text = "Subutai can be installed on Windows versions 7(Eng), 8, 8.1, 10.";
+            tb_Info.Text = "Subutai can be installed on Windows versions 7, 8, 8.1, 10.";
             // "* This value may need to be checked in BIOS. If installation fails, check if 
             //hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             tb_Info.Text += Environment.NewLine;
@@ -168,12 +168,13 @@ namespace Deployment
             }
 
             //RAM > 4000 KB
-            if ((long)hostRam < 4000) //2000
+            //here: change
+            if ((long)hostRam < 3800) 
             {
                 l_RAM.ForeColor = Color.Red;
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Subutai needs more than 4000 MB of RAM.";
+                tb_Info.Text += "Subutai needs more than 3000 MB of RAM.";
                 res = false;
             }
             else
@@ -246,9 +247,10 @@ namespace Deployment
                     lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
                     lblCheckResult.ForeColor = Color.Blue;
                     l_VT.ForeColor = Color.DarkBlue;
-                    tb_Info.Text = "Can not define if VT-x is enabled.";
+                    tb_Info.Text = $"Can not define if VT-x is enabled. \nPlease find in {tbxAppDir.Text}bin and run (As Administrator) Microsoft Hardware-assisted virtualization (HAV) detection tool: havdetectiontool.exe";
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "If not sure, close form, cancel installation and check in BIOS.";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "If VT-x is not enabled, close form, cancel installation and enable in BIOS.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += "If VT-x enabled, please turn off Antivirus software for installation time!";
@@ -315,7 +317,6 @@ namespace Deployment
             return null;
         }
 
-
         /// <summary>
         /// private string peerType(RadioButton btn_checked)
         /// Defines installation parameter PeerType by checked radio button
@@ -347,7 +348,6 @@ namespace Deployment
             string peerOption = peerType(getCheckedRadio(gbxTypeInst));
             Program.inst_Dir = appDir;
 
-
             if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {
                 Program.inst_args = $"{Program.inst_args} appDir={appDir} peer={peerOption}";
@@ -355,7 +355,7 @@ namespace Deployment
                 //Program.form_.Close();
             } else
             {
-                MessageBox.Show("Cannot define application folder for Subutai Social, please uinstall from Control Panel", 
+                MessageBox.Show("Cannot define application folder for Subutai Social, please uninstall from Control Panel", 
                     "Installation Folder error",
                     MessageBoxButtons.OK);
                 Environment.Exit(1);
@@ -364,11 +364,11 @@ namespace Deployment
             if (btnInstall.Text.Contains("Exit"))
             {
                 Program.stRun = false;
-                //Program.form_.Close();
             }
 
             Program.form_.Close();
         }
+
         void cms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             //ToolStripItem item = e.ClickedItem;
@@ -409,6 +409,11 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Handles the LinkClicked event of the linkTutorials control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="LinkLabelLinkClickedEventArgs"/> instance containing the event data.</param>
         private void linkTutorials_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             LinkLabel ll = (LinkLabel)sender;

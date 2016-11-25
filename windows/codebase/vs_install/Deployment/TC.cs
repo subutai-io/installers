@@ -17,7 +17,7 @@ namespace Deployment
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private static readonly Dictionary<string, string> _arguments = Program.form1._arguments;
-        private static readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";//name of VM for Subutai
+        public static readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";//name of VM for Subutai
         private static readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
         public static string snapFile = ""; //Name of snap file to be installed on VM
         public static string[] rows; //rows read from repo descriptor file
@@ -140,20 +140,15 @@ namespace Deployment
             else // e == null
             {
                 logger.Info("File not downloaded");
+
             }
 
             //Start download
-            var row = rows[_prerequisitesDownloaded];
+            var row = rows[_prerequisitesDownloaded];//here is error!
             var folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
 
             var folder = folderFile[0].Trim();
             var file = folderFile[1].Trim();
-
-            //download tray-dev if installing -dev version
-            //if (file.Contains("tray") && _arguments["params"].Contains("dev"))
-            //{
-            //    file = file.Replace("tray.", "tray-dev.");
-            //}
 
             if (_prerequisitesDownloaded < rows.Length - 1) //For last row will change OnComplete
             {
@@ -214,7 +209,6 @@ namespace Deployment
                     logger.Error("Verification of MD5 checksums for {0} failed: calc = {1}", filepath, calculatedMd5);
                 }
             }
-            Deploy.StageReporter(" ", " ");
         }
 
         /// <summary>
@@ -224,12 +218,12 @@ namespace Deployment
         public static void unzip_extracted()
         {
             // UNZIP FILES
-            //Deploy.StageReporter(" ", " ");
-            //Deploy.StageReporter("Extracting", "");
+            Deploy.StageReporter(" ", " ");
+            Deploy.StageReporter("Extracting files", "");
             logger.Info("Unzipping");
             Deploy.HideMarquee();
+            //Deploy.ShowMarquee();
             Program.form1._deploy.unzip_files(_arguments["appDir"]);
-            Deploy.StageReporter(" ", " ");
         }
 
         /// <summary>
@@ -271,7 +265,6 @@ namespace Deployment
             {
                 Inst.inst_VBox(appDir);
             }
-            Deploy.StageReporter(" ", " ");
         }
 
         /// <summary>
@@ -315,7 +308,6 @@ namespace Deployment
                 Program.ShowError("Can not Import Snappy, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
-            Deploy.StageReporter(" ", " ");
         }
 
         /// <summary>
@@ -435,7 +427,6 @@ namespace Deployment
             if (_arguments["peer"] == "rh-only")
                 Program.form1.finished = 1;
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
-            Deploy.StageReporter(" ", " ");
         }
 
         /// <summary>
@@ -448,8 +439,8 @@ namespace Deployment
             // DEPLOYING P2P SERVICE
             //_arguments["appDir"] = "C:\\Subutai\\"; for debug
             Deploy.StageReporter(" ", " ");
-            string appPath = _arguments["appDir"];
             Deploy.StageReporter("Installing P2P service", "");
+            string appPath = _arguments["appDir"];
             Deploy.ShowMarquee();
             
             string name = "Subutai Social P2P";

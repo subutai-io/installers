@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Forms;
-using System.Net;
 using NLog;
 using Deployment.items;
-using Renci.SshNet;
+//using Renci.SshNet;
 
 namespace Deployment
 {
@@ -68,14 +66,16 @@ namespace Deployment
         private void f_install_Load(object sender, EventArgs e)
         {
             _deploy.SetEnvironmentVariables();
+            Inst.remove_repo_desc(_arguments["appDir"], _arguments["repo_descriptor"]);
+
             string strUninstall = "";
-            if (FD.copy_uninstall())
+            if (!FD.copy_uninstall())
             {
-                strUninstall = "";
+                strUninstall = Path.Combine(_arguments["appDir"], "bin", "uninstall-clean.exe");
             }
             else
             {
-                strUninstall = _arguments["appDir"];
+                strUninstall = Path.Combine(FD.logDir(), "uninstall-clean.exe");
             };
 
             Inst.update_uninstallString(strUninstall);
@@ -174,7 +174,6 @@ namespace Deployment
                     
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
-                       Deploy.StageReporter(" ", " ");
                        TC.unzip_extracted();
                        logger.Info("Stage unzip: {0}", "unzip-extracted");
                    }
@@ -280,8 +279,15 @@ namespace Deployment
 
                     if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
                     {
-                        TC.deploy_p2p();
-                        logger.Info("Stage: {0}", "deploy-p2p");
+                        if (Inst.imported)
+                        {
+                            TC.deploy_p2p();
+                            logger.Info("Stage: {0}", "deploy-p2p");
+                        } else
+                        {
+                            finished = 3;
+                            Program.ShowError("Import was not completed, please check network and VM state and reinstall", "prepare rh faulted");
+                        }
                     }
 
                     stage_counter++;
@@ -331,14 +337,13 @@ namespace Deployment
                        Program.form1.Visible = false;
                    });
 
-                   Program.form2.Invoke((MethodInvoker)delegate
-                   {
+                   //Program.form2.Invoke((MethodInvoker)delegate
+                   //{
                        //logger.Info("show finished = {0}", finished);
                        InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
                        logger.Info("will show form2 from task factory");
                        form2.Show();
-                       //show_finished();
-                   });
+                   //});
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
                .ContinueWith((prevTask) =>
                {

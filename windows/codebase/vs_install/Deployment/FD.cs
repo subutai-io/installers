@@ -69,7 +69,7 @@ namespace Deployment
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex.Message);
+                    logger.Error(ex.Message + " deleting uninstall");
                     return false;
                 }
             }
@@ -77,11 +77,12 @@ namespace Deployment
             try
             {
                 File.Copy(fpath, fpath_dest, true);
+                logger.Info("File uninstall-clean.exe copied");
                 return true;
             }
             catch (Exception ex)
             {
-                logger.Error(ex.Message);
+                logger.Error(ex.Message + " copying uninstall");
                 return false;
             }
             
@@ -227,6 +228,36 @@ namespace Deployment
                 logger.Error(ex.Message);
             }
         }
-        
+
+        /// <summary>
+        /// Edits the known hosts - removes [local] line.
+        /// </summary>
+        /// <param name="fpath">The path to known_hosts file</param>
+        /// <returns>True on success, false on fault</returns>
+        public static bool edit_known_hosts(string fpath)
+        {
+            string tempFile = $"{ fpath}_temp";
+            try
+            {
+                using (var sr = new StreamReader(fpath))
+                using (var sw = new StreamWriter(tempFile))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (!line.Contains("[localhost]:4567"))
+                            sw.WriteLine(line);
+                    }
+                }
+                File.Delete(fpath);
+                File.Move(tempFile, fpath);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.Error("Editing known_hosts: " + ex.Message);
+                return false;
+            }
+        }
     }
 }

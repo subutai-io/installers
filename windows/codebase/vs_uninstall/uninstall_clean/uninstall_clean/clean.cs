@@ -11,26 +11,35 @@ namespace uninstall_clean
         //private static NLog.logger logger = LogManager.GetCurrentClasslogger();
         public static string sysDrive = "";
         public static string  SubutaiDir = AP.get_env_var("Subutai");
+        public static bool isSilent = false;
+        public static bool removeAll = true;
+        public static string[] cmd_args = Environment.GetCommandLineArgs();
         public clean()
         {
             InitializeComponent();
             progressBar1.Visible = true;
             label2.Visible = true;
             label1.Text = "Removing Subutai Social";
+            if (cmd_args.Length > 1)
+                isSilent = defineSilent(cmd_args[1]);
+            if (cmd_args.Length > 2)
+                removeAll = defineDeleteAll(cmd_args[2]);
         }
 
         private void clean_Load(object sender, EventArgs e)
         {
-            DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
+            if (!isSilent)
+            {
+                 DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
                  MessageBoxButtons.YesNo,
                  MessageBoxIcon.Question,
                  MessageBoxDefaultButton.Button1);
 
-            if (drs != DialogResult.Yes)
-            {
-                Environment.Exit(0);
+                if (drs != DialogResult.Yes)
+                {
+                    Environment.Exit(0);
+                }
             }
-
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             sysDrive = Path.GetPathRoot(sysPath);
             SubutaiDir = AP.get_env_var("Subutai");
@@ -165,21 +174,41 @@ namespace uninstall_clean
                      FD.delete_Shortcuts("Subutai");
                      //UpdateProgress(40);
                      StageReporter("", "Removing Subutai directories");
-                     if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
+                     mess = "";
+                     if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
                      {
-                         DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
-                                         MessageBoxButtons.YesNo,
-                                         MessageBoxIcon.Question,
-                                         MessageBoxDefaultButton.Button1);
-                         mess = "";
-                         if (drs == DialogResult.Yes)
+                         if (!isSilent)
                          {
-                             mess = FD.delete_dir(SubutaiDir);
-                         }
+                             DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
+                                             MessageBoxButtons.YesNo,
+                                             MessageBoxIcon.Question,
+                                             MessageBoxDefaultButton.Button1);
 
+
+                             if (drs == DialogResult.Yes)
+                             {
+                                 if (removeAll)
+                                 {
+                                    mess = FD.delete_dir(SubutaiDir);
+                                 } else
+                                 {
+                                     mess = FD.delete_dir_bin(SubutaiDir);
+                                 }
+                             }
+                         } else
+                         {
+                             if (removeAll)
+                             {
+                                 mess = FD.delete_dir(SubutaiDir);
+                             }
+                             else
+                             {
+                                 mess = FD.delete_dir_bin(SubutaiDir);
+                             }
+                         }
                          if (mess.Contains("Can not"))
                          {
-                             MessageBox.Show($"Folder {SubutaiDir} can not be removed. Please delete it manually",
+                             MessageBox.Show($"Folder {SubutaiDir}\\bin can not be removed. Please delete it manually",
                                  "Removing Subutai folder", MessageBoxButtons.OK);
                          }
                      }
@@ -254,21 +283,50 @@ namespace uninstall_clean
                   VBx.remove_vm();
                   //Remove Oracle VirtualBox
                   StageReporter("", "Removing Oracle Virtual Box software");
-                  VBx.remove_app_vbox_short("Oracle VirtualBox");
-
+                  if (!isSilent) {
+                      VBx.remove_app_vbox_short("Oracle VirtualBox");
+                  }
 
                   SetIndeterminate(false);
                   UpdateProgress(100);
                   StageReporter("", "Finished");
-                  MessageBox.Show("Subutai Social uninstalled", "Information", MessageBoxButtons.OK);
+                  string mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it"); 
+                  MessageBox.Show( mesg, "Uninstall Subutai Social", MessageBoxButtons.OK, MessageBoxIcon.Information);
                   Environment.Exit(0);
                }, TaskContinuationOptions.OnlyOnRanToCompletion);
         }
 
- 
-    private void progressBar1_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Defines if uninstall should be silent.
+        /// </summary>
+        /// <param name="arg">The arg1.</param>
+        /// <returns></returns>
+        private bool defineSilent(string arg)
         {
+            if (arg.ToLower().Contains("silent"))
+            {
+                return true;
+            }
 
+            if (arg.ToLower().Contains("noall"))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Defines if uninstall should delete all from installation directory.
+        /// </summary>
+        /// <param name="arg">The arg1.</param>
+        /// <returns></returns>
+        private bool defineDeleteAll(string arg)
+        {
+            if (arg.ToLower().Contains("no"))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

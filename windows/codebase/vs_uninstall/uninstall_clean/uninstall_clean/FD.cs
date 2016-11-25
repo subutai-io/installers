@@ -18,7 +18,8 @@ namespace uninstall_clean
                 if (Directory.Exists(dirName))
                     Directory.Delete(dirName, true);
 
-                //Thread.Sleep(5000);
+
+
                 return "0";
             }
             catch (Exception ex)
@@ -28,6 +29,28 @@ namespace uninstall_clean
             }
         }
 
+        public static string delete_dir_bin(string dirName)
+        {
+            string binDir = Path.Combine(dirName, "bin");
+            try
+            {
+                if (Directory.Exists(binDir))
+                    Directory.Delete(binDir, true);
+
+                string[] files = Directory.GetFiles(binDir, "*", SearchOption.TopDirectoryOnly);
+                foreach (string fl in files)
+                {
+                    File.Delete(fl);
+                }
+
+                return "0";
+            }
+            catch (Exception ex)
+            {
+
+                return "Can not delete folder " + binDir + " and files. Please delete manually." + ex.Message.ToString();
+            }
+        }
         public static void deleteDirectory(string path, bool recursive)
         {
             // Delete all files and sub-folders?

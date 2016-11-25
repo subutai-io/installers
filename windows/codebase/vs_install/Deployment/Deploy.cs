@@ -8,20 +8,14 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
-using System.Reflection;
 using System.Threading;
 using Deployment.items;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
 using NLog;
-using MonoTorrent.Client;
-using MonoTorrent.Client.Encryption;
-using MonoTorrent.Common;
 using Renci.SshNet;
 using File = System.IO.File;
-using Microsoft.Win32;
-
 
 namespace Deployment
 {
@@ -246,9 +240,12 @@ namespace Deployment
         {
             logger.Info("Unzipping files from {0}", folderPath);
             var filenames = Directory.GetFiles(folderPath, "*.zip", SearchOption.AllDirectories).Select(Path.GetFullPath).ToArray();
+            Deploy.StageReporter("Extracting files", "");
             foreach (var filename in filenames)
             {
                 var fileinfo = new FileInfo(filename);
+                //Deploy.StageReporter("Extracting files", "");
+                Deploy.StageReporter("", filename);
                 logger.Info("Unzipping file {0}", filename);
                 unzip_file(filename, fileinfo.DirectoryName, true);
             }
@@ -468,18 +465,25 @@ namespace Deployment
         {
             using (var client = new SshClient(hostname, port, username, password))
             {
-                client.Connect();
-                SshCommand scmd = client.RunCommand(command);
-                int exitstatus = scmd.ExitStatus;
-                string sresult = scmd.Result;
-                if (sresult == null || sresult == "" || sresult == " " )
-                    sresult = "Empty";
-                string serror = scmd.Error;
-                if (serror == null || serror == "")
-                    serror = "Empty";
-                client.Disconnect();
-                client.Dispose();
-                return exitstatus.ToString() + "|" + sresult + "|" + serror;
+                try
+                {
+                    client.Connect();
+                    SshCommand scmd = client.RunCommand(command);
+                    int exitstatus = scmd.ExitStatus;
+                    string sresult = scmd.Result;
+                    if (sresult == null || sresult == "" || sresult == " ")
+                        sresult = "Empty";
+                    string serror = scmd.Error;
+                    if (serror == null || serror == "")
+                        serror = "Empty";
+                    client.Disconnect();
+                    client.Dispose();
+                    return exitstatus.ToString() + "|" + sresult + "|" + serror;
+                }
+                catch (Exception ex)
+                {
+                    return "1" +  "|" + "Connection Error" + "|" + ex.Message;
+                }
              }
         }
 
@@ -596,15 +600,15 @@ namespace Deployment
                 {
                     try
                     {
-                        client.Connect();
+                        client.Connect();//takes ~30 seconds
                         break;
                     }
                     catch(Exception)
                     {
                         cnt++;
-                        if (cnt > 300)
-                        return false;
-                        Thread.Sleep(2000);
+                        if (cnt > 6) // 40*8 = 240 seconds 4 minutes
+                             return false;
+                        Thread.Sleep(10000);//check every 5 seconds
                     }
                 }
                 client.Disconnect();
