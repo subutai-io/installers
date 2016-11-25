@@ -2,9 +2,11 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.Win32;
 using NLog;
 using Renci.SshNet;
+using System.Windows.Forms;
 
 namespace Deployment
 {
@@ -16,6 +18,8 @@ namespace Deployment
     {
         //Installation of components
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        private static string rhTemplatePlace = "/mnt/lib/lxc/tmpdir";
+        public static bool imported = false; 
 
         /// <summary>
         /// public static int app_installed(string appName)
@@ -47,11 +51,61 @@ namespace Deployment
             RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey86);
             if (rk == null)
             {
-                return "NA";            
+                return "NA";       
             }
             string path = rk.GetValue("Path").ToString();
             return path;
         }
+
+        /// <summary>
+        /// Defines the name of the unique identifier by app name.
+        /// </summary>
+        /// <param name="key">The key where to look.</param>
+        /// <param name="vname2check">The vname2check - name of variable containing app name.</param>
+        /// <param name="name2find">The name2find.</param>
+        /// <param name="rh">Registry Hive.</param>
+        /// <param name="isSubstring">if set to <c>true</c> [is substring] - will look for substrings.</param>
+        /// <returns></returns>
+        public static Dictionary<string, string> define_GUID_by_name(string key,
+            string vname2check,
+            string name2find,
+            RegistryHive rh,
+            bool isSubstring)
+        {
+            var baseKey = RegistryKey.OpenBaseKey(rh, RegistryView.Registry64);
+            RegistryKey rk = baseKey.OpenSubKey(key, true);//Components
+            Dictionary<string, string> dguids = new Dictionary<string, string>();
+            if (rk != null)
+            {
+                foreach (var skey in rk.GetSubKeyNames()) //Product
+                {
+                    RegistryKey rsk = rk.OpenSubKey(skey, true);
+                    if (rsk != null)
+                    {
+                        string name_value = Convert.ToString(rsk.GetValue(vname2check));
+                        if (isSubstring)
+                        {
+                            if (name_value.Contains(name2find))
+                            {
+                                dguids.Add(name_value, skey);
+                            }
+                        }
+                        else
+                        {
+                            if (name_value.Equals(name2find))
+                            {
+                                dguids.Add(name_value, skey);
+                            }
+                        }
+                        rsk.Close();
+                    }
+                }
+                rk.Close();
+            }
+            baseKey.Close();
+            return dguids;
+        }
+
 
         /// <summary>
         /// public static bool update_uninstallString(string strUninst)
@@ -61,24 +115,42 @@ namespace Deployment
         /// <param name="strUninst">Uninstall string</param>
         public static bool update_uninstallString(string strUninst)
         {
-            string subkey = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Subutai";
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey, true);
-            if (rk == null)
+            string key = "SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall";
+            Dictionary<string, string> guids = define_GUID_by_name(key, "DisplayName", "Subutai version", RegistryHive.LocalMachine, true);
+            string SubutaiGUID = "";
+            logger.Info("Updating uninstall string");
+            if (guids.Count > 0)
             {
-                return false;
+                foreach (string k in guids.Keys)
+                {
+                    SubutaiGUID = guids[k];
+                    logger.Info("Subutai GUIDs: {0}: {1}", k, SubutaiGUID);
+                    string subkey = $"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{SubutaiGUID}";
+                    //"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Subutai";
+                    RegistryKey rk = Registry.LocalMachine.OpenSubKey(subkey, true);
+                    if (rk == null)
+                    {
+                        return false;
+                    }
+                    try
+                    {
+                        rk.SetValue("UninstallString", strUninst);
+                        rk.SetValue("QuietUninstallString", $"{strUninst} Silent NoAll");
+                        rk.Close();
+                        logger.Info("Updated uninstall strings");
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        string res = ex.Message;
+                        logger.Error(ex.Message + " Changing uninstall string");
+                        rk.Close();
+                        return false;
+                    }
+                }
             }
-            try
-            {
-                rk.SetValue("UninstallString", strUninst);
-                return true;
-            }
-            catch(Exception ex)
-            {
-                string res = ex.Message;
-                return false;
-            }
+            return false;
         }
-
 
         /// <summary>
         /// public static void inst_TAP(string instDir)
@@ -327,6 +399,23 @@ namespace Deployment
         }
 
         /// <summary>
+        /// public static void remove_repo_desc(string instDir, string repoName)
+        /// Removes the repo descriptor file if exists.
+        /// </summary>
+        /// <param name="instDir">The inst dir.</param>
+        /// <param name="repoName">Name of the repo descriptor file.</param>
+        public static void remove_repo_desc(string instDir, string repoName)
+        {
+            //string path_t = Path.Combine(FD.sysDrive(), "Users");
+            string path_l = Path.Combine(instDir, repoName);
+            if (File.Exists(path_l))
+            {
+                File.Delete(path_l);
+                logger.Info("repo description file exists, removing {0}", path_l);
+            }
+        }
+
+        /// <summary>
         /// public static void service_stop(string serviceName)
         /// Stops Subutai Social P2P service (in case if running - was not deleted by previous installation)
         /// </summary>
@@ -423,31 +512,70 @@ namespace Deployment
         public static void install_mh_nw()
         {
             //installing master template
-            Deploy.StageReporter("", "Importing master");
-            logger.Info("Importing master");
+            
             bool b_res = import_templ_task("master");
 
             // installing management template
-            Deploy.StageReporter("", "Importing management");
             b_res = import_templ_task("management");
+            string ssh_res = "";
             if (!b_res)
             {
                 logger.Info("trying import management again");
+                //need to remove previouis import
+                string killcmd = "sudo kill `ps -ef | grep import | grep -v grep | awk '{print $2}'`";
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                    killcmd);
+                logger.Info("Importing stuck first time, killing processes: {0}", ssh_res);
+
+                if (ssh_res.Contains("Connection Error"))
+                {
+                    //restarting VM
+                    if (!VMs.stop_vm(TC._cloneName))
+                    {
+                        //can not stop VM
+                        Program.ShowError("Can not stop VM, please check VM state and try to install later", "Can not stop VM");
+                    };
+                    if (!VMs.start_vm(TC._cloneName))
+                    {
+                        //can not start VM
+                        Program.ShowError("Can not start VM, please check VM state and try to install later", "Can not start VM");
+                    };
+
+                    string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
+                    FD.edit_known_hosts(kh_path);
+
+                    if (!VMs.waiting_4ssh(TC._cloneName))
+                    {
+                        Program.ShowError("Can not establish connection with VM, please check VM state and try to install later", "Can not start VM");
+                    };
+                }
+                //remove previously installed master
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                    "sudo subutai destroy master");
+                logger.Info("Destroying master to import second time: {0}", ssh_res);
+
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
+                    "sudo subutai destroy management");
+                logger.Info("Destroying management to import second time: {0}", ssh_res);
+
+                b_res = import_templ_task("master");
+
                 b_res = import_templ_task("management");
                 if (!b_res)
                 {
                     logger.Info("import management failed second time");
-                    Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
-                    Program.form1.Visible = false;
+                    Program.form1.Invoke((MethodInvoker)delegate
+                    {
+                        Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
+                        Program.form1.Visible = false;
+                    });
                 }
             }
-            string ssh_res = "", ssh_res_old = "";
+           
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai info ipaddr");
             //todo: delete old
-            ssh_res_old = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                "sudo bash subutai management_network detect");
-            logger.Info("Import management address returned by subutai info: {0}, by network_management: {1}", ssh_res, ssh_res_old);
+            logger.Info("Import management address returned by subutai info: {0}", ssh_res);
             
             string rhIP = Deploy.com_out(ssh_res, 1);
             if (!is_ip_address(rhIP))
@@ -506,29 +634,6 @@ namespace Deployment
         }
 
         /// <summary>
-        /// public static bool import_templ(string tname)
-        /// import template 
-        /// </summary>
-        /// <param name="tname">Template name</param>
-        public static bool import_templ(string tname)
-        {
-            string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
-
-            string stcode = Deploy.com_out(ssh_res, 0);
-            string sterr = Deploy.com_out(ssh_res, 2);
-
-            logger.Info("Import {0}: {1}, code: {2}, err: {3}",
-                tname, ssh_res, stcode, sterr);
-
-            if (stcode != "0") //&&  sterr != "Empty")
-            {
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// public static bool import_templ_task(string tname)
         /// import template in separate task to know if import is running
         /// </summary>
@@ -539,37 +644,59 @@ namespace Deployment
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
 
+            Deploy.StageReporter("", $"Importing {tname}");
+            logger.Info("Importing {0}", tname);
+            
             //Starting Watcher task as parent, import as child
             var watcher = Task.Factory.StartNew(() =>
             {
                 string res0 = "";
-                int cnt = 0;
+                int cnt = 0; //counter for all checks
+                int cnt_download = 0; //counter for stuck download - downloaded size not changed
+                int cnt_ssh = 0; //counter for failed ssh - checks connection with RH
                 logger.Info("Import {0}",  tname);
                 while (true)
                 {
-                    Thread.Sleep(5000);
+                    cnt++;
                     if (token.IsCancellationRequested)
                     {
                         logger.Info("Watcher cancelled");
                         break;
                     }
+                    Thread.Sleep(10000);//checking every 10 seconds
                     string res = check_templ(tname);
                     logger.Info("res = {0}", res);
+                    if (res.Contains("Connection Error"))
+                    {
+                        logger.Info("No ssh connection: {0}", res);
+                        cnt_ssh++;
+                        if (cnt_ssh > 5) //(~5 min)
+                        {
+                            logger.Info("Cancelling from watcher - no ssh connection");
+                            imported = false;
+                            tokenSource.Cancel();
+                         }
+                        continue;
+                    } else
+                    {
+                        cnt_ssh = 0;
+                    }
+                    
+                    
                     if (res == res0)
                     {
-                        //will check 5 times more
-                        cnt++;
-                        //wait 200 seconds for connection recovered
-                        if (cnt >= 10)
+                        //will check 15 times more
+                        cnt_download++;
+                        //wait 300 seconds - 6 minutes for connection recovered
+                        if (cnt_download >= 15)
                         {
-                            //stop 
-                            logger.Info("Cancelling from watcher");
+                            //if waiting more than 6 minutes - stop 
+                            logger.Info("Cancelling from watcher - stuck download");
                             tokenSource.Cancel();
-                            //break;      //////////////////check this!
                         } 
                     } else
                     {
-                        cnt = 0;
+                        cnt_download = 0;
                     }
                     res0 = res;
                 }
@@ -579,8 +706,9 @@ namespace Deployment
             {
                 string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
                         "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
-
+                
                 string stcode = Deploy.com_out(ssh_res, 0);
+                string stcout = Deploy.com_out(ssh_res, 1);
                 string sterr = Deploy.com_out(ssh_res, 2);
 
                 logger.Info("Import {0}: {1}, code: {2}, err: {3}",
@@ -609,6 +737,7 @@ namespace Deployment
             if (import.IsCompleted)
             {
                 b_res = import.Result;
+                imported = b_res;
             } 
             return b_res;
        }
@@ -616,12 +745,16 @@ namespace Deployment
         /// <summary>
         /// private static  string check_templ(string tname)
         /// Check if import template is running, runs as separate task
+        /// Checks sum of sizes of all *.tar.gz files in /mnt/liblxc/tmpdir
         /// </summary>
         /// <param name="tname">Template name</param>
         private static  string check_templ(string tname)
         {
+          
+            string fname = $"{rhTemplatePlace}/*.tar.gz";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                    "ubuntu", "ubuntu", $"du -b {tname}_log"); //find size in bytes
+                    "ubuntu", "ubuntu", $"du -b {fname} --total | grep total"); //find size in bytes
+            logger.Info("Checking RH import: {0}", ssh_res);
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);

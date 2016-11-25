@@ -65,8 +65,6 @@ namespace uninstall_clean
                 }
                 catch (Exception ex)
                 {
-                    //label1.Text = "Can not stop process " + procName + ". " + ex.Message.ToString();
-                    //logger.Error(ex.Message, "Stopping process");
                     return "Can not stop process " + procName + ". " + ex.Message.ToString();
                 }
             }

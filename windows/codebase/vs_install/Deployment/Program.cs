@@ -101,7 +101,7 @@ namespace Deployment
                     UseShellExecute = false,
                     FileName =  cmd,
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    Arguments = ""
+                    Arguments = "Silent NoAll"
                 };
                 var exeProcess = Process.Start(startInfo);
                 Environment.Exit(1);
@@ -117,12 +117,14 @@ namespace Deployment
         /// <param name="Caption">Caption for MessageBox</param>
         public static void ShowError(string Text, string Caption)
         {
-            if (Program.form1.Visible == true)
-                Program.form1.Hide();
-            var result = MessageBox.Show(Text, Caption, MessageBoxButtons.OK);
-            if (result == DialogResult.OK)
-                  Program.form1.Close();
-        
+            Program.form1.Invoke((MethodInvoker)delegate
+            {
+                if (Program.form1.Visible == true)
+                    Program.form1.Hide();
+                var result = MessageBox.Show(Text, Caption, MessageBoxButtons.OK);
+                if (result == DialogResult.OK)
+                    Program.form1.Close();
+            });
         }
 
         /// <summary>

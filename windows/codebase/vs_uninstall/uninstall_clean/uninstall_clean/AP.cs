@@ -50,14 +50,16 @@ namespace uninstall_clean
 
         public static  void remove_app(string app_name, string cmd, string args, string app_path)
         {
-            DialogResult drs = MessageBox.Show($"Remove {app_name}?", $"Removing {app_name}",
-                               MessageBoxButtons.YesNo,
-                               MessageBoxIcon.Question,
-                               MessageBoxDefaultButton.Button1);
+            if (!clean.isSilent)
+            {
+                DialogResult drs = MessageBox.Show($"Remove {app_name}?", $"Removing {app_name}",
+                                   MessageBoxButtons.YesNo,
+                                   MessageBoxIcon.Question,
+                                   MessageBoxDefaultButton.Button1);
 
-            if (drs == DialogResult.No)
-                return;
-
+                if (drs == DialogResult.No)
+                    return;
+            }
             string mess = "";
             if (File.Exists(cmd))
             {
@@ -87,14 +89,16 @@ namespace uninstall_clean
         /// </summary>
         public static void remove_chrome()
         {
-            DialogResult drs = MessageBox.Show($"Remove Google Chrome browser? NOTE: It's prefferable to delete Chrome from Control Panel->Programs.", $"Removing Google Chrome",
-                               MessageBoxButtons.YesNo,
-                               MessageBoxIcon.Question,
-                               MessageBoxDefaultButton.Button1);
+            if (!clean.isSilent)
+            {
+                DialogResult drs = MessageBox.Show($"Remove Google Chrome browser? NOTE: It's prefferable to delete Chrome from Control Panel->Programs.", $"Removing Google Chrome",
+                                   MessageBoxButtons.YesNo,
+                                   MessageBoxIcon.Question,
+                                   MessageBoxDefaultButton.Button1);
 
-            if (drs == DialogResult.No)
-                return;
-
+                if (drs == DialogResult.No)
+                    return;
+            }
             //Check if Chrome is running
             SCP.stop_process("chrome.exe");
             SCP.stop_process("Google Chrome");
@@ -118,19 +122,24 @@ namespace uninstall_clean
             mess = SCP.stop_process("SubutaiTray");
             mess = "";
             FD.delete_Shortcuts("Subutai");
-
+            mess = "";
             if (clean.SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\")
             {
-                DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai Virtual Machines",
-                                MessageBoxButtons.YesNo,
-                                MessageBoxIcon.Question,
-                                MessageBoxDefaultButton.Button1);
-                mess = "";
-                if (drs == DialogResult.Yes)
+                if (!clean.isSilent)
+                {
+                    DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai Virtual Machines",
+                                    MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Question,
+                                    MessageBoxDefaultButton.Button1);
+                   
+                    if (drs == DialogResult.Yes)
+                    {
+                        mess = FD.delete_dir(SubutaiDir);
+                    }
+                } else
                 {
                     mess = FD.delete_dir(SubutaiDir);
                 }
-
                 if (mess.Contains("Can not"))
                 {
                     MessageBox.Show($"Folder {SubutaiDir} can not be removed. Please delete it manually",
