@@ -252,9 +252,11 @@ namespace Deployment
 
                     if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
                     {
+                        string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
+                        FD.edit_known_hosts(kh_path);
                         TC.prepare_rh();
-                        
                     }
+
                     stage_counter++;
                     logger.Info("Stage prepare-rh: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
