@@ -64,6 +64,7 @@ namespace Deployment
         private void InstallationFinished_Shown(object sender, EventArgs e)
         {
             Application.DoEvents();
+            Thread.Sleep(5000);
             Task ts =  Task.Run(() => WaitClose());
         }
 

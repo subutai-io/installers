@@ -339,13 +339,10 @@ namespace Deployment
                        Program.form1.Visible = false;
                    });
 
-                   //Program.form2.Invoke((MethodInvoker)delegate
-                   //{
-                       //logger.Info("show finished = {0}", finished);
-                       InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
-                       logger.Info("will show form2 from task factory");
-                       form2.Show();
-                   //});
+                   InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
+                   //logger.Info("will show form2 from task factory");
+                   //form2.Show();
+
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
                .ContinueWith((prevTask) =>
                {
@@ -389,6 +386,7 @@ namespace Deployment
                 if (finished == 1)
                 {
                     finished = 11;
+                    //InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
                     logger.Info("will show form2  completed from sub");
                     form2.Show();
                 }
