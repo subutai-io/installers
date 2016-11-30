@@ -44,9 +44,48 @@ namespace Deployment
             Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}",  "Silent NoAll");
         }
 
+        /// <summary>
+        /// Handles the Load event of the InstallationFinished control.
+        /// Will wait 20000 ms - if opacity changing did not started - will run opacity change
+        /// to close form
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="System.EventArgs" /> instance containing the event data.</param>
         private void InstallationFinished_Load(object sender, EventArgs e)
         {
- 
+
+        }
+
+        /// <summary>
+        /// Handles the Shown event of the InstallationFinished control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void InstallationFinished_Shown(object sender, EventArgs e)
+        {
+            Application.DoEvents();
+            Task ts =  Task.Run(() => WaitClose());
+        }
+
+        private void WaitClose()
+        {
+            //Task ts =  Task.Run(() => waiting_ms());
+            //ts.Start();
+            Thread.Sleep(20000);
+            
+            if (!opacityChanging)
+            {
+                new Task(ChangeOpacity).Start();
+                opacityChanging = true;
+            }
+        }
+
+        /// <summary>
+        /// Waits 20000 ms.
+        /// </summary>
+        private void waiting_ms()
+        {
+            Thread.Sleep(20000);
         }
 
         /// <summary>
@@ -54,6 +93,7 @@ namespace Deployment
         /// </summary>
         private void ChangeOpacity()
         {
+            opacityChanging = true;
             for (var i = 1.0; i > 0; i -= 0.01)
             {
                 this.Invoke((MethodInvoker) delegate
@@ -67,7 +107,10 @@ namespace Deployment
             {
                 MessageBox.Show("Installation was interrupted, removing partially installed Subutai Social", "Installation failed", MessageBoxButtons.OK);
                 clean(dir2clean);
-                this.Close();
+                Program.form1.Invoke((MethodInvoker)delegate
+                {
+                    Program.form1.Close();
+                });
             }
             if (!need2clean)
             {

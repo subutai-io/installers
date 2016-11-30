@@ -389,14 +389,15 @@ namespace Deployment
                 if (finished == 1)
                 {
                     finished = 11;
-                    logger.Info("will show form2 from sub");
+                    logger.Info("will show form2  completed from sub");
                     form2.Show();
                 }
                 else
                 {
                     finished = 11;
+                    logger.Info("will show form2 failed");
                     form2.ShowDialog();
-                    Application.Exit();
+                    //Application.Exit();
                 }
             }
         }

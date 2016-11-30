@@ -122,6 +122,7 @@
             this.Click += new System.EventHandler(this.InstallationFinished_Click);
             this.MouseHover += new System.EventHandler(this.InstallationFinished_MouseHover);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.Shown += new System.EventHandler(this.InstallationFinished_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();
 
