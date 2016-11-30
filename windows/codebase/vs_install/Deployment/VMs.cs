@@ -199,13 +199,14 @@ namespace Deployment
             {
                 logger.Info("SSH false, restarting VM and trying again");
                 stop_vm(name);
-                Thread.Sleep(10000);
+                Thread.Sleep(15000);
                 if (!start_vm(name))
                 {
                     Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
                     Program.form1.Visible = false;
                     return false;
                 }
+
                 res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
                 if (!res_b)
                 {
@@ -378,15 +379,20 @@ namespace Deployment
         /// <summary>
         /// Creates tmpfs folder, uploads snap file and prepare-server.sh. Runs installation scripts.
         /// </summary>
-        /// <param name="appDir">The application dir.</param>
+        /// <param name="appDir">The application instalation directory.</param>
         /// <param name="vmName">Name of the VM.</param>
         public static void run_scripts(string appDir, string vmName)
         {
             string ssh_res = "";
             // creating tmpfs folder
             Deploy.StageReporter("", "Creating tmps folder");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; mount -t tmpfs -o size=1G tmpfs/home/ubuntu/tmpfs");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs");
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
+            if (ssh_res.Contains("Connection Error"))
+            {
+                Program.ShowError("Can not open ssh to create tmpfs, please check network and VM state and reinstall later", "No tmpfs");
+            }
+
             // copying snap
             Deploy.StageReporter("", "Copying Subutai files");
 
@@ -404,10 +410,18 @@ namespace Deployment
             Deploy.StageReporter("", "Adapting installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Adapting installation scripts: {0}", ssh_res);
+            if (ssh_res.Contains("Connection Error"))
+            {
+                Program.ShowError("Can not open ssh to adopt scripts, please check network and VM state and reinstall later", "No tmpfs");
+            }
             // running prepare-server.sh script
             Deploy.StageReporter("", "Running installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
             logger.Info("Running installation scripts: {0}", ssh_res);
+            if (ssh_res.Contains("Connection Error"))
+            {
+                Program.ShowError("Can not open ssh to run scripts, please check network and VM state and reinstall later", "No prepare-server");
+            }
             // deploying peer options
             Thread.Sleep(20000);
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
@@ -419,6 +433,7 @@ namespace Deployment
             if (!res_b)
             {
                 logger.Info("SSH 2 false", "Can not open ssh, please check VM state manually and report error");
+                Program.ShowError("Can not open ssh after NIC reconfiguration, please check network and VM state and reinstall later", "No SSH");
                 Program.form1.Visible = false;
             }
         }

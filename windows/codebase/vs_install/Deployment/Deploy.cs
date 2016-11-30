@@ -500,19 +500,26 @@ namespace Deployment
         {
             using (var client = new SshClient(hostname, port, username, keys))
             {
-                client.Connect();
-                SshCommand scmd = client.RunCommand(command);
-                int exitstatus = scmd.ExitStatus;
-                string sresult = scmd.Result;
-                if (sresult == null || sresult == "")
-                    sresult = "Empty";
-                string serror = scmd.Error;
-                if (serror == null || serror == "")
-                    serror = "Empty";
-                //Stream soutput = scmd.ExtendedOutputStream;
-                client.Disconnect();
-                client.Dispose();
-                return exitstatus.ToString() + "|" + sresult + "|" + serror;
+                try
+                {
+                    client.Connect();
+                    SshCommand scmd = client.RunCommand(command);
+                    int exitstatus = scmd.ExitStatus;
+                    string sresult = scmd.Result;
+                    if (sresult == null || sresult == "")
+                        sresult = "Empty";
+                    string serror = scmd.Error;
+                    if (serror == null || serror == "")
+                        serror = "Empty";
+                    //Stream soutput = scmd.ExtendedOutputStream;
+                    client.Disconnect();
+                    client.Dispose();
+                    return exitstatus.ToString() + "|" + sresult + "|" + serror;
+                }
+                catch (Exception ex)
+                {
+                    return "1" + "|" + "Connection Error" + "|" + ex.Message;
+                }
             }
         }
 
@@ -606,7 +613,7 @@ namespace Deployment
                     catch(Exception)
                     {
                         cnt++;
-                        if (cnt > 6) // 40*8 = 240 seconds 4 minutes
+                        if (cnt > 8) // 40*8 = 320 seconds 5.3 minutes
                              return false;
                         Thread.Sleep(10000);//check every 5 seconds
                     }

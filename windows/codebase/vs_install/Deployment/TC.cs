@@ -373,7 +373,15 @@ namespace Deployment
                     Program.form1.Visible = false;
                 }
             }
+            prepare_mh();
+        }
 
+        /// <summary>
+        /// public static void prepare_mh()
+        /// setting up peer, import Management if needed
+        /// </summary>
+        public static void prepare_mh()
+        {
             Deploy.StageReporter("Setting up peer", "");
             logger.Info("Setting up peer");
             // waiting SSH session
