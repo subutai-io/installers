@@ -395,7 +395,7 @@ namespace Deployment
                 Program.form1.Visible = false;
             }
             // DEPLOY PEER
-            VMs.run_scripts(_arguments["appDir"], _cloneName);
+            Inst.run_scripts(_arguments["appDir"], _cloneName);
 
             Deploy.StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");

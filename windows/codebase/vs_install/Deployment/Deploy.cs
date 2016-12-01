@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 using Deployment.items;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
@@ -524,6 +525,77 @@ namespace Deployment
         }
 
         /// <summary>
+        /// Sends the SSH command with username/password authentication and controls connection during .
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="command">The command.</param>
+        /// <returns>exit code | output| error</returns>
+        public static string SendSshCommand_task(string hostname, int port, string username, string password, string command)
+        {
+            bool b_res = false;
+            bool success = false;
+            string ssh_res = "";
+            // Cancellation token to cancel watcher when command is finished or cancelled
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+
+            logger.Info("Performing command: {0}", command);
+
+            //Starting Watcher task as parent, import as child
+            var watcher = Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        logger.Info("Watcher cancelled");
+                        //ssh_res = "1" + "|" + "Connection Error" + "|" + "Command Error";
+                        break;
+                    }
+                    Thread.Sleep(1000);//checking every 1 second
+                    if (!Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu", 5, 1000))
+                    {
+                        logger.Info("Cancelling ssh command from watcher - no ssh connection");
+                        ssh_res = "1" + "|" + "Connection Error" + "|" + "Connection Error";
+                        tokenSource.Cancel();
+                    }
+                }
+             }, token);
+
+            var running = Task.Factory.StartNew(() =>
+            {
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+                        "ubuntu", "ubuntu", command);
+
+                string stcode = Deploy.com_out(ssh_res, 0);
+                string stcout = Deploy.com_out(ssh_res, 1);
+                string sterr = Deploy.com_out(ssh_res, 2);
+
+                logger.Info("Running {0}: {1}, code: {2}, err: {3}",
+                    command, ssh_res, stcode, sterr);
+            }, token);
+            
+            //Waiting
+            while (running.Status != TaskStatus.RanToCompletion)
+            {
+                Thread.Sleep(1000);
+                if (token.IsCancellationRequested)
+                {
+                    logger.Info("Got cancelling ");
+                    break;
+                }
+            }
+
+            logger.Info("Cancelling from import");
+            tokenSource.Cancel();//cancel  watcher
+            return ssh_res;
+        }
+
+
+        /// <summary>
         /// Retrieves part of putput of Launch command (returning exit code | output| error)
         /// </summary>
         /// <param name="outstr">The outstr.</param>
@@ -615,7 +687,46 @@ namespace Deployment
                         cnt++;
                         if (cnt > 8) // 40*8 = 320 seconds 5.3 minutes
                              return false;
-                        Thread.Sleep(10000);//check every 5 seconds
+                        Thread.Sleep(10000);//check every 10 seconds
+                    }
+                }
+                client.Disconnect();
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Checks the SSH connection until connected
+        /// If more than iterationCount tries unsuccessful (enough for VM start up)
+        /// return false
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="iterationCount">The maximum iteration count.</param>
+        /// <param name="sleepTime">The sleep time interval.</param>
+        /// <returns>
+        /// true when connected, false if not connected more than 300 times
+        /// </returns>
+        public static bool WaitSsh(string hostname, int port, string username, string password, int iterationCount, int sleepTime)
+        {
+            int cnt = 0;
+            using (var client = new SshClient(hostname, port, username, password))
+            {
+                while (true)
+                {
+                    try
+                    {
+                        client.Connect();//takes ~30 seconds
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        cnt++;
+                        if (cnt > iterationCount) // 40*8 = 320 seconds 5.3 minutes
+                            return false;
+                        Thread.Sleep(sleepTime);//check every 5 seconds
                     }
                 }
                 client.Disconnect();

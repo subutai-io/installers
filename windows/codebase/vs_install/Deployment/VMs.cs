@@ -63,6 +63,68 @@ namespace Deployment
             return true;
         }
 
+        /// <summary>
+        /// Starts VN and tries to establish the ssh connection. If no success - restarts VM and waits again.
+        /// Successful connection means we can proceed with set up. 
+        /// </summary>
+        /// <param name="name">The name of VM.</param>
+        /// <returns>true if success, false if not</returns>
+        public static bool waiting_4ssh(string name)
+        {
+            //Form1.StageReporter("", "Waiting for SSH ");
+            logger.Info("starting to wait for SSH");
+            bool res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
+            if (!res_b)
+            {
+                logger.Info("SSH false, restarting VM and trying again");
+                stop_vm(name);
+                Thread.Sleep(15000);
+                if (!start_vm(name))
+                {
+                    Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
+                    Program.form1.Visible = false;
+                    return false;
+                }
+
+                res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
+                if (!res_b)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Restarts the VM and checks ssh connection.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns></returns>
+        public static bool restart_vm(string name)
+        {
+            bool b_res = stop_vm(name);
+            if (!b_res)
+            {
+                return false;
+            }
+            Thread.Sleep(20000);
+            b_res = start_vm(name);
+            if (!b_res)
+            {
+                return false;
+            }
+            Thread.Sleep(20000);
+            b_res = waiting_4ssh(name);
+            if (!b_res)
+            {
+                return false;
+            }
+            return true;
+        }
+
+
+
+
         //Cloning VM
         /// <summary>
         /// Clones the VM.
@@ -181,38 +243,6 @@ namespace Deployment
             }
 
             Thread.Sleep(4000);
-            return true;
-        }
-
-        /// <summary>
-        /// Starts VN and tries to establish the ssh connection. If no success - restarts VM and waits again.
-        /// Successful connection means we can proceed with set up. 
-        /// </summary>
-        /// <param name="name">The name of VM.</param>
-        /// <returns>true if success, false if not</returns>
-        public static bool waiting_4ssh(string name)
-        {
-            //Form1.StageReporter("", "Waiting for SSH ");
-            logger.Info("starting to wait for SSH");
-            bool res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
-            if (!res_b)
-            {
-                logger.Info("SSH false, restarting VM and trying again");
-                stop_vm(name);
-                Thread.Sleep(15000);
-                if (!start_vm(name))
-                {
-                    Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
-                    Program.form1.Visible = false;
-                    return false;
-                }
-
-                res_b = Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu");
-                if (!res_b)
-                {
-                    return false;
-                }
-            }
             return true;
         }
 
@@ -374,68 +404,6 @@ namespace Deployment
                 }
             }
             return true;
-        }
-
-        /// <summary>
-        /// Creates tmpfs folder, uploads snap file and prepare-server.sh. Runs installation scripts.
-        /// </summary>
-        /// <param name="appDir">The application instalation directory.</param>
-        /// <param name="vmName">Name of the VM.</param>
-        public static void run_scripts(string appDir, string vmName)
-        {
-            string ssh_res = "";
-            // creating tmpfs folder
-            Deploy.StageReporter("", "Creating tmps folder");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs");
-            logger.Info("Creating tmpfs folder: {0}", ssh_res);
-            if (ssh_res.Contains("Connection Error"))
-            {
-                Program.ShowError("Can not open ssh to create tmpfs, please check network and VM state and reinstall later", "No tmpfs");
-            }
-
-            // copying snap
-            Deploy.StageReporter("", "Copying Subutai files");
-
-            string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                $"{appDir}/redist/subutai/prepare-server.sh",
-                $"{appDir}/redist/subutai/{TC.snapFile}"
-                }, "/home/ubuntu/tmpfs");
-            logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
-
-            if (!ftp_res.Equals("Uploaded"))
-            {
-                Program.ShowError("Cannot upload Subutai files to RH, canceling", "Setting up RH");
-            }
-            // adopting prepare-server.sh
-            Deploy.StageReporter("", "Adapting installation scripts");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
-            logger.Info("Adapting installation scripts: {0}", ssh_res);
-            if (ssh_res.Contains("Connection Error"))
-            {
-                Program.ShowError("Can not open ssh to adopt scripts, please check network and VM state and reinstall later", "No tmpfs");
-            }
-            // running prepare-server.sh script
-            Deploy.StageReporter("", "Running installation scripts");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
-            logger.Info("Running installation scripts: {0}", ssh_res);
-            if (ssh_res.Contains("Connection Error"))
-            {
-                Program.ShowError("Can not open ssh to run scripts, please check network and VM state and reinstall later", "No prepare-server");
-            }
-            // deploying peer options
-            Thread.Sleep(20000);
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
-            Thread.Sleep(5000);
-            bool res_b = VMs.vm_reconfigure_nic(vmName);//stop and start machine
-            Deploy.StageReporter("", "Waiting for SSH");
-            logger.Info("Waiting for SSH - 2");
-            res_b = VMs.waiting_4ssh(vmName);
-            if (!res_b)
-            {
-                logger.Info("SSH 2 false", "Can not open ssh, please check VM state manually and report error");
-                Program.ShowError("Can not open ssh after NIC reconfiguration, please check network and VM state and reinstall later", "No SSH");
-                Program.form1.Visible = false;
-            }
         }
 
      }
