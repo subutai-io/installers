@@ -12,7 +12,7 @@ using Deployment.items;
 namespace Deployment
 {
     /// <summary>
-    /// Form perform and reflects installation process
+    /// Form performing and reflecting stages of the installation process
     /// </summary>
     /// <seealso cref="System.Windows.Forms.Form" />
     public partial class f_install : Form
@@ -29,10 +29,8 @@ namespace Deployment
         /// The prerequisite files information in dictionary
         /// </summary>
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
-        //private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
-        //private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
+ 
         private static CancellationTokenSource tokenSource = new CancellationTokenSource(); //token sourse to cancel all threads
-
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private static int stage_counter = 0;
@@ -168,9 +166,7 @@ namespace Deployment
                            ex = ex.InnerException;
                        logger.Error(ex.Message, "checkmd5 faulted");
                        finished = 3;
-                       //Program.ShowError(ex.Message, "checkmd5 faulted");
-                       //we can continue
-                   }
+                    }
                     
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
@@ -339,17 +335,12 @@ namespace Deployment
                        Program.form1.Visible = false;
                    });
 
-                   InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
-                   //logger.Info("will show form2 from task factory");
-                   //form2.Show();
-
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
                .ContinueWith((prevTask) =>
                {
                    logger.Info("finished = {0}", finished);
                    if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") //|| finished == 11)
                        Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\{Deploy.SubutaiTrayName}", "");
-                   //Environment.Exit(0);
                });
         }
         #endregion
@@ -381,13 +372,12 @@ namespace Deployment
             logger.Info("show finished = {0}", finished);
             Program.form1.Visible = false;
             InstallationFinished form2 = new InstallationFinished(st, _arguments["appDir"]);
-            if (finished != 11)//&& finished !=1)
+            if (finished != 11)
             {
                 if (finished == 1)
                 {
                     finished = 11;
-                    //InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
-                    logger.Info("will show form2  completed from sub");
+                    logger.Info("will show form2 completed");
                     form2.Show();
                 }
                 else
@@ -395,7 +385,6 @@ namespace Deployment
                     finished = 11;
                     logger.Info("will show form2 failed");
                     form2.ShowDialog();
-                    //Application.Exit();
                 }
             }
         }
