@@ -534,24 +534,15 @@ namespace Deployment
 
                 if (ssh_res.Contains("Connection Error"))
                 {
-                    //restarting VM
-                    if (!VMs.stop_vm(TC._cloneName))
-                    {
-                        //can not stop VM
-                        Program.ShowError("Can not stop VM, please check VM state and try to install later", "Can not stop VM");
-                    };
-                    if (!VMs.start_vm(TC._cloneName))
-                    {
-                        //can not start VM
-                        Program.ShowError("Can not start VM, please check VM state and try to install later", "Can not start VM");
-                    };
-
                     string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
                     FD.edit_known_hosts(kh_path);
 
-                    if (!VMs.waiting_4ssh(TC._cloneName))
-                    {
-                        Program.ShowError("Can not establish connection with VM, please check VM state and try to install later", "Can not start VM");
+                    //restarting VM
+                    if (!VMs.restart_vm(TC._cloneName))
+                    { 
+                        //can not restart VM
+                        Program.ShowError("Can not restart VM, please check VM state and try to install later", "Can not start VM");
+                        Program.form1.Visible = false;
                     };
                 }
                 //remove previously installed master
