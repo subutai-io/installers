@@ -384,7 +384,6 @@ namespace Deployment
             {
                 logger.Info("link {0} already exists", path_l);
             }
-
         }
 
         /// <summary>

@@ -103,10 +103,7 @@ namespace Deployment
         public static bool restart_vm(string name)
         {
             bool b_res = stop_vm(name);
-            if (!b_res)
-            {
-                return false;
-            }
+            //even if did not stop - proceed (VM could be powered off for example
             Thread.Sleep(20000);
             b_res = start_vm(name);
             if (!b_res)

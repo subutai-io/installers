@@ -260,11 +260,11 @@ namespace Deployment
                 Inst.inst_ssh(appDir);
             }
 
-            Deploy.StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
             if (_arguments["peer"] != "client-only")
             {
+                Deploy.StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
                 Inst.inst_VBox(appDir);
-            }
+            } 
         }
 
         /// <summary>
@@ -373,7 +373,8 @@ namespace Deployment
                     Program.form1.Visible = false;
                 }
             }
-            prepare_mh();
+
+            //prepare_mh();
         }
 
         /// <summary>

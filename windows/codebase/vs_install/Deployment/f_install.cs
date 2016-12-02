@@ -145,7 +145,7 @@ namespace Deployment
             })
                .ContinueWith((prevTask) =>  
                {
-
+                   Deploy.StageReporter("Checking files", "");
                    //Checking if files downloaded without errors      
                    logger.Info("Stage: {0} {1}", _arguments["network-installation"].ToLower(), "checkmd5");
                    if (_arguments["network-installation"].ToLower() == "true")
@@ -168,7 +168,7 @@ namespace Deployment
                        logger.Error(ex.Message, "checkmd5 faulted");
                        finished = 3;
                     }
-                    
+                   Deploy.StageReporter("Extracting files", "");
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
                        TC.unzip_extracted();
@@ -194,12 +194,13 @@ namespace Deployment
                        Program.ShowError(ex.Message, "unzipping faulted");
                        throw new InvalidOperationException();
                     }
-
-                    if (_arguments["params"].Contains("deploy-redist"))
+                   Deploy.StageReporter("Installing redistributables", "");
+                   if (_arguments["params"].Contains("deploy-redist"))
                     {
                         TC.deploy_redist();
                         logger.Info("Stage deploy-redist: {0}", "deploy-redist");
                     }
+
                     stage_counter++;
                     logger.Info("Stage deploy redistributables: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -220,7 +221,7 @@ namespace Deployment
                         Program.ShowError(ex.Message, "deploy redist faulted");
                         throw new InvalidOperationException();
                     }
-
+                    Deploy.StageReporter("Preparing Virtual machine", "");
                     if (_arguments["params"].Contains("prepare-vbox") && _arguments["peer"] != "client-only")
                     {
                         TC.prepare_vbox();
@@ -246,11 +247,15 @@ namespace Deployment
                         Program.ShowError(ex.Message, "prepare vbox faulted");
                         throw new InvalidOperationException();
                     }
-
+                    Deploy.StageReporter("Preparing Resource Host", "");
                     if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
                     {
-                        string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
                         TC.prepare_rh();
+                    }
+                    Deploy.StageReporter("Preparing Management Host", "");
+                    if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] == "trial")
+                    {
+                        TC.prepare_mh();
                     }
 
                     stage_counter++;
@@ -274,20 +279,18 @@ namespace Deployment
                         Program.ShowError(ex.Message, "prepare rh faulted");
                         throw new InvalidOperationException();
                     }
-
+                    Deploy.StageReporter("Setting up P2P Service", "");
                     if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
                     {
-                        if (Inst.imported)
-                        {
-                            TC.deploy_p2p();
-                            logger.Info("Stage: {0}", "deploy-p2p");
-                        } else
+                        if (!Inst.imported && _arguments["peer"] == "trial")
                         {
                             finished = 3;
                             Program.ShowError("Import was not completed, please check network and VM state and reinstall", "prepare rh faulted");
                         }
-                    }
 
+                        TC.deploy_p2p();
+                        logger.Info("Stage: {0}", "deploy-p2p");
+                    }
                     stage_counter++;
                     logger.Info("Stage deploy-p2p: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -339,7 +342,7 @@ namespace Deployment
                .ContinueWith((prevTask) =>
                {
                    logger.Info("finished = {0}", finished);
-                   if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") //|| finished == 11)
+                   if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") 
                        Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\{Deploy.SubutaiTrayName}", "");
                });
         }
