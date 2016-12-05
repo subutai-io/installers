@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Threading;
 using System.Security.Principal;
 
 namespace uninstall_clean
@@ -8,6 +9,7 @@ namespace uninstall_clean
     static class Program
     {
         public static clean form1;
+        public static Mutex mt_single = new Mutex(false, "uninstall-clean");
         
         /// <summary>
         /// The main entry point for the application.
@@ -17,7 +19,15 @@ namespace uninstall_clean
         {
             WindowsPrincipal principal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
             bool hasAdministrativeRight = principal.IsInRole(WindowsBuiltInRole.Administrator);
-            
+
+            // waiting 2 seconds in case that the instance is just 
+            // shutting down
+            if (!mt_single.WaitOne(TimeSpan.FromSeconds(2), false))
+            {
+                MessageBox.Show("Subutai uninstall already started!", "", MessageBoxButtons.OK);
+                return;
+            }
+
             if (!hasAdministrativeRight)
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -34,6 +44,7 @@ namespace uninstall_clean
                 {
                     MessageBox.Show("This utility requires elevated priviledges to complete correctly.", "Error: UAC Authorisation Required", MessageBoxButtons.OK);
                     //                    Debug.Print(ex.Message);
+                    mt_single.ReleaseMutex();
                     return;
                 }
             }
