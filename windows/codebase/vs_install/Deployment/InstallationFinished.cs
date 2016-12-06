@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Drawing;
      
 
 namespace Deployment
@@ -21,14 +22,41 @@ namespace Deployment
         public InstallationFinished(string status, string appdir)
         {
             InitializeComponent();
-            label3.Text = status;
+            lbFinished.Text = status;
+            int formWidth = this.Size.Width;
+            Point xLocation = pbLogo.Location;
+            Point yLocation = pbLogo.Location;
+            int dxWide = pbLogo.Size.Width;
+            int dyHigh = pbLogo.Size.Height;
+            int xX = xLocation.X;
+            int yY = yLocation.Y;
+            int allX = xX + dxWide + 10;
+            int allY = yY + dyHigh;
+
+            int delta = 0;
+
+            lbPlease.Location = new System.Drawing.Point(allX + 5, allY - lbPlease.Size.Height);
             if (status.Contains("failed"))
             {
-                label4.Visible = true;
+                delta = dyHigh - lbPlease.Size.Height - 15 - lbSS.Size.Height - lbInstallation.Size.Height - 5 - lbReason.Size.Height;
+                lbInstallation.Location = new System.Drawing.Point(allX, yY + lbSS.Size.Height + delta);
+                lbFinished.Location = new System.Drawing.Point(allX + lbInstallation.Size.Width + 5, yY + lbSS.Size.Height + delta);
+                lbReason.Location = new System.Drawing.Point(allX + 5, allY - lbPlease.Size.Height - 15 - lbReason.Size.Height);
+
+                lbReason.Text = Program.st_fail_reason;
+                lbReason.Visible = true;
+            }
+
+            if (status.Contains("cancelled"))
+            {
+                delta = dyHigh - lbPlease.Size.Height - 10 - lbSS.Size.Height - lbInstallation.Size.Height;
+                lbInstallation.Location = new System.Drawing.Point(allX, yY + lbSS.Size.Height + delta - delta / 3);
+                lbFinished.Location = new System.Drawing.Point(allX + lbInstallation.Size.Width + 3, yY + lbSS.Size.Height + delta - delta/3);
             }
 
             if (status.Contains("failed") || status.Contains("cancelled"))
             {
+                lbPlease.Visible = true;
                 need2clean = true;
                 dir2clean = appdir;
             } 
@@ -68,6 +96,11 @@ namespace Deployment
             Task ts =  Task.Run(() => WaitClose());
         }
 
+        /// <summary>
+        /// Waiting for closing - 20 seconds.
+        /// If form not closed, will start opacity changing
+        /// and close after that.
+        /// </summary>
         private void WaitClose()
         {
             //Task ts =  Task.Run(() => waiting_ms());
