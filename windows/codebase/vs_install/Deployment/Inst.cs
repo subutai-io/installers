@@ -684,8 +684,8 @@ namespace Deployment
                     {
                         //will check 15 times more
                         cnt_download++;
-                        //wait 300 seconds - 6 minutes for connection recovered
-                        if (cnt_download >= 15)
+                        //wait 200 seconds - 3.5 minutes for connection recovered
+                        if (cnt_download >= 10)
                         {
                             //if waiting more than 6 minutes - stop 
                             logger.Info("Cancelling from watcher - stuck download");
