@@ -102,6 +102,48 @@ begin
   Result := not RegKeyExists(HKEY_LOCAL_MACHINE, 'Software\Microsoft\.NETFramework\policy\v4.0');   
 end;
 
+
+function GetUninstallString: string;
+var
+  sUnInstPath: string;
+  sUnInstallString: String;
+begin
+  Result := '';
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1'); 
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
+function IsUpgrade: Boolean;
+begin
+  Result := (GetUninstallString() <> '');
+end;
+
+function InitializeSetup: Boolean;
+var
+  V: Integer;
+  iResultCode: Integer;
+  sUnInstallString: string;
+begin
+  Result := True; // in case when no previous version is found
+  if RegValueExists(HKEY_LOCAL_MACHINE,'Software\Microsoft\Windows\CurrentVersion\Uninstall\{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1', 'UninstallString') then  
+  begin
+    V := MsgBox(ExpandConstant('Subutai is already installed. It must be uninstalled before new installation. Do you want to uninstall it now?'), mbInformation, MB_YESNO); //Custom Message if App installed
+    if V = IDYES then
+    begin
+      sUnInstallString := GetUninstallString();
+      sUnInstallString :=  RemoveQuotes(sUnInstallString);
+      Exec(ExpandConstant(sUnInstallString), '', '', SW_SHOW, ewWaitUntilTerminated, iResultCode);
+      Result := True; //if you want to proceed after uninstall
+      //Exit; //if you want to quit after uninstall
+    end
+    else
+      Result := False; //when older version present and not uninstalled
+      Exit;
+  end;
+end;
 [Run]
 Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "{#MyAppType} repomd5 Run"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent  runascurrentuser
 
@@ -113,3 +155,4 @@ InstallingLabel=Please wait while first stage of [name] Setup  completed.
 FinishedHeadingLabel=Completing the [name] First Stage Setup
 FinishedLabel=Setup has finished the first stage of  [name] installation. Please do not uncheck Launch combo box. Close Setup and wait for Second Stage Window
 SetupLdrStartupMessage=This is the first stage of  %1 Installation. Do you wish to continue?
+ButtonFinish=&Next
