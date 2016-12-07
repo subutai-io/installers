@@ -10,6 +10,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 using Deployment.items;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
@@ -82,11 +83,11 @@ namespace Deployment
             path_orig = path_orig.Replace(";;", ";"); 
             Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Machine);
             Environment.SetEnvironmentVariable("Path", path_orig, EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
-            logger.Info("Pat machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
+            logger.Info("Path machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
             logger.Info("Path Process: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Process);
 
             Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Machine);
-            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Process);//comment to test Sirmen's issue
+            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Process);
 
             logger.Info("Subutai machine: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Machine);
             logger.Info("Subutai Process: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Process);
@@ -114,7 +115,7 @@ namespace Deployment
                 var info = request_kurjun_fileInfo(url, RestFileinfoURL, filename);
                 if (info == null)
                 {
-                    Program.ShowError("File does not exist", "File error");
+                    Program.ShowError($"File does not exist {filename}", "File error");
                     Program.form1.Visible = false;
                 }
                 url = url + RestFileURL + info.id;
@@ -202,7 +203,7 @@ namespace Deployment
                 catch (Exception ex)
                 {
                     logger.Error(ex.Message, destination);
-                    Program.ShowError("Subutai repository is not available for some reason. Please try again later.",
+                    Program.ShowError("Subutai repository is not available. Check Internet connection.",
                         "Repository Error");
                 }
             }
@@ -312,7 +313,7 @@ namespace Deployment
             catch (Exception ex)
             {
                 logger.Error(ex.Message);
-                Program.ShowError("","Extracting zip");
+                Program.ShowError(ex.Message, "Extracting zip");
             }
             finally
             {
@@ -402,16 +403,15 @@ namespace Deployment
         }
 
         /// <summary>
-        /// Launches the command line application with repeats.
+        /// Launches the command line application with timeout.
         /// </summary>
         /// <param name="filename">The filename.</param>
         /// <param name="arguments">The arguments.</param>
-        /// <param name="try_counter">The try counter.</param>
+        /// <param name="timeout">The timeout for command in ms.</param>
         /// <returns></returns>
-        public static string LaunchCommandLineApp(string filename, string arguments, int try_counter)
+        public static string LaunchCommandLineApp(string filename, string arguments, int timeout)
         {
-            // try execute desktop commant 3 times
-            int count = try_counter;
+            // Use ProcessStartInfo class
             var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
@@ -422,32 +422,75 @@ namespace Deployment
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
-            string output;
-            string err;
-            count++; 
-            logger.Info("trying to exe {0} {1} {2} time", filename, arguments, count);
-            try
+            //string output;
+            //string err;
+            Process process = new Process();
+            process.StartInfo = startInfo;
+
+            StringBuilder output = new StringBuilder();
+            StringBuilder error = new StringBuilder();
+
+            using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+            using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
             {
-                // Start the process with the info we specified.
-                // Call WaitForExit and then the using statement will close.
-                using (var exeProcess = Process.Start(startInfo))
+                process.OutputDataReceived += (sender, e) =>
                 {
-                    output = exeProcess.StandardOutput.ReadToEnd();
-                    err = exeProcess.StandardError.ReadToEnd();
-                    exeProcess?.WaitForExit();
-                    return ($"executing: \"{filename} {arguments}\"|{output}|{err}");
+                    if (e.Data == null)
+                    {
+                        outputWaitHandle.Set();
+                    }
+                    else
+                    {
+                        output.AppendLine(e.Data);
+                    }
+                };
+                process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (e.Data == null)
+                    {
+                        errorWaitHandle.Set();
+                    }
+                    else
+                    {
+                        error.AppendLine(e.Data);
+                    }
+                };
+
+                logger.Info("trying to exe {0} {1}", filename, arguments);
+                try
+                {
+                    // Start the process with the info we specified.
+                    // Call WaitForExit and then the using statement will close.
+                    process.Start();
+
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    if (process.WaitForExit(timeout) &&
+                        outputWaitHandle.WaitOne(timeout) &&
+                        errorWaitHandle.WaitOne(timeout))
+                    {
+                        // Process completed. Check process.ExitCode here.
+                        return ($"executing: \"{filename} {arguments}\"|{output}|{error}");
+                    }
+                    else
+                    {
+                        // Timed out.
+                        return ($"1|{filename} was timed out|Error");
+                    }
                 }
+                catch (Exception ex)
+                {
+                    logger.Error(ex.Message, "can not run process {0}", filename);
+                    //try to repeat, counting 
+                    //uncomment if need repeated tries 
+                    //LaunchCommandLineApp(filename, arguments, 0);//will try 3 times
+                    //Thread.Sleep(10000); 
+                }
+                return ($"1|{filename} was not executed|Error");
             }
-            catch (Exception ex)
-            {
-                if (count > 3)
-                     return ($"command \"{filename} {arguments}\" can not run {try_counter} times");
-                logger.Error(ex.Message, "can not run process {0} {1} time(s)", filename, try_counter);
-                Thread.Sleep(10000);
-                LaunchCommandLineApp(filename, arguments, count); //try to execue again 
-            }
-            return ($"1|{filename} was not executed|Error");
         }
+ 
         #endregion
 
         #region UTILITIES: Send SSH command
@@ -522,6 +565,77 @@ namespace Deployment
                 }
             }
         }
+
+        /// <summary>
+        /// Sends the SSH command with username/password authentication and controls connection during .
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="command">The command.</param>
+        /// <returns>exit code | output| error</returns>
+        public static string SendSshCommand_task(string hostname, int port, string username, string password, string command)
+        {
+            bool b_res = false;
+            bool success = false;
+            string ssh_res = "";
+            // Cancellation token to cancel watcher when command is finished or cancelled
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+
+            logger.Info("Performing command: {0}", command);
+
+            //Starting Watcher task as parent, import as child
+            var watcher = Task.Factory.StartNew(() =>
+            {
+                while (true)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        logger.Info("Watcher cancelled");
+                        //ssh_res = "1" + "|" + "Connection Error" + "|" + "Command Error";
+                        break;
+                    }
+                    Thread.Sleep(1000);//checking every 1 second
+                    if (!Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu", 5, 1000))
+                    {
+                        logger.Info("Cancelling ssh command from watcher - no ssh connection");
+                        ssh_res = "1" + "|" + "Connection Error" + "|" + "Connection Error";
+                        tokenSource.Cancel();
+                    }
+                }
+             }, token);
+
+            var running = Task.Factory.StartNew(() =>
+            {
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
+                        "ubuntu", "ubuntu", command);
+
+                string stcode = Deploy.com_out(ssh_res, 0);
+                string stcout = Deploy.com_out(ssh_res, 1);
+                string sterr = Deploy.com_out(ssh_res, 2);
+
+                logger.Info("Running {0}: {1}, code: {2}, err: {3}",
+                    command, ssh_res, stcode, sterr);
+            }, token);
+            
+            //Waiting
+            while (running.Status != TaskStatus.RanToCompletion)
+            {
+                Thread.Sleep(1000);
+                if (token.IsCancellationRequested)
+                {
+                    logger.Info("Got cancelling ");
+                    break;
+                }
+            }
+
+            logger.Info("Cancelling from import");
+            tokenSource.Cancel();//cancel  watcher
+            return ssh_res;
+        }
+
 
         /// <summary>
         /// Retrieves part of putput of Launch command (returning exit code | output| error)
@@ -615,7 +729,46 @@ namespace Deployment
                         cnt++;
                         if (cnt > 8) // 40*8 = 320 seconds 5.3 minutes
                              return false;
-                        Thread.Sleep(10000);//check every 5 seconds
+                        Thread.Sleep(10000);//check every 10 seconds
+                    }
+                }
+                client.Disconnect();
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Checks the SSH connection until connected
+        /// If more than iterationCount tries unsuccessful (enough for VM start up)
+        /// return false
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="iterationCount">The maximum iteration count.</param>
+        /// <param name="sleepTime">The sleep time interval.</param>
+        /// <returns>
+        /// true when connected, false if not connected more than 300 times
+        /// </returns>
+        public static bool WaitSsh(string hostname, int port, string username, string password, int iterationCount, int sleepTime)
+        {
+            int cnt = 0;
+            using (var client = new SshClient(hostname, port, username, password))
+            {
+                while (true)
+                {
+                    try
+                    {
+                        client.Connect();//takes ~30 seconds
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        cnt++;
+                        if (cnt > iterationCount) // 40*8 = 320 seconds 5.3 minutes
+                            return false;
+                        Thread.Sleep(sleepTime);//check every 5 seconds
                     }
                 }
                 client.Disconnect();
@@ -659,7 +812,7 @@ namespace Deployment
             }
             catch(Exception ex)
             {
-                MessageBox.Show(ex.Message, "Shortcut", MessageBoxButtons.OK);
+                logger.Info("Shortcut exception: {0}", ex.Message);
             }
         }
 

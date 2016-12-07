@@ -19,7 +19,7 @@ namespace Deployment
         //Installation of components
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
         private static string rhTemplatePlace = "/mnt/lib/lxc/tmpdir";
-        public static bool imported = false; 
+        public static bool imported = false;
 
         /// <summary>
         /// public static int app_installed(string appName)
@@ -51,7 +51,7 @@ namespace Deployment
             RegistryKey rk = Registry.CurrentUser.OpenSubKey(subkey86);
             if (rk == null)
             {
-                return "NA";       
+                return "NA";
             }
             string path = rk.GetValue("Path").ToString();
             return path;
@@ -165,7 +165,8 @@ namespace Deployment
             {
                 res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\tap-driver.exe", "/S");
                 logger.Info("TAP driver: {0}", res);
-            } else
+            }
+            else
             {
                 Deploy.StageReporter("", "TAP driver already installed");
                 logger.Info("TAP driver is already installed: {0}", res);
@@ -243,12 +244,15 @@ namespace Deployment
                     logger.Info("Subkey {0} exists", subKeyPath);
                     kPath.Close();
                     return true;
-                } else
+                }
+                else
                 {
                     logger.Info("Subkey {0} was not added", subKeyPath);
                     return false;
                 }
-            } else { //there is no  key to add subkey
+            }
+            else
+            { //there is no  key to add subkey
                 string[] keyPathArr = keyPath.Split(new[] { "\\" }, StringSplitOptions.None);
                 logger.Info("keyPath = {0}, keyPathArr[0] = {1}, keyPathArr[3] = {2}", keyPath, keyPathArr[0], keyPathArr[3]);
 
@@ -269,7 +273,8 @@ namespace Deployment
                 if (create_subkey(keyPath0, subKeyPath0))
                 {
                     return true; //Subkey exist
-                } else
+                }
+                else
                 {
                     logger.Info("Could not create subkey {0}", subKeyPath0);
                     return false;
@@ -374,11 +379,11 @@ namespace Deployment
             {
                 string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}");
                 logger.Info("ssh - creating home: {0}", res);
-            } else
+            }
+            else
             {
                 logger.Info("link {0} already exists", path_l);
             }
-
         }
 
         /// <summary>
@@ -512,7 +517,7 @@ namespace Deployment
         public static void install_mh_nw()
         {
             //installing master template
-            
+
             bool b_res = import_templ_task("master");
 
             // installing management template
@@ -529,24 +534,15 @@ namespace Deployment
 
                 if (ssh_res.Contains("Connection Error"))
                 {
-                    //restarting VM
-                    if (!VMs.stop_vm(TC._cloneName))
-                    {
-                        //can not stop VM
-                        Program.ShowError("Can not stop VM, please check VM state and try to install later", "Can not stop VM");
-                    };
-                    if (!VMs.start_vm(TC._cloneName))
-                    {
-                        //can not start VM
-                        Program.ShowError("Can not start VM, please check VM state and try to install later", "Can not start VM");
-                    };
-
                     string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
                     FD.edit_known_hosts(kh_path);
 
-                    if (!VMs.waiting_4ssh(TC._cloneName))
-                    {
-                        Program.ShowError("Can not establish connection with VM, please check VM state and try to install later", "Can not start VM");
+                    //restarting VM
+                    if (!VMs.restart_vm(TC._cloneName))
+                    { 
+                        //can not restart VM
+                        Program.ShowError("Can not restart VM, please check VM state and try to install later", "Can not start VM");
+                        Program.form1.Visible = false;
                     };
                 }
                 //remove previously installed master
@@ -567,16 +563,16 @@ namespace Deployment
                     Program.form1.Invoke((MethodInvoker)delegate
                     {
                         Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
-                        Program.form1.Visible = false;
+                        //Program.form1.Visible = false;
                     });
                 }
             }
-           
+
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
                 "sudo bash subutai info ipaddr");
             //todo: delete old
             logger.Info("Import management address returned by subutai info: {0}", ssh_res);
-            
+
             string rhIP = Deploy.com_out(ssh_res, 1);
             if (!is_ip_address(rhIP))
             {
@@ -646,7 +642,7 @@ namespace Deployment
 
             Deploy.StageReporter("", $"Importing {tname}");
             logger.Info("Importing {0}", tname);
-            
+
             //Starting Watcher task as parent, import as child
             var watcher = Task.Factory.StartNew(() =>
             {
@@ -654,7 +650,7 @@ namespace Deployment
                 int cnt = 0; //counter for all checks
                 int cnt_download = 0; //counter for stuck download - downloaded size not changed
                 int cnt_ssh = 0; //counter for failed ssh - checks connection with RH
-                logger.Info("Import {0}",  tname);
+                logger.Info("Import {0}", tname);
                 while (true)
                 {
                     cnt++;
@@ -675,26 +671,28 @@ namespace Deployment
                             logger.Info("Cancelling from watcher - no ssh connection");
                             imported = false;
                             tokenSource.Cancel();
-                         }
+                        }
                         continue;
-                    } else
+                    }
+                    else
                     {
                         cnt_ssh = 0;
                     }
-                    
-                    
+
+
                     if (res == res0)
                     {
-                        //will check 15 times more
+                        //will check 5 times more
                         cnt_download++;
-                        //wait 300 seconds - 6 minutes for connection recovered
-                        if (cnt_download >= 15)
+                        //wait 6*30 seconds - 3 minutes for connection recovered
+                        if (cnt_download >= 6)
                         {
-                            //if waiting more than 6 minutes - stop 
+                            //if waiting more than 3 minutes - stop 
                             logger.Info("Cancelling from watcher - stuck download");
                             tokenSource.Cancel();
-                        } 
-                    } else
+                        }
+                    }
+                    else
                     {
                         cnt_download = 0;
                     }
@@ -706,7 +704,7 @@ namespace Deployment
             {
                 string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
                         "ubuntu", "ubuntu", $"sudo subutai -d import {tname} 2>&1 > {tname}_log");
-                
+
                 string stcode = Deploy.com_out(ssh_res, 0);
                 string stcout = Deploy.com_out(ssh_res, 1);
                 string sterr = Deploy.com_out(ssh_res, 2);
@@ -730,7 +728,7 @@ namespace Deployment
                     break;
                 }
             }
-            
+
             logger.Info("Cancelling from import");
             tokenSource.Cancel();//cancel  watcher
             bool b_res = false;
@@ -738,9 +736,9 @@ namespace Deployment
             {
                 b_res = import.Result;
                 imported = b_res;
-            } 
+            }
             return b_res;
-       }
+        }
 
         /// <summary>
         /// private static  string check_templ(string tname)
@@ -748,9 +746,9 @@ namespace Deployment
         /// Checks sum of sizes of all *.tar.gz files in /mnt/liblxc/tmpdir
         /// </summary>
         /// <param name="tname">Template name</param>
-        private static  string check_templ(string tname)
+        private static string check_templ(string tname)
         {
-          
+
             string fname = $"{rhTemplatePlace}/*.tar.gz";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
                     "ubuntu", "ubuntu", $"du -b {fname} --total | grep total"); //find size in bytes
@@ -759,6 +757,253 @@ namespace Deployment
             string stres = Deploy.com_out(ssh_res, 1);
             string sterr = Deploy.com_out(ssh_res, 2);
             return stres;
+        }
+
+        /// <summary>
+        /// Creates tmpfs folder, uploads snap file and prepare-server.sh. Runs installation scripts.
+        /// </summary>
+        /// <param name="appDir">The application instalation directory.</param>
+        /// <param name="vmName">Name of the VM.</param>
+        public static void run_scripts(string appDir, string vmName)
+        {
+            bool b_res = false;
+            // creating tmpfs folder
+            b_res = create_tmpfs();
+            if (!b_res)
+            {
+                Program.ShowError("Can not open ssh to create tmpfs, please check network and VM state and reinstall later", "No tmpfs");
+                Program.form1.Visible = false;
+            }
+
+            // copying snap
+            b_res = upload_files(appDir);
+            logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
+            if (!b_res)
+            {
+                Program.ShowError("Cannot upload Subutai files to RH, canceling", "Setting up RH");
+                Program.form1.Visible = false;
+            }
+
+            // adopting prepare-server.sh
+            if (!adopt_scripts())
+            {
+                Program.ShowError("Can not open ssh to adapt scripts, please check network and VM state and reinstall later", "No tmpfs");
+                Program.form1.Visible = false;
+            }
+            
+            // running prepare-server.sh script
+            b_res = prepare_server_task(appDir);
+            if (!b_res)
+            {
+                Program.ShowError("Can not open ssh to run scripts, please check network and VM state and reinstall later", "No prepare-server");
+                Program.form1.Visible = false;
+            }
+            
+            // configuring nic
+            bool res_b = VMs.vm_reconfigure_nic(vmName);
+            
+            //stop and start machine
+            Deploy.StageReporter("", "Waiting for SSH");
+            logger.Info("Waiting for SSH - 2");
+            res_b = VMs.waiting_4ssh(vmName);
+            if (!res_b)
+            {
+                logger.Info("SSH 2 false", "Can not open ssh, please check VM state manually and report error");
+                Program.ShowError("Can not open ssh after NIC reconfiguration, please check network and VM state and reinstall later", "No SSH");
+                Program.form1.Visible = false;
+            }
+        }
+
+        /// <summary>
+        /// Creates TMPFS.
+        /// </summary>
+        /// <returns></returns>
+        public static bool create_tmpfs()
+        {
+            string ssh_res = "";
+            // creating tmpfs folder
+            Deploy.StageReporter("", "Creating tmps folder");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs");
+            logger.Info("Creating tmpfs folder: {0}", ssh_res);
+            if (ssh_res.Contains("Connection Error"))
+            {
+                if (!VMs.restart_vm(TC._cloneName))
+                {
+                    Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
+                }
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs");
+                logger.Info("Creating tmpfs folder second time: {0}", ssh_res);
+                if (ssh_res.Contains("Connection Error"))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Uploads files to RH.
+        /// </summary>
+        /// <param name="appDir">The application directory.</param>
+        /// <returns></returns>
+        public static bool upload_files(string appDir)
+        {
+            Deploy.StageReporter("", "Copying Subutai files");
+            string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                $"{appDir}/redist/subutai/prepare-server.sh",
+                $"{appDir}/redist/subutai/{TC.snapFile}"
+                }, "/home/ubuntu/tmpfs");
+            logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
+            if (!ftp_res.Equals("Uploaded"))
+            {
+                ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                    $"{appDir}/redist/subutai/prepare-server.sh",
+                    $"{appDir}/redist/subutai/{TC.snapFile}"
+                    }, "/home/ubuntu/tmpfs");
+                if (!ftp_res.Equals("Uploaded"))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Adapts the scripts before running.
+        /// </summary>
+        /// <returns></returns>
+        public static bool adopt_scripts()
+        {
+            string ssh_res = "";
+            Deploy.StageReporter("", "Adapting installation scripts");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
+            logger.Info("Adapting installation scripts: {0}", ssh_res);
+            if (ssh_res.Contains("Connection Error"))
+            {
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
+                logger.Info("Adapting installation scripts second time: {0}", ssh_res);
+                if (ssh_res.Contains("Connection Error"))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Running prepares-server script.
+        /// </summary>
+        /// <returns></returns>
+        public static bool prepare_server(string appDir)
+        {
+            // running prepare-server.sh script
+            string ssh_res = "";
+            string ssh_res_1 = "";
+            bool b_res = false;
+            Deploy.StageReporter("", "Running installation scripts");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            logger.Info("Running installation scripts: {0}", ssh_res);
+            if (ssh_res.Contains("Connection Error"))
+            {
+                if (!VMs.restart_vm(TC._cloneName))
+                {
+                    Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
+                    Program.form1.Visible = false;
+                }
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls /home/ubuntu/tmpfs/prepare-server.sh");
+                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls bash /home/ubuntu/tmpfs/{TC.snapFile}");
+                if (ssh_res.ToLower().Contains("no such file") || ssh_res_1.ToLower().Contains("no such file"))
+                {
+                    b_res = upload_files(appDir);
+                    if (!b_res)
+                    {
+                        Program.ShowError("Cannot upload Subutai files to RH, canceling", "Setting up RH");
+                        Program.form1.Visible = false;
+                    }
+                }
+
+                logger.Info("Running installation scripts second time: {0}", ssh_res);
+                if (ssh_res.Contains("Connection Error"))
+                {
+                    return false;
+                }
+            }
+            // deploying peer options
+            Thread.Sleep(5000);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Thread.Sleep(5000);
+            return true;
+        }
+
+        /// <summary>
+        /// Running prepares-server script with connection control.
+        /// </summary>
+        /// <returns></returns>
+        public static bool prepare_server_task(string appDir)
+        {
+            // running prepare-server.sh script
+            string ssh_res = "";
+            string ssh_res_1 = "";
+            bool b_res = false;
+            Deploy.StageReporter("", "Running installation scripts");
+
+            ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            logger.Info("Running installation scripts: {0}", ssh_res);
+            if (ssh_res.Contains("Error"))
+            {
+                if (!VMs.restart_vm(TC._cloneName))
+                {
+                    Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
+                    Program.form1.Visible = false;
+                }
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs");
+                if (ssh_res.ToLower().Contains("no such file"))
+                {
+                    b_res = create_tmpfs();
+                    if (!b_res)
+                    {
+                        Program.ShowError("Can not open ssh to create tmpfs, please check network and VM state and reinstall later", "No tmpfs");
+                        Program.form1.Visible = false;
+                    }
+                } else
+                {
+                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs");
+                    logger.Info("Chmod tmpfs", ssh_res);
+                }
+
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh");
+                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}");
+                if (ssh_res.ToLower().Contains("no such file") || ssh_res_1.ToLower().Contains("no such file"))
+                {
+                    b_res = upload_files(appDir);
+                    if (!b_res)
+                    {
+                        Program.ShowError("Cannot upload Subutai files to RH, canceling", "Setting up RH");
+                        Program.form1.Visible = false;
+                    }
+                }
+
+                b_res = adopt_scripts();
+                if (!b_res)
+                {
+                    Program.ShowError("Can not open ssh to adapt scripts, please check network and VM state and reinstall later", "No tmpfs");
+                    Program.form1.Visible = false;
+                }
+
+                Deploy.StageReporter("", "Running installation scripts");
+                ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+                logger.Info("Running installation scripts second time: {0}", b_res);
+                if (ssh_res.Contains("Error"))
+                {
+
+                    return false;
+                }
+            }
+            // deploying peer options
+            Thread.Sleep(5000);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Thread.Sleep(5000);
+            return true;
         }
     }
 }

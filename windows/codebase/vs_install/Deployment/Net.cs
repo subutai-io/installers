@@ -67,6 +67,10 @@ namespace Deployment
                 .FirstOrDefault();
 
             var gateway_if_address = gw_from_netstat();
+            if (gateway_if_address.Contains("NA"))
+            {
+                return "No Gateway";
+            }
             logger.Info("Gateway 1 address: {0}", gateway_if_address.ToString());
             IPHostEntry host;
             host = Dns.GetHostEntry(Dns.GetHostName());
@@ -156,6 +160,12 @@ namespace Deployment
             string res = Deploy.LaunchCommandLineApp("cmd.exe", " /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0");
             logger.Info("netstat = {0}", res);
             res = Deploy.com_out(res, 2);
+            if (res == "" || res == null)
+            {
+                //Program.ShowError("Can not define gateway, please check Internet Connection", "Network Error");
+                //Program.form1.Visible = false;
+                return ("NA");
+            }
             res = res.Replace("|", "");
             while (res.Contains("  "))
                 res = res.Replace("  ", " ");

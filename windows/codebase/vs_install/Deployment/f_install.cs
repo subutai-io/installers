@@ -12,7 +12,7 @@ using Deployment.items;
 namespace Deployment
 {
     /// <summary>
-    /// Form perform and reflects installation process
+    /// Form performing and reflecting stages of the installation process
     /// </summary>
     /// <seealso cref="System.Windows.Forms.Form" />
     public partial class f_install : Form
@@ -29,15 +29,14 @@ namespace Deployment
         /// The prerequisite files information in dictionary
         /// </summary>
         public readonly Dictionary<string, KurjunFileInfo> PrerequisiteFilesInfo = new Dictionary<string, KurjunFileInfo>();
-        //private readonly string _cloneName = $"subutai-{DateTime.Now.ToString("yyyyMMddhhmm")}";
-        //private readonly PrivateKeyFile[] _privateKeys = new PrivateKeyFile[] { };
+ 
         private static CancellationTokenSource tokenSource = new CancellationTokenSource(); //token sourse to cancel all threads
-
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         private static int stage_counter = 0;
         /// <summary>
-        /// The finished - shows the installation state for Form.Closed - 3 - failed, 1, 11 - success, 2 - cancelled
+        /// The finished - shows the installation state for Form. 
+        /// Closed - 3 - failed, 1, 11 - success, 2 - cancelled
         /// </summary>
         public int finished = 0;
         private string st = " finished";
@@ -146,7 +145,7 @@ namespace Deployment
             })
                .ContinueWith((prevTask) =>  
                {
-
+                   Deploy.StageReporter("Checking files", "");
                    //Checking if files downloaded without errors      
                    logger.Info("Stage: {0} {1}", _arguments["network-installation"].ToLower(), "checkmd5");
                    if (_arguments["network-installation"].ToLower() == "true")
@@ -168,10 +167,8 @@ namespace Deployment
                            ex = ex.InnerException;
                        logger.Error(ex.Message, "checkmd5 faulted");
                        finished = 3;
-                       //Program.ShowError(ex.Message, "checkmd5 faulted");
-                       //we can continue
-                   }
-                    
+                    }
+                   Deploy.StageReporter("Extracting files", "");
                    if (_arguments["network-installation"].ToLower() == "true")
                    {
                        TC.unzip_extracted();
@@ -197,12 +194,13 @@ namespace Deployment
                        Program.ShowError(ex.Message, "unzipping faulted");
                        throw new InvalidOperationException();
                     }
-
-                    if (_arguments["params"].Contains("deploy-redist"))
+                   Deploy.StageReporter("Installing redistributables", "");
+                   if (_arguments["params"].Contains("deploy-redist"))
                     {
                         TC.deploy_redist();
                         logger.Info("Stage deploy-redist: {0}", "deploy-redist");
                     }
+
                     stage_counter++;
                     logger.Info("Stage deploy redistributables: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -223,7 +221,7 @@ namespace Deployment
                         Program.ShowError(ex.Message, "deploy redist faulted");
                         throw new InvalidOperationException();
                     }
-
+                    Deploy.StageReporter("Preparing Virtual machine", "");
                     if (_arguments["params"].Contains("prepare-vbox") && _arguments["peer"] != "client-only")
                     {
                         TC.prepare_vbox();
@@ -249,12 +247,15 @@ namespace Deployment
                         Program.ShowError(ex.Message, "prepare vbox faulted");
                         throw new InvalidOperationException();
                     }
-
+                    Deploy.StageReporter("Preparing Resource Host", "");
                     if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
                     {
-                        string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
-                        FD.edit_known_hosts(kh_path);
                         TC.prepare_rh();
+                    }
+                    Deploy.StageReporter("Preparing Management Host", "");
+                    if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] == "trial")
+                    {
+                        TC.prepare_mh();
                     }
 
                     stage_counter++;
@@ -278,20 +279,18 @@ namespace Deployment
                         Program.ShowError(ex.Message, "prepare rh faulted");
                         throw new InvalidOperationException();
                     }
-
+                    Deploy.StageReporter("Setting up P2P Service", "");
                     if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
                     {
-                        if (Inst.imported)
-                        {
-                            TC.deploy_p2p();
-                            logger.Info("Stage: {0}", "deploy-p2p");
-                        } else
+                        if (!Inst.imported && _arguments["peer"] == "trial")
                         {
                             finished = 3;
                             Program.ShowError("Import was not completed, please check network and VM state and reinstall", "prepare rh faulted");
                         }
-                    }
 
+                        TC.deploy_p2p();
+                        logger.Info("Stage: {0}", "deploy-p2p");
+                    }
                     stage_counter++;
                     logger.Info("Stage deploy-p2p: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -339,20 +338,12 @@ namespace Deployment
                        Program.form1.Visible = false;
                    });
 
-                   //Program.form2.Invoke((MethodInvoker)delegate
-                   //{
-                       //logger.Info("show finished = {0}", finished);
-                       InstallationFinished form2 = new InstallationFinished("complete", _arguments["appDir"]);
-                       logger.Info("will show form2 from task factory");
-                       form2.Show();
-                   //});
                }, TaskContinuationOptions.OnlyOnRanToCompletion)
                .ContinueWith((prevTask) =>
                {
                    logger.Info("finished = {0}", finished);
-                   if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") //|| finished == 11)
+                   if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") 
                        Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\{Deploy.SubutaiTrayName}", "");
-                   //Environment.Exit(0);
                });
         }
         #endregion
@@ -384,19 +375,19 @@ namespace Deployment
             logger.Info("show finished = {0}", finished);
             Program.form1.Visible = false;
             InstallationFinished form2 = new InstallationFinished(st, _arguments["appDir"]);
-            if (finished != 11)//&& finished !=1)
+            if (finished != 11)
             {
                 if (finished == 1)
                 {
                     finished = 11;
-                    logger.Info("will show form2 from sub");
+                    logger.Info("will show form2 completed");
                     form2.Show();
                 }
                 else
                 {
                     finished = 11;
+                    logger.Info("will show form2 failed");
                     form2.ShowDialog();
-                    Application.Exit();
                 }
             }
         }

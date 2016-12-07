@@ -17,6 +17,7 @@ namespace Deployment
         public static f_confirm form_; //Parameters confirmation form
         public static f_install form1; //Installation form
         public static InstallationFinished form2; //Installation finished form
+        public static string st_fail_reason = "";
 
         /// <summary>
         /// Command line arguments: Installation type (prod, dev, master, Repo descriptor file name and "Install"
@@ -119,11 +120,14 @@ namespace Deployment
         {
             Program.form1.Invoke((MethodInvoker)delegate
             {
-                if (Program.form1.Visible == true)
-                    Program.form1.Hide();
+                st_fail_reason = Text;
                 var result = MessageBox.Show(Text, Caption, MessageBoxButtons.OK);
                 if (result == DialogResult.OK)
+                {
+                    if (Program.form1.Visible == true)
+                        Program.form1.Hide();
                     Program.form1.Close();
+                }
             });
         }
 
@@ -135,9 +139,9 @@ namespace Deployment
         /// </summary>
         static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
         {
-            MessageBox.Show(e.Exception.Message, "Unhandled Thread Exception");
-            logger.Error(e.Exception.Message, "Thread Exception");
-            form1.Close();
+            st_fail_reason = e.Exception.Message;
+            logger.Error(e.Exception.Message, "Application Thread Exception");
+            ShowError(e.Exception.Message, "Unhandled Thread Exception");
         }
 
         /// <summary>
@@ -148,25 +152,9 @@ namespace Deployment
         /// </summary>
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            MessageBox.Show((e.ExceptionObject as Exception).Message, "Unhandled UI Exception");
+            st_fail_reason = (e.ExceptionObject as Exception).Message;
             logger.Error((e.ExceptionObject as Exception).Message, "Application Exception");
-            form1.Close();
-        }
-
-        /// <summary>
-        /// static void PreventIfInstalled()
-        /// Prevent installation if already installed 
-        /// Reserved for future use
-        /// </summary>
-        static void PreventIfInstalled()
-        {
-            string path = Inst.subutai_path();
-            if (!path.Equals("NA"))
-            {
-                var result = MessageBox.Show($"Subutai is already installed in {path}. Please uninstall before new installation" , "Subutai Social", MessageBoxButtons.OK);
-                if (result == DialogResult.OK)
-                    Environment.Exit(1);
-            }
+            ShowError((e.ExceptionObject as Exception).Message, "Unhandled UI Exception");
         }
 
         /// <summary> 
