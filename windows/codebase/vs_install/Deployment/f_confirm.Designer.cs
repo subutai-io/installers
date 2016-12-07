@@ -166,6 +166,7 @@
             this.rbClientOnly.Name = "rbClientOnly";
             this.rbClientOnly.Size = new System.Drawing.Size(91, 21);
             this.rbClientOnly.TabIndex = 2;
+            this.rbClientOnly.Tag = "3";
             this.rbClientOnly.Text = "Client only";
             this.rbClientOnly.UseVisualStyleBackColor = true;
             // 
@@ -177,6 +178,7 @@
             this.rbRHonly.Name = "rbRHonly";
             this.rbRHonly.Size = new System.Drawing.Size(76, 21);
             this.rbRHonly.TabIndex = 1;
+            this.rbRHonly.Tag = "2";
             this.rbRHonly.Text = "RH only";
             this.rbRHonly.UseVisualStyleBackColor = true;
             // 
@@ -190,6 +192,7 @@
             this.rbTrial.Size = new System.Drawing.Size(164, 21);
             this.rbTrial.TabIndex = 0;
             this.rbTrial.TabStop = true;
+            this.rbTrial.Tag = "1";
             this.rbTrial.Text = "Full: RH + MH + Client";
             this.rbTrial.UseVisualStyleBackColor = true;
             // 

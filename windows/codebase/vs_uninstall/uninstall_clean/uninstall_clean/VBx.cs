@@ -179,7 +179,6 @@ namespace uninstall_clean
 
         public static void remove_vm()
         {
-            //label1.Text = "Virtual Machines";
             string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false);
             if (outputVms.Contains("Error"))
             {
@@ -197,27 +196,10 @@ namespace uninstall_clean
                         if (wrd.Contains("subutai") || wrd.Contains("snappy"))
                         {
                             string vmName = wrd.Replace("\"", "");
-
-                            if (!clean.isSilent)
-                            {
-                                DialogResult drs = MessageBox.Show($"Remove virtual machine {wrd}?", "Subutai Virtual Machines",
-                                    MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Question,
-                                    MessageBoxDefaultButton.Button1);
-                                if (drs == DialogResult.Yes)
-                                {
-                                    string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
-                                    Thread.Sleep(5000);
-                                    string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false);
-                                    Thread.Sleep(5000);
-                                }
-                            }else
-                            {
-                                    string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
-                                    Thread.Sleep(5000);
-                                    string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false);
-                                    Thread.Sleep(5000);
-                            }
+                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
+                            Thread.Sleep(5000);
+                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 180000);
+                            Thread.Sleep(5000);
                         }
                     }
                 }

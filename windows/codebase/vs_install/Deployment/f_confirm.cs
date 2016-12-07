@@ -82,7 +82,11 @@ namespace Deployment
         public f_confirm()
         {
             InitializeComponent();
-            
+
+            rbTrial.CheckedChanged += new EventHandler(radioButtons_CheckedChanged);
+            rbRHonly.CheckedChanged += new EventHandler(radioButtons_CheckedChanged);
+            rbTrial.CheckedChanged += new EventHandler(radioButtons_CheckedChanged);
+
             //showing();
         }
 
@@ -141,7 +145,7 @@ namespace Deployment
             logger.Info("VT/x enabled: {0}", hostVT);
             logger.Info("Oracle VBox version: {0}", vboxVersion);
             //Check if can install
-            checking();
+            checking(peerType(getCheckedRadio(gbxTypeInst)));
         }
 
         /// <summary>
@@ -150,37 +154,50 @@ namespace Deployment
         /// If parameter does not system requirements, it will be shown in red
         /// For Windows 7 can not define if VT/x is enabled in BIOS
         /// </summary>
-        private void checking()
+        private void checking(string pType)
         {
             //2 or more processor cores
-            if (hostCores < 2)
+            if (pType != "client-only")
             {
-                l_Proc.ForeColor = Color.Red;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Subutai needs at least 2 cores!";
+                if (hostCores < 2)
+                {
+                    l_Proc.ForeColor = Color.Red;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Subutai needs at least 2 cores!";
 
-                res = false;
-            }
-            else
+                    res = false;
+                }
+                else
+                {
+                    l_Proc.ForeColor = Color.Green;
+                }
+            } else
             {
-                l_Proc.ForeColor = Color.Green;
+                    l_Proc.ForeColor = Color.DarkGray;
             }
-
+            
             //RAM > 4000 KB
             //here: change
-            if ((long)hostRam < 3800) 
+            if (pType != "client-only")
             {
-                l_RAM.ForeColor = Color.Red;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Subutai needs more than 3000 MB of RAM.";
-                res = false;
-            }
-            else
+                if ((long)hostRam < 3800)
+                {
+                    l_RAM.ForeColor = Color.Red;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Subutai needs more than 3000 MB of RAM.";
+                    res = false;
+                }
+                else
+                {
+                    l_RAM.ForeColor = Color.Green;
+                }
+            } else
             {
-                l_RAM.ForeColor = Color.Green;
+                    l_RAM.ForeColor = Color.DarkGray;
             }
+            
             //Processor architecture x64
             if (!host64)
             {
@@ -194,24 +211,49 @@ namespace Deployment
             {
                 l_S64.ForeColor = Color.Green;
             }
+
             //VT-x enabled
-            if (!hostVT.ToLower().Contains("true") && shortVersion != "6.1")//not Windows  7
+            if (pType != "client-only")
             {
-                l_VT.ForeColor = Color.Red;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Please, enable hardware virtualization support (Vt-X/AMD-V) in BIOS!";
-                res = false;
-            }
-            //Oracle Virtual Box version >5.0
-            if (!SysCheck.vbox_version_fit(vb_version2fit, l_VB.Text))
-            {
-                l_VB.ForeColor = Color.Red;
-                res = false;
+                if (!hostVT.ToLower().Contains("true"))
+                {
+                    if (shortVersion != "6.1")//not Windows  7 
+                    { 
+                        l_VT.ForeColor = Color.Red;
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += "Please, enable hardware virtualization support (Vt-X/AMD-V) in BIOS!";
+                        res = false;
+                    } else
+                    {
+                        l_VT.ForeColor = Color.DarkBlue;
+
+                    }
+                } else 
+                {
+                    l_VT.ForeColor = Color.Green;
+                }
             }
             else
             {
-                l_VB.ForeColor = Color.Green;
+                l_VT.ForeColor = Color.DarkGray;
+            }
+            
+            //Oracle Virtual Box version >5.0
+            if (pType != "client-only")
+            {
+                if (!SysCheck.vbox_version_fit(vb_version2fit, l_VB.Text))
+                {
+                    l_VB.ForeColor = Color.Red;
+                    res = false;
+                }
+                else
+                {
+                    l_VB.ForeColor = Color.Green;
+                }
+            } else
+            {
+                l_VB.ForeColor = Color.DarkGray;
             }
             //Checking Windows version >= 6.1, 6.1 is Windows 7
             if (!SysCheck.vbox_version_fit("6.1", shortVersion))
@@ -223,7 +265,7 @@ namespace Deployment
             {
                 l_OS.ForeColor = Color.Green;
             }
-
+            
             if (res)
             {
                 btnInstall.Text = $"Install Subutai {Program.inst_type}";
@@ -232,8 +274,6 @@ namespace Deployment
                     //Can install
                     lblCheckResult.Text = "Subutai Social can be installed on Your system. Press Install button";
                     lblCheckResult.ForeColor = Color.Green;
-                    l_VT.ForeColor = Color.Green;
-                    //tb_Info.Text = " ";
 
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
@@ -244,23 +284,32 @@ namespace Deployment
                 else
                 {
                     //WE have Windows 7
-                    lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
-                    lblCheckResult.ForeColor = Color.Blue;
-                    l_VT.ForeColor = Color.DarkBlue;
-                    tb_Info.Text = $"Can not define if VT-x is enabled. \nPlease find in {tbxAppDir.Text}bin and run (As Administrator) Microsoft Hardware-assisted virtualization (HAV) detection tool: havdetectiontool.exe";
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "If VT-x is not enabled, close form, cancel installation and enable in BIOS.";
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "If VT-x enabled, please turn off Antivirus software for installation time!";
+                    
+                    if (pType != "client-only")
+                    {
+                        lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
+                        lblCheckResult.ForeColor = Color.Blue;
+                        l_VT.ForeColor = Color.DarkBlue;
+                        tb_Info.Text = $"Can not define if VT-x is enabled. \nPlease find in {tbxAppDir.Text}bin and run (As Administrator) Microsoft Hardware-assisted virtualization (HAV) detection tool: havdetectiontool.exe";
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += "If VT-x is not enabled, close form, cancel installation and enable in BIOS.";
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += "If VT-x enabled, please turn off Antivirus software for installation time!";
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += "DHCP server must to be running on the local network.";
+                    } else
+                    {
+                        lblCheckResult.Text = "Impossible to check if VT-x is enabled, but Client-Only version can be installed.";
+                        lblCheckResult.ForeColor = Color.Green;
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += Environment.NewLine;
+                        tb_Info.Text += "DHCP server must to be running on the local network.";
+                    }
                 }
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
-                //tb_Info.Text += "If installation fails or interrupted, please run Start->All Applications->Subutai folder->Uninstall or uninstall from Control Panel.";
-                //tb_Info.Text += Environment.NewLine;
-                //tb_Info.Text += Environment.NewLine;
-                //tb_Info.Text += "Press Next button to proceed.";
             }
             else
             {
@@ -371,7 +420,6 @@ namespace Deployment
 
         void cms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
-            //ToolStripItem item = e.ClickedItem;
             Thread thread = new Thread(() => Clipboard.SetText(linkURL));
             thread.SetApartmentState(ApartmentState.STA); //Set the thread to STA
             thread.Start();
@@ -392,8 +440,6 @@ namespace Deployment
             {
                 //Show Copy
                 cms.Show(this, new Point(panelRight.Bounds.X + ll.Bounds.X, ll.Bounds.Y));
-                //cms.Show(this, new Point(panelRight.Bounds.X + X, panelRight.Bounds.Y + Y));
-
             }
             else
             {
@@ -422,8 +468,7 @@ namespace Deployment
             {
                 //Show Copy
                 cms.Show(this, new Point(panelRight.Bounds.X + ll.Bounds.X, ll.Bounds.Y));
-                //cms.Show(this, new Point(panelRight.Bounds.X + X, panelRight.Bounds.Y + Y));
-            }
+             }
             else
             {
                 linkTutorials.LinkVisited = true;
@@ -458,5 +503,18 @@ namespace Deployment
         {
             //instFolder();
         }
-    }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the radioButtons control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void radioButtons_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+            string name = radioButton.Name;
+            checking(peerType(getCheckedRadio(gbxTypeInst)));
+        }
+
+     }
 }

@@ -123,7 +123,7 @@ namespace Deployment
                     {
                         WebException we = (WebException)e.Error;
                         logger.Error(we.Message, "File download error");
-                        Program.ShowError("File Download error, uninstalling partially installed Subutai Social",
+                        Program.ShowError($"File Download error : {we.Message}",
                             we.Message);
                         Program.form1.Visible = false;
                     }
@@ -131,7 +131,7 @@ namespace Deployment
                     {
                         Exception ne = (Exception)e.Error;
                         logger.Error(ne.Message);
-                        Program.ShowError("Download error, uninstalling partially installed Subutai Social",
+                        Program.ShowError($"Download error: {ne.Message}",
                             ne.Message);
                         Program.form1.Visible = false;
                     }
@@ -247,7 +247,7 @@ namespace Deployment
                 Inst.inst_TAP(appDir);
 
                 Deploy.StageReporter("", "MS Visual C++");
-                res = Deploy.LaunchCommandLineApp($"{appDir}redist\\vcredist64.exe", "/install /quiet");
+                res = Deploy.LaunchCommandLineApp($"{appDir}redist\\vcredist64.exe", "/install /quiet", 240000);
                 logger.Info("MS Visual C++: {0}", res);
 
                 Deploy.StageReporter("", "Chrome browser");
@@ -260,11 +260,11 @@ namespace Deployment
                 Inst.inst_ssh(appDir);
             }
 
-            Deploy.StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
             if (_arguments["peer"] != "client-only")
             {
+                Deploy.StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
                 Inst.inst_VBox(appDir);
-            }
+            } 
         }
 
         /// <summary>
@@ -281,15 +281,15 @@ namespace Deployment
             Deploy.ShowMarquee();
             // prepare NAT network
             string res = "";
-            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork list natnet1 ");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork list natnet1 ", 120000);
             logger.Info("list NAT network natnet1: {0}", res);
             if (res.Contains("natnet1"))
             {
-                res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork remove --netname natnet1 ");
+                res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork remove --netname natnet1 ", 120000);
                 logger.Info("Removing NAT network: {0}", res);
             }
 
-            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on", 120000);
             logger.Info("Configuring NAT network: {0}", res);
             //if (Deploy.com_out(res,2) == "Error") remove
             if (res.ToLower().Contains("error"))
@@ -300,7 +300,7 @@ namespace Deployment
             }
             // import OVAs
             Deploy.StageReporter("", "Importing Snappy");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova", 240000);
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
             if (res.ToLower().Contains("error"))
             {
@@ -333,7 +333,8 @@ namespace Deployment
             Deploy.StageReporter("", "Preparing NIC - NAT");
             logger.Info("Preparing NIC-NAT");
             res = Deploy.LaunchCommandLineApp("vboxmanage",
-                $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'");
+                $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'",
+                60000);
             logger.Info("nic 1 --nat: {0}", res);
             //if (res.ToLower().Contains("error"))
             //{
@@ -341,10 +342,10 @@ namespace Deployment
             //    Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
             //    Program.form1.Visible = false;
             //}
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none", 60000);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Prepare VBox");
                 Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
@@ -373,7 +374,8 @@ namespace Deployment
                     Program.form1.Visible = false;
                 }
             }
-            prepare_mh();
+
+            //prepare_mh();
         }
 
         /// <summary>
@@ -390,12 +392,12 @@ namespace Deployment
             bool res_b = VMs.waiting_4ssh(_cloneName);
             if (!res_b)
             {
-                logger.Error("SSH 1 false", "Can not open ssh, please check VM state manually and report error");
+                logger.Error("SSH 1 false", "Can not open ssh, please check VM state manually");
                 Program.ShowError("Can not open ssh, please check VM state manually and report error", "Waiting for SSH");
                 Program.form1.Visible = false;
             }
             // DEPLOY PEER
-            VMs.run_scripts(_arguments["appDir"], _cloneName);
+            Inst.run_scripts(_arguments["appDir"], _cloneName);
 
             Deploy.StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
