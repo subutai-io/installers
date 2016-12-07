@@ -198,7 +198,7 @@ namespace uninstall_clean
                             string vmName = wrd.Replace("\"", "");
                             string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
                             Thread.Sleep(5000);
-                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false);
+                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 180000);
                             Thread.Sleep(5000);
                         }
                     }

@@ -3,6 +3,7 @@ using System.ServiceProcess;
 using System.Linq;
 using System.Threading;
 using System.Diagnostics;
+using System.Text;
 using System.Windows.Forms;
 
 namespace uninstall_clean
@@ -121,6 +122,94 @@ namespace uninstall_clean
                 //LaunchCommandLineApp(filename, arguments);
             }
             return ($"1|{filename} was not executed|Error");
+        }
+
+        /// <summary>
+        /// Launches the command line application with timeout.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="timeout">The timeout for command in ms.</param>
+        /// <returns></returns>
+        public static string LaunchCommandLineApp(string filename, string arguments, bool bCrNoWin, bool bUseShExe, int timeout)
+        {
+            // Use ProcessStartInfo class
+            var startInfo = new ProcessStartInfo
+            {
+                CreateNoWindow = bCrNoWin,//true,
+                UseShellExecute = bUseShExe,//false,
+                FileName = filename,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            //string output;
+            //string err;
+            Process process = new Process();
+            process.StartInfo = startInfo;
+
+            StringBuilder output = new StringBuilder();
+            StringBuilder error = new StringBuilder();
+
+            using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+            using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
+            {
+                process.OutputDataReceived += (sender, e) =>
+                {
+                    if (e.Data == null)
+                    {
+                        outputWaitHandle.Set();
+                    }
+                    else
+                    {
+                        output.AppendLine(e.Data);
+                    }
+                };
+                process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (e.Data == null)
+                    {
+                        errorWaitHandle.Set();
+                    }
+                    else
+                    {
+                        error.AppendLine(e.Data);
+                    }
+                };
+
+                try
+                {
+                    // Start the process with the info we specified.
+                    // Call WaitForExit and then the using statement will close.
+                    process.Start();
+
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+
+                    if (process.WaitForExit(timeout) &&
+                        outputWaitHandle.WaitOne(timeout) &&
+                        errorWaitHandle.WaitOne(timeout))
+                    {
+                        // Process completed. Check process.ExitCode here.
+                        return ($"executing: \"{filename} {arguments}\"|{output}|{error}");
+                    }
+                    else
+                    {
+                        // Timed out.
+                        return ($"1|{filename} was timed out|Error");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Can not run {filename}: {ex.Message}");
+                    //try to repeat, counting 
+                    //uncomment if need repeated tries 
+                    //LaunchCommandLineApp(filename, arguments, 0);//will try 3 times
+                    //Thread.Sleep(10000); 
+                }
+                return ($"1|{filename} was not executed|Error");
+            }
         }
     }
 }
