@@ -682,12 +682,12 @@ namespace Deployment
 
                     if (res == res0)
                     {
-                        //will check 15 times more
+                        //will check 5 times more
                         cnt_download++;
-                        //wait 200 seconds - 3.5 minutes for connection recovered
-                        if (cnt_download >= 10)
+                        //wait 6*30 seconds - 3 minutes for connection recovered
+                        if (cnt_download >= 6)
                         {
-                            //if waiting more than 6 minutes - stop 
+                            //if waiting more than 3 minutes - stop 
                             logger.Info("Cancelling from watcher - stuck download");
                             tokenSource.Cancel();
                         }
@@ -995,6 +995,7 @@ namespace Deployment
                 logger.Info("Running installation scripts second time: {0}", b_res);
                 if (ssh_res.Contains("Error"))
                 {
+
                     return false;
                 }
             }
