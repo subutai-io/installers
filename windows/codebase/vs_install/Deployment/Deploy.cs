@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Timers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
@@ -38,8 +39,13 @@ namespace Deployment
         /// </summary>
         public static string SubutaiUninstallName = "uninstall-clean.exe";
         private const string SubutaiUninstallIconName = "uninstall.ico";
+        private static long BytesDownloaded = 0;
+        
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+
+        private System.Timers.Timer dwldTimer = new System.Timers.Timer();
+        System.Timers.ElapsedEventHandler dwldTimerHandler = null;
 
         /// <summary>
         /// public Deploy
@@ -187,7 +193,25 @@ namespace Deployment
                 {
                     webClient.DownloadFileCompleted += onComplete;
                 }
+
                 webClient.DownloadProgressChanged += ProgressChanged;
+                
+                BytesDownloaded = 0;
+                dwldTimerHandler = ((sender, args) 
+                    =>
+                    {
+                        dwldTimer.Elapsed -= dwldTimerHandler;
+                        webClient.CancelAsync();
+                        Program.ShowError("Subutai repository is not available. Can not download files. Check Internet connection",
+                                          "Repository Error");
+                        Program.form1.Visible = false;
+                    });
+                dwldTimer.Elapsed += dwldTimerHandler;
+                dwldTimer.Interval = 100000; 
+                dwldTimer.AutoReset = false;
+                dwldTimer.Enabled = true;
+
+                Program.form1.lbInfo.Visible = true;
                 try
                 {
                     if (async)
@@ -209,6 +233,8 @@ namespace Deployment
             }
             else
             {
+                BytesDownloaded = 0;
+                Program.form1.lbInfo.Visible = false;
                 onComplete?.Invoke(null, null);
                 //onComplete?.Invoke(null, AsyncCompletedEventArgs.Empty);
             }
@@ -222,12 +248,15 @@ namespace Deployment
         /// <param name="e">DownloadProgressChangedEventArgs</param>
         private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            //MessageBox.Show(e.ProgressPercentage.ToString());
+            dwldTimer.Stop();
             Program.form1.Invoke((MethodInvoker) delegate
             {
                 //Program.form1.progressBarControl1.EditValue = e.ProgressPercentage;
+                BytesDownloaded = e.BytesReceived;
+                long bytes = e.BytesReceived;
                 UpdateProgress(e.ProgressPercentage);
             });
+            dwldTimer.Start();
         }
         #endregion
 
@@ -1062,15 +1091,22 @@ namespace Deployment
                     new Action(() =>
                     {
                         Program.form1.prBar_.Value = progress;
+                        //Program.form1.prBar_.
+                        Program.form1.lbInfo.Text = $"{progress}%";
+                        Program.form1.lbInfo.Update();
                     }
                 ));
             }
             else
             {
                 Program.form1.prBar_.Value = progress;
+                Program.form1.lbInfo.Text = $"{progress}%";
+                Program.form1.lbInfo.Update();
             }
         }
 
         #endregion
     }
 }
+
+
