@@ -25,9 +25,9 @@ namespace uninstall_clean
 
             // waiting 2 seconds in case that the instance is just 
             // shutting down
-            if (!mt_single.WaitOne(TimeSpan.FromSeconds(2), false))
+            if (!mt_single.WaitOne(TimeSpan.FromSeconds(0), false))
             {
-                MessageBox.Show("Subutai uninstall already started!", "", MessageBoxButtons.OK);
+                //MessageBox.Show("Subutai uninstall already started!", "", MessageBoxButtons.OK);
                 return;
             }
 
