@@ -136,7 +136,7 @@ namespace Deployment
 
             // clone VM
             Deploy.StageReporter("", "Cloning VM");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy", 240000);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy", 360000);
             logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", vmName, res);
             if (res.ToLower().Contains("error"))
             {
@@ -144,7 +144,7 @@ namespace Deployment
                 Program.ShowError("Can not clone VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy", 240000);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy", 420000);
             logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
             if (res.ToLower().Contains("error"))
             {
