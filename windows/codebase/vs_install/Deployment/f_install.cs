@@ -135,6 +135,8 @@ namespace Deployment
         /// <param name="e">AsyncCompletedEventArgs e</param>
         public void TaskFactory(object sender, AsyncCompletedEventArgs e)
         {
+            Deploy.dwldTimer.Enabled = false;
+            Deploy.dwldTimer.Dispose();
             //var token = tokenSource.Token;
             object state = "";
 

@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
-using System.Threading;
 using NLog;
-using Microsoft.Win32;
 
 namespace Deployment
 {
@@ -162,8 +157,6 @@ namespace Deployment
             res = Deploy.com_out(res, 2);
             if (res == "" || res == null)
             {
-                //Program.ShowError("Can not define gateway, please check Internet Connection", "Network Error");
-                //Program.form1.Visible = false;
                 return ("NA");
             }
             res = res.Replace("|", "");

@@ -122,8 +122,8 @@ namespace Deployment
         }
 
 
-
-
+        
+        
         //Cloning VM
         /// <summary>
         /// Clones the VM.

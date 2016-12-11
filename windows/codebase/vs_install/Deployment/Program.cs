@@ -29,6 +29,15 @@ namespace Deployment
 
         public static bool stRun = false; 
 
+        private static System.Timers.Timer mTimer = new System.Timers.Timer();
+        private static System.Timers.ElapsedEventHandler mTimerHandler = null;
+       
+        const int WM_CLOSE = 0x0010;
+        [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         //[STAThread]
@@ -74,9 +83,7 @@ namespace Deployment
                 catch (System.ComponentModel.Win32Exception)
                 {
                     MessageBox.Show("This utility requires elevated priviledges to complete correctly.", "Error: UAC Authorisation Required", MessageBoxButtons.OK);
-                    //                    Debug.Print(ex.Message);
                     return;
-                    //Environment.Exit(1);
                 }
             }
             
@@ -118,17 +125,39 @@ namespace Deployment
         /// <param name="Caption">Caption for MessageBox</param>
         public static void ShowError(string Text, string Caption)
         {
-            Program.form1.Invoke((MethodInvoker)delegate
-            {
-                st_fail_reason = Text;
-                var result = MessageBox.Show(Text, Caption, MessageBoxButtons.OK);
-                if (result == DialogResult.OK)
+           mTimerHandler = ((sender, args)
+                =>
                 {
-                    if (Program.form1.Visible == true)
-                        Program.form1.Hide();
-                    Program.form1.Close();
-                }
-            });
+                    mTimer.Elapsed -= mTimerHandler;
+                    mTimer.Close();
+                    mTimer.Dispose();
+                    MsgBoxClose(Caption);
+                });
+
+            mTimer.Elapsed += mTimerHandler;
+            mTimer.Interval = 60000;
+            mTimer.AutoReset = false;
+            mTimer.Enabled = true;
+            try
+            {
+                Program.form1.Invoke((MethodInvoker)delegate
+                {
+                    st_fail_reason = Text;
+                    mTimer.Enabled = true;
+                    mTimer.Start();
+                    var result = MessageBox.Show(Text, Caption, MessageBoxButtons.OK);
+                    if (result == DialogResult.OK)
+                    {
+                        if (Program.form1.Visible == true)
+                            Program.form1.Hide();
+                        Program.form1.Close();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                string tmp = ex.Message;
+            }
         }
 
         /// <summary>
@@ -180,6 +209,16 @@ namespace Deployment
 
             }
             return "prod";
+        }
+
+        /// <summary>
+        /// MessageBox close.
+        /// </summary>
+        static void MsgBoxClose(string sCaption)
+        {
+            IntPtr mbWnd = FindWindow(null, sCaption);
+            if (mbWnd != IntPtr.Zero)
+                SendMessage(mbWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
         }
     }
 }

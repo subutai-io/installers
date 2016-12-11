@@ -39,13 +39,15 @@ namespace Deployment
         /// </summary>
         public static string SubutaiUninstallName = "uninstall-clean.exe";
         private const string SubutaiUninstallIconName = "uninstall.ico";
-        private static long BytesDownloaded = 0;
         
+        /// <summary>
+        /// The DoWnLoaD timer and Elapsed event handler
+        /// </summary>
+        public static System.Timers.Timer dwldTimer = new System.Timers.Timer();
+        System.Timers.ElapsedEventHandler dwldTimerHandler = null;
+
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
-
-        private System.Timers.Timer dwldTimer = new System.Timers.Timer();
-        System.Timers.ElapsedEventHandler dwldTimerHandler = null;
 
         /// <summary>
         /// public Deploy
@@ -174,9 +176,8 @@ namespace Deployment
                 if ( Inst.app_installed("Oracle\\VirtualBox") == 1 || _arguments["peer"] == "client-only")
                     shouldWeDownload = false;
             }
-            
-            //logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
 
+ 
             if (shouldWeDownload)
             {
                 var dirInfo = new DirectoryInfo(path: Path.GetDirectoryName(destination));
@@ -194,24 +195,25 @@ namespace Deployment
                     webClient.DownloadFileCompleted += onComplete;
                 }
 
+                //Add ProgressChanges event handler
                 webClient.DownloadProgressChanged += ProgressChanged;
-                
-                BytesDownloaded = 0;
+
+                //Add Elapsed event handler
                 dwldTimerHandler = ((sender, args) 
                     =>
                     {
                         dwldTimer.Elapsed -= dwldTimerHandler;
                         webClient.CancelAsync();
-                        Program.ShowError("Subutai repository is not available. Can not download files. Check Internet connection",
+                        dwldTimer.Enabled = false;
+                        dwldTimer.Dispose();
+                        Program.ShowError("Can not download files. Please, check Your Internet connection and try later",
                                           "Repository Error");
                         Program.form1.Visible = false;
                     });
                 dwldTimer.Elapsed += dwldTimerHandler;
-                dwldTimer.Interval = 100000; 
+                dwldTimer.Interval = 300000; 
                 dwldTimer.AutoReset = false;
                 dwldTimer.Enabled = true;
-
-                Program.form1.lbInfo.Visible = true;
                 try
                 {
                     if (async)
@@ -222,10 +224,11 @@ namespace Deployment
                     {
                         webClient.DownloadFile(new Uri(url), destination);
                     }
-                    //logger.Info("Download {0}", destination);
                 }
                 catch (Exception ex)
                 {
+                    dwldTimer.Enabled = false;
+
                     logger.Error(ex.Message, destination);
                     Program.ShowError("Subutai repository is not available. Check Internet connection.",
                         "Repository Error");
@@ -233,10 +236,8 @@ namespace Deployment
             }
             else
             {
-                BytesDownloaded = 0;
-                Program.form1.lbInfo.Visible = false;
+                dwldTimer.Enabled = false;
                 onComplete?.Invoke(null, null);
-                //onComplete?.Invoke(null, AsyncCompletedEventArgs.Empty);
             }
         }
 
@@ -251,10 +252,7 @@ namespace Deployment
             dwldTimer.Stop();
             Program.form1.Invoke((MethodInvoker) delegate
             {
-                //Program.form1.progressBarControl1.EditValue = e.ProgressPercentage;
-                BytesDownloaded = e.BytesReceived;
-                long bytes = e.BytesReceived;
-                UpdateProgress(e.ProgressPercentage);
+                  UpdateProgress(e.ProgressPercentage);
             });
             dwldTimer.Start();
         }
@@ -872,7 +870,7 @@ namespace Deployment
                 {
                     MessageBox.Show(ex.Message);
                 }
-            }
+        }
 
         /// <summary>
         /// Creates all shortcuts needed.
@@ -1091,17 +1089,12 @@ namespace Deployment
                     new Action(() =>
                     {
                         Program.form1.prBar_.Value = progress;
-                        //Program.form1.prBar_.
-                        Program.form1.lbInfo.Text = $"{progress}%";
-                        Program.form1.lbInfo.Update();
                     }
                 ));
             }
             else
             {
                 Program.form1.prBar_.Value = progress;
-                Program.form1.lbInfo.Text = $"{progress}%";
-                Program.form1.lbInfo.Update();
             }
         }
 

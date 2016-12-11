@@ -34,7 +34,6 @@
             this.prBar_ = new System.Windows.Forms.ProgressBar();
             this.label_SubStage = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.lbInfo = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label_Stage
@@ -66,25 +65,11 @@
             this.label_SubStage.TabIndex = 2;
             this.label_SubStage.Text = "Sub Stage Name";
             // 
-            // lbInfo
-            // 
-            this.lbInfo.AutoSize = true;
-            this.lbInfo.BackColor = System.Drawing.Color.Green;
-            this.lbInfo.ForeColor = System.Drawing.Color.WhiteSmoke;
-            this.lbInfo.Location = new System.Drawing.Point(109, 32);
-            this.lbInfo.MaximumSize = new System.Drawing.Size(200, 0);
-            this.lbInfo.Name = "lbInfo";
-            this.lbInfo.Size = new System.Drawing.Size(38, 14);
-            this.lbInfo.TabIndex = 3;
-            this.lbInfo.Text = "lbInfo";
-            this.lbInfo.Visible = false;
-            // 
             // f_install
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(88)))), ((int)(((byte)(88)))), ((int)(((byte)(88)))));
             this.ClientSize = new System.Drawing.Size(610, 56);
-            this.Controls.Add(this.lbInfo);
             this.Controls.Add(this.label_SubStage);
             this.Controls.Add(this.prBar_);
             this.Controls.Add(this.label_Stage);
@@ -110,6 +95,5 @@
         public System.Windows.Forms.ProgressBar prBar_;
         public System.Windows.Forms.Label label_SubStage;
         public System.Windows.Forms.Timer timer1;
-        public System.Windows.Forms.Label lbInfo;
     }
 }
