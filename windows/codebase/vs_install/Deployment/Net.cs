@@ -91,13 +91,9 @@ namespace Deployment
                             )
                         )
                     {
-                        IPAddress mask = unicast_address_info.IPv4Mask;
-                        //logger.Info("adapter checking: {0}", unicast_address_info.Address.ToString());
-                        //if (IsInSameSubnet(unicast_address_info.Address, gateway_address.Address, mask) &&
-                        //    adapter.GetIPProperties().GatewayAddresses.FirstOrDefault().Address.ToString() == gateway_address.Address.ToString())
                         if (unicast_address_info.Address.ToString() == gateway_if_address.ToString())
                         {
-                            logger.Info("adapter found: {0}", adapter.Description.ToString());
+                            logger.Info("adapter found: Description: {0}, Name: {1}", adapter.Description.ToString(), adapter.Name.ToString());
                             return adapter.Description.ToString();
                         }
                     }

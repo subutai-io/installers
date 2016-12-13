@@ -324,10 +324,6 @@ namespace Deployment
                     logger.Info("New Host-Only interface name: /{0}/", netif_vbox0);
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif ipconfig \"{netif_vbox0}\" --ip 192.168.56.1  --netmask 255.255.255.0", 120000);
                     logger.Info("hostonly ip config: {0}", res);
-                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
-                    //logger.Info("dhcp server add: {0}", res);
-                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
-                    //logger.Info("dhcp server modify: {0}", res);
                 }
                 else
                 {
@@ -340,7 +336,7 @@ namespace Deployment
             logger.Info("Final Host-Only interface name: {0}", netif_vbox0);
             if (!netif_vbox0.Contains("Not defined")) // created, start
             {
-                //////////////////////Remove dhcp server present on interface
+                //Remove dhcp server present on interface
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver remove --ifname \"{netif_vbox0}\"", 180000);
                 logger.Info("dhcp server remove: {0}", res);
 
@@ -391,12 +387,13 @@ namespace Deployment
             string err = Deploy.com_out(res, 2);
             logger.Info("vm 1: {0} stdout: {1}", vmName, err);
 
-            //Cannot start
+            //Cannot start, checking host-only and bridged interfaces
             if (err != null && err.Contains(" error:"))
             {
+                //Host-only problem
                 if (err.Contains(if_name))
                 {
-                    //Host-only problem
+                   
                     Deploy.StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
                     Thread.Sleep(10000);
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic3 none", 60000);
@@ -417,7 +414,7 @@ namespace Deployment
                     Deploy.StageReporter("VBox Bridged adapter problem", "Trying to turn off Bridged adapter");
                     Thread.Sleep(10000);
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic1 none", 60000);
-                    logger.Info("nic3 none: {0}", res);
+                    logger.Info("nic1 none: {0}", res);
                     Deploy.StageReporter("", "Trying to turn off Bridged adapter");
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ", 60000);
                     logger.Info("vm 2: {0} starting: {1}", vmName, res);
@@ -434,6 +431,5 @@ namespace Deployment
             }
             return true;
         }
-
      }
 }
