@@ -11,7 +11,6 @@ namespace Deployment
     /// Form showing system settings and installation directory (chosen in installer)
     /// Definition of peer type (trial (RH + MH + Client), RH only or Client only
     /// </summary>
-   
     public partial class f_confirm : Form
     {
         /// <summary>
@@ -75,6 +74,7 @@ namespace Deployment
         /// The logger, will log system information
         /// </summary>
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+ 
         /// <summary>
         /// Initializes a new instance of the <see cref="f_confirm"/> class.
         /// Form shows if Subutai can be installed and allows to choose installation type
@@ -284,13 +284,12 @@ namespace Deployment
                 else
                 {
                     //WE have Windows 7
-                    
                     if (pType != "client-only")
                     {
                         lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
                         lblCheckResult.ForeColor = Color.Blue;
                         l_VT.ForeColor = Color.DarkBlue;
-                        tb_Info.Text = $"Can not define if VT-x is enabled. \nPlease find in {tbxAppDir.Text}bin and run (As Administrator) Microsoft Hardware-assisted virtualization (HAV) detection tool: havdetectiontool.exe";
+                        tb_Info.Text = $"Can not define if VT-x is enabled. \nPlease find in {tbxAppDir.Text}bin and run (As Administrator) Microsoft Hardware-assisted virtualization (HAV) DETECTION TOOL: havdetectiontool.exe";
                         tb_Info.Text += Environment.NewLine;
                         tb_Info.Text += "If VT-x is not enabled, close form, cancel installation and enable in BIOS.";
                         tb_Info.Text += Environment.NewLine;
@@ -418,6 +417,12 @@ namespace Deployment
             Program.form_.Close();
         }
 
+        /// <summary>
+        /// Handles the ItemClicked event of the control (created for linklabel).
+        /// Allows to copy URL to clipboard.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="ToolStripItemClickedEventArgs"/> instance containing the event data.</param>
         void cms_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             Thread thread = new Thread(() => Clipboard.SetText(linkURL));
@@ -483,12 +488,24 @@ namespace Deployment
             }
         }
 
+        /// <summary>
+        /// Handles the MouseDown event of the linkTutorials control.
+        /// Stores control coordinates 
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="MouseEventArgs"/> instance containing the event data.</param>
         private void linkTutorials_MouseDown(object sender, MouseEventArgs e)
         {
             X = e.X;
             Y = e.Y;
         }
 
+        /// <summary>
+        /// Handles the MouseDown event of the linkManual control.
+        /// Stores control coordinates
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="MouseEventArgs"/> instance containing the event data.</param>
         private void linkManual_MouseDown(object sender, MouseEventArgs e)
         {
             X = e.X;
