@@ -10,16 +10,6 @@ namespace Deployment
     class SysCheck
     {
         public static  Boolean res = true;
-        //public static int hostCores; //number of logical processors
-        //public static Boolean host64;
-        //public static string hostOSversion;
-        //public static string hostOSversion_user;
-        //private static long hostRam;
-        //public static string hostVT;
-        //public static string shortVersion;
-        //public static string vboxVersion;
-        //public static string vb_version2fit = "5.1.0";
-
         public static string check_vt()
         {
             ManagementClass managClass = new ManagementClass("win32_processor");

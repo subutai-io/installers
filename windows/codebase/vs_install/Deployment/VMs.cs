@@ -122,8 +122,8 @@ namespace Deployment
         }
 
 
-
-
+        
+        
         //Cloning VM
         /// <summary>
         /// Clones the VM.
@@ -136,7 +136,7 @@ namespace Deployment
 
             // clone VM
             Deploy.StageReporter("", "Cloning VM");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy", 240000);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"clonevm --register --name {vmName} snappy", 360000);
             logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", vmName, res);
             if (res.ToLower().Contains("error"))
             {
@@ -144,7 +144,7 @@ namespace Deployment
                 Program.ShowError("Can not clone VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy", 240000);
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"unregistervm --delete snappy", 420000);
             logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
             if (res.ToLower().Contains("error"))
             {
@@ -324,25 +324,24 @@ namespace Deployment
                     logger.Info("New Host-Only interface name: /{0}/", netif_vbox0);
                     res = Deploy.LaunchCommandLineApp("vboxmanage", $" hostonlyif ipconfig \"{netif_vbox0}\" --ip 192.168.56.1  --netmask 255.255.255.0", 120000);
                     logger.Info("hostonly ip config: {0}", res);
-                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200");
-                    //logger.Info("dhcp server add: {0}", res);
-                    //res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ");
-                    //logger.Info("dhcp server modify: {0}", res);
                 }
                 else
                 {
                     netif_vbox0 = "Not defined"; // interface not created
+                    res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {name} --nic3 none", 60000);
+                    logger.Info("No hostonly: {0}", res);
+                    return netif_vbox0;
                 }
             }
             logger.Info("Final Host-Only interface name: {0}", netif_vbox0);
-            if (netif_vbox0 != "Not defined") // created, start
+            if (!netif_vbox0.Contains("Not defined")) // created, start
             {
-                //////////////////////Remove dhcp server present on interface
+                //Remove dhcp server present on interface
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver remove --ifname \"{netif_vbox0}\"", 180000);
                 logger.Info("dhcp server remove: {0}", res);
-                
+
                 //Add dhcp server
-                res = Deploy.LaunchCommandLineApp("vboxmanage", 
+                res = Deploy.LaunchCommandLineApp("vboxmanage",
                     $" dhcpserver add --ifname \"{netif_vbox0}\" --ip 192.168.56.1 --netmask 255.255.255.0 --lowerip 192.168.56.100 --upperip 192.168.56.200",
                     180000);
                 logger.Info("dhcp server add: {0}", res);
@@ -351,13 +350,11 @@ namespace Deployment
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $" dhcpserver modify --ifname \"{netif_vbox0}\" --enable ", 180000);
                 logger.Info("dhcp server modify: {0}", res);
                 //enable hostonly 
-                res = Deploy.LaunchCommandLineApp("vboxmanage", 
+                res = Deploy.LaunchCommandLineApp("vboxmanage",
                     $"modifyvm {name} --nic3 hostonly --hostonlyadapter3 \"{netif_vbox0}\"", 180000);
                 logger.Info("Enable hostonly: {0}", res);
                 return netif_vbox0;
             }
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {name} --nic3 none", 60000);
-            logger.Info("No hostonly: {0}", res);
             return netif_vbox0;
         }
 
@@ -390,23 +387,49 @@ namespace Deployment
             string err = Deploy.com_out(res, 2);
             logger.Info("vm 1: {0} stdout: {1}", vmName, err);
 
-            if (err != null && err.Contains(" error:") && err.Contains(if_name))
+            //Cannot start, checking host-only and bridged interfaces
+            if (err != null && err.Contains(" error:"))
             {
-                Deploy.StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
-                Thread.Sleep(10000);
-                res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic3 none", 60000);
-                logger.Info("nic3 none: {0}", res);
-                Deploy.StageReporter("", "Trying to turn off Host-Only adapter");
-                res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ", 60000);
-                logger.Info("vm 2: {0} starting: {1}", vmName, res);
-                err = Deploy.com_out(res, 2);
-                if (err != null || err != "")
+                //Host-only problem
+                if (err.Contains(if_name))
                 {
-                    return false;
+                   
+                    Deploy.StageReporter("VBox Host-Only adapter problem", "Trying to turn off Host-Only adapter");
+                    Thread.Sleep(10000);
+                    res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic3 none", 60000);
+                    logger.Info("nic3 none: {0}", res);
+                    Deploy.StageReporter("", "Trying to turn off Host-Only adapter");
+                    res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ", 60000);
+                    logger.Info("vm 2: {0} starting: {1}", vmName, res);
+                    err = Deploy.com_out(res, 2);
+                    if (res.Contains("successfully started"))   //(err != null || err != "")
+                    {
+                        return true;
+                    }
+                }
+
+                //Bridged problem: Nonexistent host networking interface
+                if (err.Contains("Nonexistent host networking interface"))
+                {
+                    Deploy.StageReporter("VBox Bridged adapter problem", "Trying to turn off Bridged adapter");
+                    Thread.Sleep(10000);
+                    res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --nic1 none", 60000);
+                    logger.Info("nic1 none: {0}", res);
+                    Deploy.StageReporter("", "Trying to turn off Bridged adapter");
+                    res = Deploy.LaunchCommandLineApp("vboxmanage", $"startvm --type headless {vmName} ", 60000);
+                    logger.Info("vm 2: {0} starting: {1}", vmName, res);
+                    err = Deploy.com_out(res, 2);
+                    if (!res.Contains("successfully started"))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             return true;
         }
-
      }
 }

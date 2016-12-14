@@ -46,7 +46,6 @@ namespace Deployment
         /// Performs all installation steps
         /// </summary>
         /// <param name="args">Parameter string formed from command line arguments and confirmation form</param>
-        
         public f_install(string args)
         {
             logger.Info("date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
@@ -136,6 +135,8 @@ namespace Deployment
         /// <param name="e">AsyncCompletedEventArgs e</param>
         public void TaskFactory(object sender, AsyncCompletedEventArgs e)
         {
+            Deploy.dwldTimer.Enabled = false;
+            Deploy.dwldTimer.Dispose();
             //var token = tokenSource.Token;
             object state = "";
 

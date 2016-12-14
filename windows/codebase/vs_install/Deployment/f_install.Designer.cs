@@ -43,7 +43,7 @@
             this.label_Stage.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label_Stage.Location = new System.Drawing.Point(14, 6);
             this.label_Stage.Name = "label_Stage";
-            this.label_Stage.Size = new System.Drawing.Size(98, 19);
+            this.label_Stage.Size = new System.Drawing.Size(85, 16);
             this.label_Stage.TabIndex = 0;
             this.label_Stage.Text = "Stage Name";
             // 
@@ -61,7 +61,7 @@
             this.label_SubStage.ForeColor = System.Drawing.Color.WhiteSmoke;
             this.label_SubStage.Location = new System.Drawing.Point(263, 30);
             this.label_SubStage.Name = "label_SubStage";
-            this.label_SubStage.Size = new System.Drawing.Size(119, 17);
+            this.label_SubStage.Size = new System.Drawing.Size(101, 15);
             this.label_SubStage.TabIndex = 2;
             this.label_SubStage.Text = "Sub Stage Name";
             // 
