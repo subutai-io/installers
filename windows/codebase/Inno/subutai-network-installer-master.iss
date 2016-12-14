@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Subutai"
-#define MyAppVersion "4.0.11-snapshot"
+#define MyAppVersion "4.0.12-snapshot"
 #define MyAppType "master"
 #define MyAppPublisher "Subutai Social"
 #define MyAppURL "http://subutai.io/"
