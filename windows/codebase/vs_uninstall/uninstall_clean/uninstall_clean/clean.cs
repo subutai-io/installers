@@ -233,7 +233,7 @@ namespace uninstall_clean
                      mess = FD.remove_home(SubutaiDir);
 
                      //Remove Subutai dirs from Path
-                     // UpdateProgress(60);
+                     //UpdateProgress(55);
 
                      StageReporter("", "Removing Subutai dirs from %Path%");
                      //Remove Subutai dirs from Path
@@ -242,7 +242,7 @@ namespace uninstall_clean
                      Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.Machine);
                      Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.User);
                      Environment.SetEnvironmentVariable("Subutai", "", EnvironmentVariableTarget.Process);
-                     //UpdateProgress(70);
+                     //UpdateProgress(60);
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                  .ContinueWith((prevTask) =>
@@ -250,14 +250,14 @@ namespace uninstall_clean
                      StageReporter("", "Cleaning Registry");
                      //Clean registry
                      RG.delete_from_reg();
-                     //UpdateProgress(80);
+                     //UpdateProgress(70);
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                  .ContinueWith((prevTask) =>
                  {
                      StageReporter("", "Removing TAP interfaces");
                      AP.del_TAP();
-                     UpdateProgress(90);
+                     //UpdateProgress(80);
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
               .ContinueWith((prevTask) =>
@@ -286,6 +286,13 @@ namespace uninstall_clean
                   if (!isSilent) {
                       VBx.remove_app_vbox_short("Oracle VirtualBox");
                   }
+
+                  //Remove service if was installed during cancelling
+                  mess = SCP.stop_process("p2p");
+                  mess = "";
+                  mess = SCP.stop_service("Subutai Social P2P", 5000);
+                  mess = "";
+                  mess = SCP.remove_service("Subutai Social P2P");
 
                   SetIndeterminate(false);
                   UpdateProgress(100);

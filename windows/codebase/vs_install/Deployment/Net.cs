@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
-using System.Threading;
 using NLog;
-using Microsoft.Win32;
 
 namespace Deployment
 {
@@ -96,13 +91,9 @@ namespace Deployment
                             )
                         )
                     {
-                        IPAddress mask = unicast_address_info.IPv4Mask;
-                        //logger.Info("adapter checking: {0}", unicast_address_info.Address.ToString());
-                        //if (IsInSameSubnet(unicast_address_info.Address, gateway_address.Address, mask) &&
-                        //    adapter.GetIPProperties().GatewayAddresses.FirstOrDefault().Address.ToString() == gateway_address.Address.ToString())
                         if (unicast_address_info.Address.ToString() == gateway_if_address.ToString())
                         {
-                            logger.Info("adapter found: {0}", adapter.Description.ToString());
+                            logger.Info("adapter found: Description: {0}, Name: {1}", adapter.Description.ToString(), adapter.Name.ToString());
                             return adapter.Description.ToString();
                         }
                     }
@@ -162,8 +153,6 @@ namespace Deployment
             res = Deploy.com_out(res, 2);
             if (res == "" || res == null)
             {
-                //Program.ShowError("Can not define gateway, please check Internet Connection", "Network Error");
-                //Program.form1.Visible = false;
                 return ("NA");
             }
             res = res.Replace("|", "");

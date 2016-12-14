@@ -801,6 +801,13 @@ namespace Deployment
             
             // configuring nic
             bool res_b = VMs.vm_reconfigure_nic(vmName);
+
+            if (!res_b)
+            {
+                logger.Error("VM not started", "Can not start VM, please check VM state manually and report error");
+                Program.ShowError("Can not start VM after NIC reconfiguration, please check network and VM state and report error", "VM not started");
+                Program.form1.Visible = false;
+            }
             
             //stop and start machine
             Deploy.StageReporter("", "Waiting for SSH");

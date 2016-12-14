@@ -51,7 +51,6 @@ namespace Deployment
             string regfile = Path.Combine(FD.logDir(), "subutai-clean-registry.reg");
             Deploy.HideMarquee();
             download_file(regfile, download_prerequisites);
-       
         }
 
         /// <summary>
@@ -70,6 +69,7 @@ namespace Deployment
                 report: "Getting repo descriptor",
                 async: false,
                 kurjun: true);
+            Deploy.dwldTimer.Enabled = false;
         }
 
         /// <summary>
@@ -107,6 +107,7 @@ namespace Deployment
         /// <param name="e">Info about previous download</param>
         private static void download_prerequisites(object sender, AsyncCompletedEventArgs e)
         {
+            Deploy.dwldTimer.Enabled = false;
             //Check thread exception
             if (e != null)
             {

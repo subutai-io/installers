@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Timers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
@@ -38,6 +39,13 @@ namespace Deployment
         /// </summary>
         public static string SubutaiUninstallName = "uninstall-clean.exe";
         private const string SubutaiUninstallIconName = "uninstall.ico";
+        
+        /// <summary>
+        /// The DoWnLoaD timer and Elapsed event handler
+        /// </summary>
+        public static System.Timers.Timer dwldTimer = new System.Timers.Timer();
+        System.Timers.ElapsedEventHandler dwldTimerHandler = null;
+
         private readonly Dictionary<string, string> _arguments;
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -168,9 +176,8 @@ namespace Deployment
                 if ( Inst.app_installed("Oracle\\VirtualBox") == 1 || _arguments["peer"] == "client-only")
                     shouldWeDownload = false;
             }
-            
-            //logger.Info("shouldWeDownload = {0}", shouldWeDownload.ToString());
 
+ 
             if (shouldWeDownload)
             {
                 var dirInfo = new DirectoryInfo(path: Path.GetDirectoryName(destination));
@@ -187,7 +194,26 @@ namespace Deployment
                 {
                     webClient.DownloadFileCompleted += onComplete;
                 }
+
+                //Add ProgressChanges event handler
                 webClient.DownloadProgressChanged += ProgressChanged;
+
+                //Add Elapsed event handler
+                dwldTimerHandler = ((sender, args) 
+                    =>
+                    {
+                        dwldTimer.Elapsed -= dwldTimerHandler;
+                        webClient.CancelAsync();
+                        dwldTimer.Enabled = false;
+                        dwldTimer.Dispose();
+                        Program.ShowError("Can not download files. Please, check Your Internet connection and try later",
+                                          "Repository Error");
+                        Program.form1.Visible = false;
+                    });
+                dwldTimer.Elapsed += dwldTimerHandler;
+                dwldTimer.Interval = 300000; 
+                dwldTimer.AutoReset = false;
+                dwldTimer.Enabled = true;
                 try
                 {
                     if (async)
@@ -198,10 +224,11 @@ namespace Deployment
                     {
                         webClient.DownloadFile(new Uri(url), destination);
                     }
-                    //logger.Info("Download {0}", destination);
                 }
                 catch (Exception ex)
                 {
+                    dwldTimer.Enabled = false;
+
                     logger.Error(ex.Message, destination);
                     Program.ShowError("Subutai repository is not available. Check Internet connection.",
                         "Repository Error");
@@ -209,8 +236,8 @@ namespace Deployment
             }
             else
             {
+                dwldTimer.Enabled = false;
                 onComplete?.Invoke(null, null);
-                //onComplete?.Invoke(null, AsyncCompletedEventArgs.Empty);
             }
         }
 
@@ -222,12 +249,12 @@ namespace Deployment
         /// <param name="e">DownloadProgressChangedEventArgs</param>
         private void ProgressChanged(object sender, DownloadProgressChangedEventArgs e)
         {
-            //MessageBox.Show(e.ProgressPercentage.ToString());
+            dwldTimer.Stop();
             Program.form1.Invoke((MethodInvoker) delegate
             {
-                //Program.form1.progressBarControl1.EditValue = e.ProgressPercentage;
-                UpdateProgress(e.ProgressPercentage);
+                  UpdateProgress(e.ProgressPercentage);
             });
+            dwldTimer.Start();
         }
         #endregion
 
@@ -843,7 +870,7 @@ namespace Deployment
                 {
                     MessageBox.Show(ex.Message);
                 }
-            }
+        }
 
         /// <summary>
         /// Creates all shortcuts needed.
@@ -1074,3 +1101,5 @@ namespace Deployment
         #endregion
     }
 }
+
+

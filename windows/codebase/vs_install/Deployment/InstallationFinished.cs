@@ -8,6 +8,10 @@ using System.Drawing;
 
 namespace Deployment
 {
+    /// <summary>
+    /// Form shown on fininshing installation
+    /// </summary>
+    /// <seealso cref="System.Windows.Forms.Form" />
     public partial class InstallationFinished : Form
     {
         bool opacityChanging = false;
@@ -103,23 +107,14 @@ namespace Deployment
         /// </summary>
         private void WaitClose()
         {
-            //Task ts =  Task.Run(() => waiting_ms());
-            //ts.Start();
-            Thread.Sleep(20000);
+            //Will wait for 1 hour
+            Thread.Sleep(3600000);
             
             if (!opacityChanging)
             {
                 new Task(ChangeOpacity).Start();
                 opacityChanging = true;
             }
-        }
-
-        /// <summary>
-        /// Waits 20000 ms.
-        /// </summary>
-        private void waiting_ms()
-        {
-            Thread.Sleep(20000);
         }
 
         /// <summary>
@@ -134,7 +129,7 @@ namespace Deployment
                 {
                     this.Opacity = i;
                 });
-                Thread.Sleep(20);
+                Thread.Sleep(100);
             }
 
             if (need2clean && dir2clean!="")
