@@ -7,50 +7,79 @@ using System.Windows.Forms;
 
 namespace uninstall_clean
 {
+    /// <summary>
+    /// Working with files and Directories
+    /// </summary>
     class FD
     {
+        /// <summary>
+        /// The current user
+        /// </summary>
         public static SecurityIdentifier cu = WindowsIdentity.GetCurrent().User;
+        /// <summary>
+        /// The current user name
+        /// </summary>
         public static string cu_name = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+
+        /// <summary>
+        /// Deletes the directory.
+        /// </summary>
+        /// <param name="dirName">Name of the dir.</param>
+        /// <returns>"0" if deleted, error message if not</returns>
         public static string delete_dir(string dirName)
         {
             try
             {
                 if (Directory.Exists(dirName))
                     Directory.Delete(dirName, true);
-
-
-
                 return "0";
             }
             catch (Exception ex)
             {
-
                 return "Can not delete folder " + dirName + ". " + ex.Message.ToString();
             }
         }
 
+        /// <summary>
+        /// Deletes the Subutai bin directory.
+        /// </summary>
+        /// <param name="dirName">Name of the dir.</param>
+        /// <returns>"0" if deleted, eror message with exception message if not</returns>
         public static string delete_dir_bin(string dirName)
         {
             string binDir = Path.Combine(dirName, "bin");
-            try
-            {
-                if (Directory.Exists(binDir))
-                    Directory.Delete(binDir, true);
 
-                string[] files = Directory.GetFiles(binDir, "*", SearchOption.TopDirectoryOnly);
-                foreach (string fl in files)
+            if (Directory.Exists(binDir))
+            {
+                try
                 {
-                    File.Delete(fl);
+                    Directory.Delete(binDir, true);
                 }
-
-                return "0";
+                catch (Exception)
+                {
+                    string[] files = Directory.GetFiles(binDir, "*", SearchOption.TopDirectoryOnly);
+                    foreach (string fl in files)
+                    {
+                        try
+                        {
+                            File.Delete(fl);
+                        }
+                        catch (Exception ex)
+                        {
+                            return "Can not delete folder " + binDir + " and files. Close running applications that can lock files and delete manually." + ex.Message.ToString();
+                        }
+                    }
+                }
             }
-            catch (Exception ex)
-            {
-
-                return "Can not delete folder " + binDir + " and files. Please delete manually." + ex.Message.ToString();
-            }
+            return "0";
         }
+
+        /// <summary>
+        /// Deletes the directory with changing file attributes
+        /// in case if directory contains read only files.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="recursive">if set to <c>true</c> [recursive].</param>
         public static void deleteDirectory(string path, bool recursive)
         {
             // Delete all files and sub-folders?
@@ -84,6 +113,12 @@ namespace uninstall_clean
             Directory.Delete(path);
         }
 
+        /// <summary>
+        /// Deletes  shortcut.
+        /// </summary>
+        /// <param name="shPath">The shoertcut path.</param>
+        /// <param name="aName">Application name</param>
+        /// <param name="isDir">if shortcut is directory: <c>true</c> [is dir].</param>
         public static void delete_Shortcut(string shPath, string aName, Boolean isDir)
         {
             var app = "";
@@ -136,7 +171,10 @@ namespace uninstall_clean
             }
         }
 
-        //Delete common and user's shortcuts 
+        /// <summary>
+        /// Deletes common and user's shortcuts for application.
+        /// </summary>
+        /// <param name="appName">Name of the application.</param>
         public static void delete_Shortcuts(string appName)
         {
             //Commom Desktop
@@ -184,7 +222,11 @@ namespace uninstall_clean
             delete_Shortcut(shcutStartPath, appName, true);
         }
 
-        //Remove Subutai from Path environment variable
+        /// <summary>
+        /// Removes Subutai from Path environment variable
+        /// </summary>
+        /// <param name="str2delete">The str2delete.</param>
+        /// <returns></returns>
         public static string remove_from_Path(string str2delete)
         {
             //logger.Info("Remove env");
@@ -222,7 +264,10 @@ namespace uninstall_clean
             return newPath;
         }
 
-        //Define directory for logs: <SystemDrive>\temp\Subutai_Log
+        /// <summary>
+        /// Define directory name for logs: <SystemDrive>\temp\Subutai_Log
+        /// </summary>
+        /// <returns></returns>
         public static string logDir()
         {
 
@@ -239,7 +284,9 @@ namespace uninstall_clean
             return logPath;
         }
 
-        //Remove old logs and uninstall-clean from log dir
+        /// <summary>
+        /// Removes old logs and uninstall-clean from log dir
+        /// </summary>
         public static void remove_log_dir()
         {
             //Find if log directory exists 
@@ -265,7 +312,11 @@ namespace uninstall_clean
             }
         }
 
-        //Remove <InstallDir>\home link (created for ssh to access user's home\.ssh\)
+        /// <summary>
+        /// Removes <InstallDir>\home link (created for ssh to access user's home\.ssh\)
+        /// </summary>
+        /// <param name="instDir">The installation directory name.</param>
+        /// <returns></returns>
         public static string remove_home(string instDir)
         {
             if (instDir == "")

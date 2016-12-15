@@ -164,65 +164,64 @@ namespace uninstall_clean
                      StageReporter("", "Stopping SubutaiTray processes");
                      mess = SCP.stop_process("SubutaiTray");
                      //UpdateProgress(30);
-
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
 
-                 .ContinueWith((prevTask) =>
-                 {
-                     StageReporter("", "Removing Subutai shortcuts");
-                     FD.delete_Shortcuts("Subutai");
-                     //UpdateProgress(40);
-                     StageReporter("", "Removing Subutai directories");
-                     mess = "";
-                     if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
-                     {
-                         if (!isSilent)
-                         {
-                             DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
-                                             MessageBoxButtons.YesNo,
-                                             MessageBoxIcon.Question,
-                                             MessageBoxDefaultButton.Button1);
+                 //.ContinueWith((prevTask) =>
+                 //{
+                 //    StageReporter("", "Removing Subutai shortcuts");
+                 //    FD.delete_Shortcuts("Subutai");
+                 //    //UpdateProgress(40);
+                 //    StageReporter("", "Removing Subutai directories");
+                 //    mess = "";
+                 //    if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
+                 //    {
+                 //        if (!isSilent)
+                 //        {
+                 //            DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
+                 //                            MessageBoxButtons.YesNo,
+                 //                            MessageBoxIcon.Question,
+                 //                            MessageBoxDefaultButton.Button1);
 
 
-                             if (drs == DialogResult.Yes)
-                             {
-                                 if (removeAll)
-                                 {
-                                    mess = FD.delete_dir(SubutaiDir);
-                                 } else
-                                 {
-                                     mess = FD.delete_dir_bin(SubutaiDir);
-                                 }
-                             }
-                         } else
-                         {
-                             if (removeAll)
-                             {
-                                 mess = FD.delete_dir(SubutaiDir);
-                             }
-                             else
-                             {
-                                 mess = FD.delete_dir_bin(SubutaiDir);
-                             }
-                         }
-                         if (mess.Contains("Can not"))
-                         {
-                             MessageBox.Show($"Folder {SubutaiDir}\\bin can not be removed. Please delete it manually",
-                                 "Removing Subutai folder", MessageBoxButtons.OK);
-                         }
-                     }
+                 //            if (drs == DialogResult.Yes)
+                 //            {
+                 //                if (removeAll)
+                 //                {
+                 //                   mess = FD.delete_dir(SubutaiDir);
+                 //                } else
+                 //                {
+                 //                    mess = FD.delete_dir_bin(SubutaiDir);
+                 //                }
+                 //            }
+                 //        } else
+                 //        {
+                 //            if (removeAll)
+                 //            {
+                 //                mess = FD.delete_dir(SubutaiDir);
+                 //            }
+                 //            else
+                 //            {
+                 //                mess = FD.delete_dir_bin(SubutaiDir);
+                 //            }
+                 //        }
+                 //        if (mess.Contains("Can not"))
+                 //        {
+                 //            MessageBox.Show($"Folder {SubutaiDir}\\bin can not be removed. Please close running applications that can lock files (ssh sessions, file manager windows etc) and delete it manually",
+                 //                "Removing Subutai folder", MessageBoxButtons.OK);
+                 //        }
+                 //    }
 
-                     //Remove Subutai dir from ApplicationData
-                     string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                     //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
-                     appUserDir = Path.Combine(appUserDir, "Subutai Social");
-                     if (Directory.Exists(appUserDir))
-                     {
-                         Directory.Delete(appUserDir, true);
-                     }
-                     //UpdateProgress(50);
-                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
+                 //    //Remove Subutai dir from ApplicationData
+                 //    string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                 //    //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
+                 //    appUserDir = Path.Combine(appUserDir, "Subutai Social");
+                 //    if (Directory.Exists(appUserDir))
+                 //    {
+                 //        Directory.Delete(appUserDir, true);
+                 //    }
+                 //    //UpdateProgress(50);
+                 //}, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                  .ContinueWith((prevTask) =>
                  {
@@ -260,47 +259,105 @@ namespace uninstall_clean
                      //UpdateProgress(80);
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-              .ContinueWith((prevTask) =>
-              {
-                  StageReporter("","Removing old logs");
-                  //Remove log dir
-                  FD.remove_log_dir();
+                .ContinueWith((prevTask) =>
+                {
+                    StageReporter("", "Removing old logs");
+                    //Remove log dir
+                    FD.remove_log_dir();
 
-              }, TaskContinuationOptions.OnlyOnRanToCompletion)
+                }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-              //.ContinueWith((prevTask) =>
-              //{
-              //     StageReporter("", "Removing Google Chrome");
-              //     //Remove log dir
-              //     AP.remove_chrome();
+                //.ContinueWith((prevTask) =>
+                //{
+                //     StageReporter("", "Removing Google Chrome");
+                //     //Remove log dir
+                //     AP.remove_chrome();
 
-              // }, TaskContinuationOptions.OnlyOnRanToCompletion)
+                // }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-              .ContinueWith((prevTask) =>
-              {
-                  StageReporter("", "Removing Subutai Virtual Machines");
-                  //Remove snappy and subutai machines
-                  VBx.remove_vm();
-                  //Remove Oracle VirtualBox
-                  StageReporter("", "Removing Oracle Virtual Box software");
-                  if (!isSilent) {
-                      VBx.remove_app_vbox_short("Oracle VirtualBox");
-                  }
+                .ContinueWith((prevTask) =>
+                {
+                    StageReporter("", "Removing Subutai Virtual Machines");
+                    //Remove snappy and subutai machines
+                    VBx.remove_vm();
+                    //Remove Oracle VirtualBox
+                    StageReporter("", "Removing Oracle Virtual Box software");
+                    if (!isSilent) {
+                        VBx.remove_app_vbox_short("Oracle VirtualBox");
+                    }
+                }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-                  //Remove service if was installed during cancelling
-                  mess = SCP.stop_process("p2p");
-                  mess = "";
-                  mess = SCP.stop_service("Subutai Social P2P", 5000);
-                  mess = "";
-                  mess = SCP.remove_service("Subutai Social P2P");
+                .ContinueWith((prevTask) =>
+                {
+                    //Remove service if was installed during cancelling
+                    mess = SCP.stop_process("p2p");
+                    mess = "";
+                    mess = SCP.stop_service("Subutai Social P2P", 5000);
+                    mess = "";
+                    mess = SCP.remove_service("Subutai Social P2P");
 
-                  SetIndeterminate(false);
-                  UpdateProgress(100);
-                  StageReporter("", "Finished");
-                  string mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it"); 
-                  MessageBox.Show( mesg, "Uninstall Subutai Social", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                  Environment.Exit(0);
-               }, TaskContinuationOptions.OnlyOnRanToCompletion);
+                }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
+                .ContinueWith((prevTask) =>
+                {
+                    StageReporter("", "Removing Subutai shortcuts");
+                    FD.delete_Shortcuts("Subutai");
+                    //UpdateProgress(80);
+                    StageReporter("", "Removing Subutai directories");
+                    mess = "";
+                    string mesg = "";
+                    if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
+                    {
+                        if (!isSilent)
+                        {
+                            DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
+                                            MessageBoxButtons.YesNo,
+                                            MessageBoxIcon.Question,
+                                            MessageBoxDefaultButton.Button1);
+
+                            if (drs == DialogResult.Yes)
+                            {
+                                mess = FD.delete_dir(SubutaiDir);
+                            } else
+                            {
+                                //bin should be deleted in any case
+                                mess = FD.delete_dir_bin(SubutaiDir);
+                            }
+                        }
+                        else
+                        {
+                            if (removeAll)
+                            {
+                                mess = FD.delete_dir(SubutaiDir);
+                            }
+                            else
+                            {
+                                mess = FD.delete_dir_bin(SubutaiDir);
+                            }
+                        }
+                        if (mess.Contains("Can not"))
+                        {
+                            mesg = string.Format("Folder {0}\\bin can not be removed.\n\n Please close running applications that can lock files (ssh sessions, file manager windows, stop p2p service if running etc) and delete it manually", SubutaiDir);
+                            MessageBox.Show(mesg, "Removing Subutai folder", MessageBoxButtons.OK);
+                        }
+
+                        //Remove Subutai dir from ApplicationData
+                        string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                        //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
+                        appUserDir = Path.Combine(appUserDir, "Subutai Social");
+                        if (Directory.Exists(appUserDir))
+                        {
+                            Directory.Delete(appUserDir, true);
+                        }
+                    }
+
+                    SetIndeterminate(false);
+                    UpdateProgress(100);
+                    StageReporter("", "Finished");
+                    mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it");
+                    MessageBox.Show(mesg, "Uninstall Subutai Social", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Environment.Exit(0);
+                });
         }
 
         /// <summary>
