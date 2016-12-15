@@ -259,5 +259,53 @@ namespace Deployment
                 return false;
             }
         }
+
+        /// <summary>
+        /// Checks the bin dir - if it was not properly cleaned on previous uninstall.
+        /// It can mean that some files were locked on uninstall and can be locked now.
+        /// It can prevent proper unxipping.
+        /// </summary>
+        /// <param name="dirName">Path to Subutai bin directory</param>
+        /// <returns></returns>
+        public static string delete_dir_bin(string dirName)
+        {
+            string mesg = "";
+            string binDir = Path.Combine(dirName, "bin");
+            if (Directory.Exists(binDir))
+            {
+                string[] filenames = Directory.GetFiles(binDir, "*.lib", SearchOption.AllDirectories);
+                if (filenames.Length > 0)
+                {
+                    foreach (string fl in filenames)
+                    {
+                        try
+                        {
+                            File.Delete(fl);
+                        }
+                        catch (Exception ex)
+                        {
+                            mesg = string.Format("Can not delete file {0}\nClose running applications (ssh/cmd sessions, file explorer) that can lock files now and press OK\n\n{1}", fl, ex.Message.ToString());
+                            return mesg;
+                        }
+                    }
+                }
+
+                string trayDir = Path.Combine(binDir, "tray");
+                if (Directory.Exists(trayDir))
+                {
+                    try
+                    {
+                        Directory.Delete(trayDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        mesg = string.Format("Can not delete folder {0}.\nClose running applications (Subutay tray, cmd sessions, file explorer) that can lock files now and press OK.\n\n{1}", trayDir, ex.Message.ToString());
+                        return mesg;
+                    }
+                }
+            }
+            return "Deleted";
+        }
+             
     }
 }

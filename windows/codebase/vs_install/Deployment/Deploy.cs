@@ -338,7 +338,9 @@ namespace Deployment
             catch (Exception ex)
             {
                 logger.Error(ex.Message);
-                Program.ShowError(ex.Message, "Extracting zip");
+                string msg = string.Format("{0}\n\n Please close all aplications that can lock files and remove <InstDir>\bin folder", ex.Message);
+                //Program.ShowError($"{ex.Message} Please close all aplications that can lock files and remove <InstDir>\bin folder", "Extracting zip");
+                Program.ShowError(msg, "Extracting zip");
             }
             finally
             {
@@ -909,7 +911,7 @@ namespace Deployment
                 "",
                 iconPath,
                 false);
-            //User's startup folder C: \Users\tt\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+            //User's startup folder 
             destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),
                 "Subutai.lnk");
             Deploy.CreateShortcut(

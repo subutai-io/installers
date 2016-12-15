@@ -77,6 +77,19 @@ namespace Deployment
             };
 
             Inst.update_uninstallString(strUninstall);
+
+            string res = FD.delete_dir_bin(_arguments["appDir"]);
+            if (!res.Contains("Deleted"))
+            {
+                MessageBox.Show(res, "Delete bin folder", MessageBoxButtons.OK);
+                res = FD.delete_dir_bin(_arguments["appDir"]);
+                if (!res.Contains("Deleted"))
+                {
+                    Program.ShowError(res, "");
+                    Program.form1.Visible = false;
+                }
+            }
+
             if (_arguments["network-installation"].ToLower() == "true")
             {
                 // DOWNLOAD REPO
