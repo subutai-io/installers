@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Timers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
@@ -176,7 +175,6 @@ namespace Deployment
                 if ( Inst.app_installed("Oracle\\VirtualBox") == 1 || _arguments["peer"] == "client-only")
                     shouldWeDownload = false;
             }
-
  
             if (shouldWeDownload)
             {
@@ -904,6 +902,15 @@ namespace Deployment
             
             //StartMenu/Startup
             destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup),
+                "Subutai.lnk");
+            Deploy.CreateShortcut(
+                binPath,
+                destPath,
+                "",
+                iconPath,
+                false);
+            //User's startup folder C: \Users\tt\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup
+            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),
                 "Subutai.lnk");
             Deploy.CreateShortcut(
                 binPath,
