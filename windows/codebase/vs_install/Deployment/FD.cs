@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NLog;
+using System.Windows.Forms;
 
 namespace Deployment
 {
@@ -284,8 +285,8 @@ namespace Deployment
                         }
                         catch (Exception ex)
                         {
-                            mesg = string.Format("Can not delete file {0}\nClose running applications (ssh/cmd sessions, file explorer) that can lock files now and press OK\n\n{1}", fl, ex.Message.ToString());
-                            return mesg;
+                            mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}", fl, ex.Message.ToString());
+                            MessageBox.Show(mesg, "Delete bin folder", MessageBoxButtons.OK);
                         }
                     }
                 }
@@ -299,7 +300,7 @@ namespace Deployment
                     }
                     catch (Exception ex)
                     {
-                        mesg = string.Format("Can not delete folder {0}.\nClose running applications (Subutay tray, cmd sessions, file explorer) that can lock files now and press OK.\n\n{1}", trayDir, ex.Message.ToString());
+                        mesg = string.Format("Can not delete folder {0}.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}", trayDir, ex.Message.ToString());
                         return mesg;
                     }
                 }

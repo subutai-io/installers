@@ -85,7 +85,7 @@ namespace Deployment
                 res = FD.delete_dir_bin(_arguments["appDir"]);
                 if (!res.Contains("Deleted"))
                 {
-                    Program.ShowError(res, "");
+                    Program.ShowError("Can not delete bin folder.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files \nand install again", "Delete bin folder");
                     Program.form1.Visible = false;
                 }
             }
