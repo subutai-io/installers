@@ -84,7 +84,14 @@ namespace uninstall_clean
             subkey = "SOFTWARE\\Wow6432Node\\Google\\Chrome\\Extensions";
             rk = Registry.LocalMachine.OpenSubKey(subkey, true);
             DeleteSubKeyTree(SubutaiE2E, subkey, RegistryHive.LocalMachine);
-            
+            clean.UpdateProgress(90);
+
+            //Run - Autostart
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+            subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+            rk = Registry.LocalMachine.OpenSubKey(subkey, true);
+            rk.DeleteValue("SubutaiTray");
+
             clean.UpdateProgress(100);
         }
 
