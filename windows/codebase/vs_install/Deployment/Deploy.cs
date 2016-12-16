@@ -902,24 +902,25 @@ namespace Deployment
                 iconPath,
                 false);
             
-            //StartMenu/Startup
-            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup),
-                "Subutai.lnk");
-            Deploy.CreateShortcut(
-                binPath,
-                destPath,
-                "",
-                iconPath,
-                false);
-            //User's startup folder 
-            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),
-                "Subutai.lnk");
-            Deploy.CreateShortcut(
-                binPath,
-                destPath,
-                "",
-                iconPath,
-                false);
+            ////StartMenu/Startup
+            //destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup),
+            //    "Subutai.lnk");
+            //Deploy.CreateShortcut(
+            //    binPath,
+            //    destPath,
+            //    "",
+            //    iconPath,
+            //    false);
+            ////User's startup folder 
+            //destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup),
+            //    "Subutai.lnk");
+            //Deploy.CreateShortcut(
+            //    binPath,
+            //    destPath,
+            //    "",
+            //    iconPath,
+            //    false);
+
             //Create App folder in Programs
             string folderpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "Subutai");
             destPath = Path.Combine(folderpath, "Subutai.lnk");

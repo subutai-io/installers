@@ -326,6 +326,7 @@ namespace Deployment
                     }
 
                     _deploy.createAppShortCuts();
+                    Inst.rg_run_on_login("SubutaiTray", "bin\\tray\\SubutaiTray.exe");
                     stage_counter++;
                     logger.Info("Stage create shortcuts: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
