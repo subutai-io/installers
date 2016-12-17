@@ -166,63 +166,6 @@ namespace uninstall_clean
                      //UpdateProgress(30);
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-
-                 //.ContinueWith((prevTask) =>
-                 //{
-                 //    StageReporter("", "Removing Subutai shortcuts");
-                 //    FD.delete_Shortcuts("Subutai");
-                 //    //UpdateProgress(40);
-                 //    StageReporter("", "Removing Subutai directories");
-                 //    mess = "";
-                 //    if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
-                 //    {
-                 //        if (!isSilent)
-                 //        {
-                 //            DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
-                 //                            MessageBoxButtons.YesNo,
-                 //                            MessageBoxIcon.Question,
-                 //                            MessageBoxDefaultButton.Button1);
-
-
-                 //            if (drs == DialogResult.Yes)
-                 //            {
-                 //                if (removeAll)
-                 //                {
-                 //                   mess = FD.delete_dir(SubutaiDir);
-                 //                } else
-                 //                {
-                 //                    mess = FD.delete_dir_bin(SubutaiDir);
-                 //                }
-                 //            }
-                 //        } else
-                 //        {
-                 //            if (removeAll)
-                 //            {
-                 //                mess = FD.delete_dir(SubutaiDir);
-                 //            }
-                 //            else
-                 //            {
-                 //                mess = FD.delete_dir_bin(SubutaiDir);
-                 //            }
-                 //        }
-                 //        if (mess.Contains("Can not"))
-                 //        {
-                 //            MessageBox.Show($"Folder {SubutaiDir}\\bin can not be removed. Please close running applications that can lock files (ssh sessions, file manager windows etc) and delete it manually",
-                 //                "Removing Subutai folder", MessageBoxButtons.OK);
-                 //        }
-                 //    }
-
-                 //    //Remove Subutai dir from ApplicationData
-                 //    string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                 //    //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
-                 //    appUserDir = Path.Combine(appUserDir, "Subutai Social");
-                 //    if (Directory.Exists(appUserDir))
-                 //    {
-                 //        Directory.Delete(appUserDir, true);
-                 //    }
-                 //    //UpdateProgress(50);
-                 //}, TaskContinuationOptions.OnlyOnRanToCompletion)
-
                  .ContinueWith((prevTask) =>
                  {
 

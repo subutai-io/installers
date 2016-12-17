@@ -90,8 +90,17 @@ namespace uninstall_clean
             //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
             subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
             rk = Registry.LocalMachine.OpenSubKey(subkey, true);
-            rk.DeleteValue("SubutaiTray");
-
+            if (rk != null)
+            {
+                try
+                {
+                    rk.DeleteValue("SubutaiTray");
+                }
+                catch (Exception ex)
+                {
+                    string tmp = ex.Message;
+                }
+            }
             clean.UpdateProgress(100);
         }
 

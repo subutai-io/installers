@@ -47,8 +47,25 @@ namespace uninstall_clean
         /// <returns>"0" if deleted, eror message with exception message if not</returns>
         public static string delete_dir_bin(string dirName)
         {
-            string binDir = Path.Combine(dirName, "bin");
+            string mesg = "";
+            string[] sfiles = Directory.GetFiles(dirName, "*", SearchOption.TopDirectoryOnly);
+            if (sfiles.Length > 0)
+            {
+                foreach (string sfl in sfiles)
+                {
+                    try
+                    {
+                        File.Delete(sfl);
+                    }
+                    catch (Exception ex)
+                    {
+                        mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}",
+                            sfl, ex.Message.ToString());
+                    }
+                }
+            }
 
+            string binDir = Path.Combine(dirName, "bin");
             if (Directory.Exists(binDir))
             {
                 try

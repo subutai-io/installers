@@ -291,6 +291,25 @@ namespace Deployment
                     }
                 }
 
+                //Deleting repo* files
+                string[] repofiles = Directory.GetFiles(dirName, "repomd5*", SearchOption.TopDirectoryOnly);
+                if (repofiles.Length > 0)
+                {
+                    foreach (string rfl in repofiles)
+                    {
+                        try
+                        {
+                            File.Delete(rfl);
+                        }
+                        catch (Exception ex)
+                        {
+                            mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}", rfl, ex.Message.ToString());
+                            logger.Error(mesg);
+                        }
+                    }
+
+                }
+
                 string trayDir = Path.Combine(binDir, "tray");
                 if (Directory.Exists(trayDir))
                 {
