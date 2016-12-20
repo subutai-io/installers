@@ -16,7 +16,8 @@ windows/codebase/vs_install/Deployment/bin/*
 windows/codebase/vs_install/Deployment/obj/*
 windows/codebase/vs_uninstall/uninstall_clean/uninstall_clean/bin/*
 windows/codebase/vs_uninstall/uninstall_clean/uninstall_clean/obj/*
-windows/codebase/vs_uninstall/Deployment/obj/*
+windows/codebase/vs_chrome_uninstall/ChromeUninstall/ChromeUninstall/bin/*
+windows/codebase/vs_chrome_uninstall/ChromeUninstall/ChromeUninstall/obj/*
 windows/codebase/vs_setup/Subutai/Subutai/Debug/*
 windows/codebase/vs_setup/Subutai/Subutai/Release/*
 windows/codebase/installation_files/redist/Framework/*
