@@ -25,7 +25,6 @@ You need the following tools to build the installer:
 	<ul>
 		<li> Visual Studio 2015 </li>
 		<li> Inno Setup script compiler (www.jrsoftware.org/isinfo.php)</li>
-		<li> 7-zip sowtware</li>
 	</ul> 
 <br>
 Note: Inno Setup Studio provides UI to make work with Inno Setuo scripts more comfortable: https://www.kymoto.org/
@@ -37,11 +36,11 @@ Open vs-install or vs-uninstall project, modify if needed, build and put binarie
 Open installation script \windows\codebase\Inno\subutai-network-installer.iss with Inno Setuo compiler. Change version in #define section: <br>
 <ul>
 	<li> define MyAppName "Subutai" </li>  
-	<li> define MyAppVersion "4.0.5" </li>  
+	<li> define MyAppVersion "4.0.x" </li>  
 	<li> define MyAppPublisher "Subutai Social" </li>  
 	<li> define MyAppURL "http://subutai.io/" </li>  
 	<li> define MyAppExeName "Deployment.exe" </li>  
-	<li> define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files_4_VS_Install" </li>   
+	<li> define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files" </li>   
 </ul>
   
 and parameters for Deployment.exe in Run section : <installation type> repo descriptor> <Run></br>
