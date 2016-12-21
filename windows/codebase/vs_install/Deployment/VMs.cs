@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Threading;
 using NLog;
 
@@ -140,7 +137,6 @@ namespace Deployment
             logger.Info("vboxmanage clone vm --register --name {0} snappy: {1} ", vmName, res);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
                 Program.ShowError("Can not clone VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
@@ -148,9 +144,10 @@ namespace Deployment
             logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
-                Program.ShowError("Can not unregister VM, please check if VitrualBox installed properly", "Prepare VBox");
-                Program.form1.Visible = false;
+                //logger.Error("Can not run command, please check if VirtualBox installed properly", "Deleting Snappy");
+                //Program.ShowError("Can not unregister VM, please check if VitrualBox installed properly", "Prepare VBox");
+                //Program.form1.Visible = false;
+                MessageBox.Show("VM snappy was not removed, please delete VM snappy and it's files manually after installation and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer","Deleting snappy",MessageBoxButtons.OK);
             }
             return true;//check res
         }
@@ -185,7 +182,7 @@ namespace Deployment
             logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", vmName, vmRam, res);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Setting memory");
                 Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
@@ -216,7 +213,7 @@ namespace Deployment
             logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", vmName, vmCores.ToString(), res);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Setting CPUs");
                 Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
@@ -236,7 +233,7 @@ namespace Deployment
             logger.Info("vboxmanage modifyvm {0} --rtcuseutc: {1}", vmName, res);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Setting timezone");
                 Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
