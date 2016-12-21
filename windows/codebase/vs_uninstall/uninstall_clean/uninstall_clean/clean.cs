@@ -215,7 +215,6 @@ namespace uninstall_clean
                 //     StageReporter("", "Removing Google Chrome");
                 //     //Remove log dir
                 //     AP.remove_chrome();
-
                 // }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                 .ContinueWith((prevTask) =>

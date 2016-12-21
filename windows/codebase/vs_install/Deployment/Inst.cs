@@ -954,7 +954,8 @@ namespace Deployment
             bool b_res = false;
             Deploy.StageReporter("", "Running installation scripts");
 
-            ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            //ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
             logger.Info("Running installation scripts: {0}", ssh_res);
             if (ssh_res.Contains("Error"))
             {
@@ -998,7 +999,7 @@ namespace Deployment
                 }
 
                 Deploy.StageReporter("", "Running installation scripts");
-                ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
                 logger.Info("Running installation scripts second time: {0}", b_res);
                 if (ssh_res.Contains("Error"))
                 {

@@ -306,7 +306,7 @@ namespace Deployment
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
             if (res.ToLower().Contains("error"))
             {
-                string mesg = string.Format("Can not Import Snappy, please check if snappy files deleted in Default Machine Folder: \n (usually <SystemDrive>\\Users\\<UserNAme>\\VirtualBox VMs), \n manually delete if not \n and press OK");
+                string mesg = string.Format("Can not Import Snappy, please check if snappy files deleted in Default Machine Folder: \n (usually <SystemDrive:>\\Users\\<UserName>\\VirtualBox VMs). \naDelete Snappy folder, press OK and installation will continue");
                 MessageBox.Show(mesg, "Importing Snappy", MessageBoxButtons.OK);
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova", 240000);
                 logger.Info("Importing snappy second time: {0}", Deploy.com_out(res, 0));
@@ -378,8 +378,8 @@ namespace Deployment
                 Thread.Sleep(10000);
                 if (!VMs.start_vm(_cloneName))
                 {
-                    logger.Error("Can not start VM, please try to start manualy", "Waiting for SSH");
-                    Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
+                    logger.Error("Can not start VM, please try to start manually", "Waiting for SSH");
+                    Program.ShowError("Can not start VM, please try to start manually", "Waiting for SSH");
                     Program.form1.Visible = false;
                 }
             }

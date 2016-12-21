@@ -303,7 +303,7 @@ namespace Deployment
                         }
                         catch (Exception ex)
                         {
-                            mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}", rfl, ex.Message.ToString());
+                            mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files. \n Press OK after closing and installation will continue.\n\n{1}", rfl, ex.Message.ToString());
                             logger.Error(mesg);
                         }
                     }
@@ -319,7 +319,7 @@ namespace Deployment
                     }
                     catch (Exception ex)
                     {
-                        mesg = string.Format("Can not delete folder {0}.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}", trayDir, ex.Message.ToString());
+                        mesg = string.Format("Can not delete folder {0}.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files. \nPress OK after closing and installation will continue.\n\n{1}", trayDir, ex.Message.ToString());
                         return mesg;
                     }
                 }
