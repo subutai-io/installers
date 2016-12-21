@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Net;
 using Renci.SshNet;
+using System.Windows.Forms;
 
 namespace Deployment
 {
@@ -305,9 +306,17 @@ namespace Deployment
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
-                Program.ShowError("Can not Import Snappy, please check if VitrualBox installed properly", "Prepare VBox");
-                Program.form1.Visible = false;
+
+                string mesg = string.Format("Can not Import Snappy, please check if snappy files deleted in Default Machine Folder: \n (usually <SystemDrive:>\\Users\\<UserName>\\VirtualBox VMs). \naDelete Snappy folder, press OK and installation will continue");
+                MessageBox.Show(mesg, "Importing Snappy", MessageBoxButtons.OK);
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova", 240000);
+                logger.Info("Importing snappy second time: {0}", Deploy.com_out(res, 0));
+                if (res.ToLower().Contains("error"))
+                {
+                    logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
+                    Program.ShowError("Can not Import Snappy, please check if VitrualBox installed properly", "Prepare VBox");
+                    Program.form1.Visible = false;
+                }
             }
         }
 
@@ -337,18 +346,19 @@ namespace Deployment
                 $"modifyvm {_cloneName} --nic1 nat --cableconnected1 on --natpf1 'ssh-fwd,tcp,,4567,,22' --natpf1 'mgt-fwd,tcp,,9999,,8443'",
                 60000);
             logger.Info("nic 1 --nat: {0}", res);
-            //if (res.ToLower().Contains("error"))
-            //{
-            //    logger.Error("Can not run command, please check if VirtualBox installed properly", "Importing Snappy");
-            //    Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
-            //    Program.form1.Visible = false;
-            //}
+
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Configuring nic1 nat");
+                //Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Configuring nic1 nat");
+                //Program.form1.Visible = false;
+            }
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none", 60000);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Prepare VBox");
-                Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
-                Program.form1.Visible = false;
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Configuring nic4 none");
+                //Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Configuring nic4 none");
+                //Program.form1.Visible = false;
             }
             // set RAM
             Deploy.StageReporter("", "Setting RAM");
@@ -370,8 +380,8 @@ namespace Deployment
                 Thread.Sleep(10000);
                 if (!VMs.start_vm(_cloneName))
                 {
-                    logger.Error("Can not start VM, please try to start manualy", "Waiting for SSH");
-                    Program.ShowError("Can not start VM, please try to start manualy", "Waiting for SSH");
+                    logger.Error("Can not start VM, please try to start manually", "Waiting for SSH");
+                    Program.ShowError("Can not start VM, please try to start manually", "Waiting for SSH");
                     Program.form1.Visible = false;
                 }
             }

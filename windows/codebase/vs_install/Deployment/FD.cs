@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using NLog;
+using System.Windows.Forms;
 
 namespace Deployment
 {
@@ -258,6 +259,72 @@ namespace Deployment
                 logger.Error("Editing known_hosts: " + ex.Message);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Checks the bin dir - if it was not properly cleaned on previous uninstall.
+        /// It can mean that some files were locked on uninstall and can be locked now.
+        /// It can prevent proper unxipping.
+        /// </summary>
+        /// <param name="dirName">Path to Subutai bin directory</param>
+        /// <returns></returns>
+        public static string delete_dir_bin(string dirName)
+        {
+            string mesg = "";
+            string binDir = Path.Combine(dirName, "bin");
+            if (Directory.Exists(binDir))
+            {
+                string[] filenames = Directory.GetFiles(binDir, "*.lib", SearchOption.AllDirectories);
+                if (filenames.Length > 0)
+                {
+                    foreach (string fl in filenames)
+                    {
+                        try
+                        {
+                            File.Delete(fl);
+                        }
+                        catch (Exception ex)
+                        {
+                            mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files \nand press OK after closing.\n\n{1}", fl, ex.Message.ToString());
+                            MessageBox.Show(mesg, "Delete bin folder", MessageBoxButtons.OK);
+                        }
+                    }
+                }
+
+                //Deleting repo* files
+                string[] repofiles = Directory.GetFiles(dirName, "repomd5*", SearchOption.TopDirectoryOnly);
+                if (repofiles.Length > 0)
+                {
+                    foreach (string rfl in repofiles)
+                    {
+                        try
+                        {
+                            File.Delete(rfl);
+                        }
+                        catch (Exception ex)
+                        {
+                            mesg = string.Format("Can not delete file {0}.\nPlease, check and close running applications (ssh/cmd sessions, file explorer) that can lock files. \n Press OK after closing and installation will continue.\n\n{1}", rfl, ex.Message.ToString());
+                            logger.Error(mesg);
+                        }
+                    }
+
+                }
+
+                string trayDir = Path.Combine(binDir, "tray");
+                if (Directory.Exists(trayDir))
+                {
+                    try
+                    {
+                        Directory.Delete(trayDir, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        mesg = string.Format("Can not delete folder {0}.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files. \nPress OK after closing and installation will continue.\n\n{1}", trayDir, ex.Message.ToString());
+                        return mesg;
+                    }
+                }
+            }
+            return "Deleted";
         }
     }
 }

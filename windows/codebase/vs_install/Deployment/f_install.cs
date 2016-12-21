@@ -77,6 +77,19 @@ namespace Deployment
             };
 
             Inst.update_uninstallString(strUninstall);
+
+            string res = FD.delete_dir_bin(_arguments["appDir"]);
+            if (!res.Contains("Deleted"))
+            {
+                MessageBox.Show(res, "Delete bin folder", MessageBoxButtons.OK);
+                res = FD.delete_dir_bin(_arguments["appDir"]);
+                if (!res.Contains("Deleted"))
+                {
+                    Program.ShowError("Can not delete bin folder.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files \nand install again", "Delete bin folder");
+                    Program.form1.Visible = false;
+                }
+            }
+
             if (_arguments["network-installation"].ToLower() == "true")
             {
                 // DOWNLOAD REPO
@@ -313,6 +326,8 @@ namespace Deployment
                     }
 
                     _deploy.createAppShortCuts();
+
+                    Inst.rg_run_on_login("SubutaiTray", "bin\\tray\\SubutaiTray.exe");
                     stage_counter++;
                     logger.Info("Stage create shortcuts: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)

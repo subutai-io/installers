@@ -954,7 +954,8 @@ namespace Deployment
             bool b_res = false;
             Deploy.StageReporter("", "Running installation scripts");
 
-            ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            //ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
             logger.Info("Running installation scripts: {0}", ssh_res);
             if (ssh_res.Contains("Error"))
             {
@@ -998,7 +999,7 @@ namespace Deployment
                 }
 
                 Deploy.StageReporter("", "Running installation scripts");
-                ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
                 logger.Info("Running installation scripts second time: {0}", b_res);
                 if (ssh_res.Contains("Error"))
                 {
@@ -1011,6 +1012,26 @@ namespace Deployment
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
             Thread.Sleep(5000);
             return true;
+        }
+
+        /// <summary>
+        /// Add SubutaiTray to Run for autostart.
+        /// </summary>
+        /// <param name="appPath">The application path.</param>
+        /// <param name="appName">Name of the application.</param>
+        public static void rg_run_on_login(string appName, string appPath)
+        {
+            //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+            string sPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+            string ksPath = $"HKEY_LOCAL_MACHINE\\{sPath}";
+            string appPath_ = Path.Combine(subutai_path(), appPath);
+            logger.Info("Adding to Run {0}: {1}", sPath, appPath_);
+            RegistryKey kPath = Registry.LocalMachine.OpenSubKey(sPath);
+
+            if (kPath != null)
+            {
+                Registry.SetValue(ksPath, appName, $"\"{appPath_}\"", RegistryValueKind.ExpandString);
+            }
         }
     }
 }

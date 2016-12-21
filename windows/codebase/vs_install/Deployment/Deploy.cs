@@ -177,7 +177,6 @@ namespace Deployment
                     shouldWeDownload = false;
             }
 
- 
             if (shouldWeDownload)
             {
                 var dirInfo = new DirectoryInfo(path: Path.GetDirectoryName(destination));
@@ -340,7 +339,8 @@ namespace Deployment
             catch (Exception ex)
             {
                 logger.Error(ex.Message);
-                Program.ShowError(ex.Message, "Extracting zip");
+                string msg = string.Format("{0}\n\n Please close all aplications that can lock files and remove <InstDir>\bin folder", ex.Message);
+                Program.ShowError(msg, "Extracting zip");
             }
             finally
             {
@@ -378,8 +378,7 @@ namespace Deployment
             catch (Exception ex)
             {
                 logger.Error(ex, "{0} info error", filename);
-                Program.ShowError("File does not exist: " + filename, "File error");
-
+                //Program.ShowError("File does not exist: " + filename, "File error");
                 return null;
             }
         }
@@ -593,76 +592,46 @@ namespace Deployment
             }
         }
 
-        /// <summary>
-        /// Sends the SSH command with username/password authentication and controls connection during .
         /// </summary>
         /// <param name="hostname">The hostname.</param>
         /// <param name="port">The port.</param>
         /// <param name="username">The username.</param>
         /// <param name="password">The password.</param>
         /// <param name="command">The command.</param>
-        /// <returns>exit code | output| error</returns>
-        public static string SendSshCommand_task(string hostname, int port, string username, string password, string command)
+        /// <param name="timeout">The timeout in minutes</param>
+        /// <returns>
+        /// exit code | output| error
+        /// </returns>
+        public static string SendSshCommand(string hostname, int port, string username, string password, string command, int timeout)
         {
-            bool b_res = false;
-            bool success = false;
-            string ssh_res = "";
-            // Cancellation token to cancel watcher when command is finished or cancelled
-            var tokenSource = new CancellationTokenSource();
-            var token = tokenSource.Token;
-
-            logger.Info("Performing command: {0}", command);
-
-            //Starting Watcher task as parent, import as child
-            var watcher = Task.Factory.StartNew(() =>
+            using (var client = new SshClient(hostname, port, username, password))
             {
-                while (true)
+                try
                 {
-                    if (token.IsCancellationRequested)
-                    {
-                        logger.Info("Watcher cancelled");
-                        //ssh_res = "1" + "|" + "Connection Error" + "|" + "Command Error";
-                        break;
-                    }
-                    Thread.Sleep(1000);//checking every 1 second
-                    if (!Deploy.WaitSsh("127.0.0.1", 4567, "ubuntu", "ubuntu", 5, 1000))
-                    {
-                        logger.Info("Cancelling ssh command from watcher - no ssh connection");
-                        ssh_res = "1" + "|" + "Connection Error" + "|" + "Connection Error";
-                        tokenSource.Cancel();
-                    }
+                    client.Connect();
+
+                    SshCommand scmd = client.CreateCommand(command);
+                    //SshCommand scmd = client.RunCommand(command);
+                    scmd.CommandTimeout = new TimeSpan(0, timeout, 0);
+                    scmd.Execute();
+                    int exitstatus = scmd.ExitStatus;
+                    string sresult = scmd.Result;
+                    
+                    if (sresult == null || sresult == "" || sresult == " ")
+                        sresult = "Empty";
+                    string serror = scmd.Error;
+                    if (serror == null || serror == "")
+                        serror = "Empty";
+                    client.Disconnect();
+                    client.Dispose();
+                    return exitstatus.ToString() + "|" + sresult + "|" + serror;
                 }
-             }, token);
-
-            var running = Task.Factory.StartNew(() =>
-            {
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                        "ubuntu", "ubuntu", command);
-
-                string stcode = Deploy.com_out(ssh_res, 0);
-                string stcout = Deploy.com_out(ssh_res, 1);
-                string sterr = Deploy.com_out(ssh_res, 2);
-
-                logger.Info("Running {0}: {1}, code: {2}, err: {3}",
-                    command, ssh_res, stcode, sterr);
-            }, token);
-            
-            //Waiting
-            while (running.Status != TaskStatus.RanToCompletion)
-            {
-                Thread.Sleep(1000);
-                if (token.IsCancellationRequested)
+                catch (Exception ex)
                 {
-                    logger.Info("Got cancelling ");
-                    break;
+                    return "1" + "|" + "Connection Error" + "|" + ex.Message;
                 }
             }
-
-            logger.Info("Cancelling from import");
-            tokenSource.Cancel();//cancel  watcher
-            return ssh_res;
         }
-
 
         /// <summary>
         /// Retrieves part of putput of Launch command (returning exit code | output| error)
@@ -902,15 +871,6 @@ namespace Deployment
                 iconPath,
                 false);
             
-            //StartMenu/Startup
-            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartup),
-                "Subutai.lnk");
-            Deploy.CreateShortcut(
-                binPath,
-                destPath,
-                "",
-                iconPath,
-                false);
             //Create App folder in Programs
             string folderpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "Subutai");
             destPath = Path.Combine(folderpath, "Subutai.lnk");
