@@ -83,6 +83,12 @@
       <DependentUpon>clean.cs</DependentUpon>
     </Compile>
     <Compile Include="FD.cs" />
+    <Compile Include="f_confirm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="f_confirm.Designer.cs">
+      <DependentUpon>f_confirm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RG.cs" />
@@ -90,6 +96,9 @@
     <Compile Include="VBx.cs" />
     <EmbeddedResource Include="clean.resx">
       <DependentUpon>clean.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="f_confirm.resx">
+      <DependentUpon>f_confirm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

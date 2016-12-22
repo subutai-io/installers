@@ -17,6 +17,11 @@ namespace Deployment
         /// If false - can not install, will be set in checking()
         /// </summary>
         public static Boolean res = true; //if false - can not install, will be set in checking()
+
+        /// <summary>
+        /// The result showing if client-only can be installed
+        /// </summary>
+        public static Boolean res_client = true; //if false - client-only can not be installed
         /// <summary>
         /// The number of logical processors
         /// </summary>
@@ -86,8 +91,6 @@ namespace Deployment
             rbTrial.CheckedChanged += new EventHandler(radioButtons_CheckedChanged);
             rbRHonly.CheckedChanged += new EventHandler(radioButtons_CheckedChanged);
             rbTrial.CheckedChanged += new EventHandler(radioButtons_CheckedChanged);
-
-            //showing();
         }
 
         /// <summary>
@@ -116,7 +119,7 @@ namespace Deployment
             tbxAppDir.ReadOnly = true;
             //Defining system parameters
             hostOSversion = Environment.OSVersion.Version.ToString(); //OS version (6.1, 6.2, 10)
-            hostOSversion_user = SysCheck.OS_name(); //OS name in human readable format
+            hostOSversion_user = SysCheck.OS_name().Replace("Windows","Win"); //OS name in human readable format
             shortVersion = hostOSversion.Substring(0, 3); 
             hostCores = Environment.ProcessorCount; //number of logical processors
             host64 = Environment.Is64BitOperatingSystem; //Processor architecture - x86 or x64
@@ -156,16 +159,17 @@ namespace Deployment
         /// </summary>
         private void checking(string pType)
         {
+            string msg = "";
             //2 or more processor cores
             if (pType != "client-only")
             {
-                if (hostCores < 2)
+                if (hostCores < 20)
+                    //////////////////////////////////////////////////////////////////////////
                 {
                     l_Proc.ForeColor = Color.Red;
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += "Subutai needs at least 2 cores!";
-
                     res = false;
                 }
                 else
@@ -206,6 +210,7 @@ namespace Deployment
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += "Subutai needs x64 processor architecture.";
                 res = false;
+                res_client = false; // for now may be later can change
             }
             else
             {
@@ -260,6 +265,7 @@ namespace Deployment
             {
                 l_OS.ForeColor = Color.Red;
                 res = false;
+                res_client = false;
             }
             else
             {
@@ -272,6 +278,7 @@ namespace Deployment
                 if (shortVersion != "6.1")
                 {
                     //Can install
+                    //Win 8, 10
                     lblCheckResult.Text = "Subutai Social can be installed on Your system. Press Install button";
                     lblCheckResult.ForeColor = Color.Green;
 
@@ -283,7 +290,7 @@ namespace Deployment
                 }
                 else
                 {
-                    //WE have Windows 7
+                    //Windows 7
                     if (pType != "client-only")
                     {
                         lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
@@ -310,20 +317,67 @@ namespace Deployment
                 tb_Info.Text += Environment.NewLine;
                 tb_Info.Text += Environment.NewLine;
             }
-            else
+            else //res = false
             {
-                //Can not install
-                btnInstall.Text = "Exit";
-                lblCheckResult.Text = "Sorry, Subutai Social can not be installed. Close form to cancel installation";
-                lblCheckResult.ForeColor = Color.Red;
-                tb_Info.Text = "Please check Subutai system requirements.";
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += $"Subutai needs Oracle VirtualBox version {vb_version2fit} or higher. Please update or uninstall old version and restart Windows!";
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += Environment.NewLine;
-                tb_Info.Text += "Close form to exit.";
-            }
+                if (!res_client) //can not install at all
+                {
+                    btnInstall.Text = "Exit";
+                    lblCheckResult.Text = "Sorry, Subutai Social can not be installed. ";
+                    lblCheckResult.Text += "Close form to cancel installation";
+                    lblCheckResult.ForeColor = Color.Red;
+                    tb_Info.Text = "Please check Subutai system requirements.";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += $"Subutai needs Oracle VirtualBox version {vb_version2fit} or higher. Please update or uninstall old version and restart Windows!";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Close form to exit.";
+                } else if (pType != "client-only")
+                {
+                    btnInstall.Text = "Exit";
+                    msg = string.Format("Sorry, Subutai Social can not be installed on Your machine but \nYou still can try out Client Only version!");
+                    lblCheckResult.Text = msg;
+                    lblCheckResult.ForeColor = Color.DarkBlue;
+                    tb_Info.Text = "Please check Subutai system requirements.";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += $"Subutai needs Oracle VirtualBox version {vb_version2fit} or higher. Please update or uninstall old version and restart Windows!";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "You still can install Client-Only version to work with our product.";
+
+                    rbTrial.Enabled = false;
+                    rbRHonly.Enabled = false;
+
+                    msg = string.Format("Sorry, Subutai Social cannot be installed on your machine but You still can try out Client Only version. \n\nDo you want to install Client Only version ?");
+                    DialogResult drs = MessageBox.Show(msg, "Client Only Installation",
+                                            MessageBoxButtons.YesNo,
+                                            MessageBoxIcon.Question,
+                                            MessageBoxDefaultButton.Button1);
+
+                    if (drs == DialogResult.Yes)
+                    {
+                         rbClientOnly.Checked = true;
+                    }
+                    else
+                    {
+                        btnInstall.Text = "Exit";
+                    }
+                }
+                else //client-only
+                {
+                    btnInstall.Text = "Install Client Only";
+                    msg = string.Format("Subutai Social can be installed on Your system. \nPress Install button to proceed");
+                    lblCheckResult.Text = msg;
+                    lblCheckResult.ForeColor = Color.Green;
+
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "DHCP server must to be running on the local network.";
+                }
+             }
         }
 
         /// <summary>
@@ -533,5 +587,24 @@ namespace Deployment
             checking(peerType(getCheckedRadio(gbxTypeInst)));
         }
 
-     }
+        private void panelLeft_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void l_OS_min_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void l_OS_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void lblWindows_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
 }

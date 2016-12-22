@@ -138,7 +138,6 @@ namespace uninstall_clean
                    Exception ex = prevTask.Exception;
                    if (prevTask.IsFaulted)
                    {
-                       //prepare-vbox faulted with exception
                        while (ex is AggregateException && ex.InnerException != null)
                        {
                            ex = ex.InnerException;
@@ -224,10 +223,12 @@ namespace uninstall_clean
                     VBx.remove_vm();
                     //Remove Oracle VirtualBox
                     StageReporter("", "Removing Oracle Virtual Box software");
-                    if (!isSilent) {
+                    if (!isSilent)
+                    {
                         VBx.remove_app_vbox_short("Oracle VirtualBox");
                     }
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
 
                 .ContinueWith((prevTask) =>
                 {
