@@ -1,64 +1,143 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 
 
 namespace uninstall_clean
 {
+    /// <summary>
+    /// Uninstalling Subutai
+    /// </summary>
+    /// <seealso cref="System.Windows.Forms.Form" />
     public partial class clean : Form
     {
         //private static NLog.logger logger = LogManager.GetCurrentClasslogger();
+        private int curWidth = 0;
+        private int curHeight = 0;
+        private int minWidth = 565;
+        private int minHeight = 95;
+        private int maxWidth = 600;
+        private int maxHeight = 200;
+        private Panel curPanel;
+
+
+        /// <summary>
+        /// The system drive
+        /// </summary>
         public static string sysDrive = "";
+        /// <summary>
+        /// The subutai dir
+        /// </summary>
         public static string  SubutaiDir = AP.get_env_var("Subutai");
+        /// <summary>
+        /// If uninstall is silent
+        /// </summary>
         public static bool isSilent = false;
+        /// <summary>
+        /// If all components should be removed
+        /// </summary>
         public static bool removeAll = true;
+        /// <summary>
+        /// The command line arguments
+        /// </summary>
         public static string[] cmd_args = Environment.GetCommandLineArgs();
+        /// <summary>
+        /// If TAP software should be installed
+        /// </summary>
+        public static bool bTAP = false;
+        /// <summary>
+        /// If installation folder should be removed 
+        /// </summary>
+        public static bool bFolder = false;
+        /// <summary>
+        /// if Oracle VirtualBox should be removed
+        /// </summary>
+        public static bool bVBox = false;
+        /// <summary>
+        /// Ша Сщкщьу ырщзгдв иу куьщмув
+        /// </summary>
+        public static bool bChrome = false;
+
         public clean()
         {
             InitializeComponent();
-            progressBar1.Visible = true;
-            label2.Visible = true;
-            label1.Text = "Removing Subutai Social";
+
             if (cmd_args.Length > 1)
                 isSilent = defineSilent(cmd_args[1]);
             if (cmd_args.Length > 2)
                 removeAll = defineDeleteAll(cmd_args[2]);
+
+            if (isSilent)
+            {
+                curPanel = this.panel1;
+                panelChange();
+            } 
         }
 
         private void clean_Load(object sender, EventArgs e)
         {
-            if (!isSilent)
-            {
-                 DialogResult drs = MessageBox.Show($"Uninstall Subutai Social, are You sure?", "Subutai Social Uninstall",
-                 MessageBoxButtons.YesNo,
-                 MessageBoxIcon.Question,
-                 MessageBoxDefaultButton.Button1);
-
-                if (drs != DialogResult.Yes)
-                {
-                    Environment.Exit(0);
-                }
-            }
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             sysDrive = Path.GetPathRoot(sysPath);
             SubutaiDir = AP.get_env_var("Subutai");
-            runCleaning();
-            //clean_all();
+            if (isSilent)
+                runCleaning();
          }
 
-        void timer1_Tick(object sender, EventArgs e)
+        private void panelChange()
         {
-            if (progressBar1.Value != 10)
+            if (curPanel == this.panel1)
             {
-                progressBar1.Value++;
+                curPanel = this.panel2;
+                curPanel.Location = new Point(5, 5);
+
+                this.Width = minWidth;
+                this.Height = minHeight;
+                curWidth = this.Width;
+                curHeight = this.Height;
+
+                this.panel2.Enabled = true;
+                this.panel2.Visible = true;
+
+                this.panel1.Enabled = false;
+                this.panel1.Visible = false;
             }
             else
             {
-                timer1.Stop();
+                curPanel = this.panel1;
+                curPanel.Location = new Point(5, 5);
+
+                this.Width = maxWidth;
+                this.Height = maxHeight;
+                curWidth = this.Width;
+                curHeight = this.Height;
+
+                this.panel1.Enabled = true;
+                this.panel1.Visible = true;
+
+                this.panel2.Enabled = false;
+                this.panel2.Visible = false;
             }
         }
 
+        //void timer1_Tick(object sender, EventArgs e)
+        //{
+        //    if (progressBar1.Value != 10)
+        //    {
+        //        progressBar1.Value++;
+        //    }
+        //    else
+        //    {
+        //        timer1.Stop();
+        //    }
+        //}
+
+        /// <summary>
+        /// Reportin Uninstall stage
+        /// </summary>
+        /// <param name="stageName">Name of the stage.</param>
+        /// <param name="subStageName">Name of the sub stage.</param>
         public static void StageReporter(string stageName, string subStageName)
         {
             Program.form1.Invoke((MethodInvoker)delegate
@@ -74,6 +153,10 @@ namespace uninstall_clean
             });
         }
 
+        /// <summary>
+        /// Updates Uninstall progress.
+        /// </summary>
+        /// <param name="progress">The progress percent</param>
         public static void UpdateProgress(int progress)
         {
             if (Program.form1.progressBar1.InvokeRequired)
@@ -91,6 +174,10 @@ namespace uninstall_clean
             }
         }
 
+        /// <summary>
+        /// Sets the progress bar into indeterminate state.
+        /// </summary>
+        /// <param name="isIndeterminate">if set to <c>true</c> [is indeterminate].</param>
         public static void SetIndeterminate(bool isIndeterminate)
         {
             if (Program.form1.progressBar1.InvokeRequired)
@@ -122,6 +209,9 @@ namespace uninstall_clean
             }
         }
 
+        /// <summary>
+        /// Task factory actually perfoeming cleaning
+        /// </summary>
         private void runCleaning()
         {
             string mess = "";
@@ -134,22 +224,21 @@ namespace uninstall_clean
             })
 
               .ContinueWith((prevTask) =>
-               {
-                   Exception ex = prevTask.Exception;
-                   if (prevTask.IsFaulted)
-                   {
-                       while (ex is AggregateException && ex.InnerException != null)
-                       {
-                           ex = ex.InnerException;
-                       }
-                       MessageBox.Show(ex.Message, "Start", MessageBoxButtons.OK);
-                       //throw new InvalidOperationException();
-                   }
-                   StageReporter("", "Removing firewall rules");
-                   SetIndeterminate(true);
-                   SCP.remove_fw_rules(SubutaiDir);
-                   //UpdateProgress(10);
-               })
+              {
+                  Exception ex = prevTask.Exception;
+                  if (prevTask.IsFaulted)
+                  {
+                      while (ex is AggregateException && ex.InnerException != null)
+                      {
+                          ex = ex.InnerException;
+                      }
+                      MessageBox.Show(ex.Message, "Start", MessageBoxButtons.OK);
+                  }
+                  StageReporter("", "Removing firewall rules");
+                  SetIndeterminate(true);
+                  SCP.remove_fw_rules(SubutaiDir);
+                  //UpdateProgress(10);
+              })
 
                  .ContinueWith((prevTask) =>
                  {
@@ -209,12 +298,15 @@ namespace uninstall_clean
 
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-                //.ContinueWith((prevTask) =>
-                //{
-                //     StageReporter("", "Removing Google Chrome");
-                //     //Remove log dir
-                //     AP.remove_chrome();
-                // }, TaskContinuationOptions.OnlyOnRanToCompletion)
+                .ContinueWith((prevTask) =>
+                {
+                    if (bChrome)
+                    {
+                        StageReporter("", "Removing Google Chrome");
+                        AP.remove_chrome();
+                    }
+                    
+                }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                 .ContinueWith((prevTask) =>
                 {
@@ -223,7 +315,7 @@ namespace uninstall_clean
                     VBx.remove_vm();
                     //Remove Oracle VirtualBox
                     StageReporter("", "Removing Oracle Virtual Box software");
-                    if (!isSilent)
+                    if (!isSilent && bVBox)
                     {
                         VBx.remove_app_vbox_short("Oracle VirtualBox");
                     }
@@ -253,21 +345,17 @@ namespace uninstall_clean
                     {
                         if (!isSilent)
                         {
-                            DialogResult drs = MessageBox.Show($"Remove folder {SubutaiDir}? (Do not remove if going to install again)", "Subutai uninstall",
-                                            MessageBoxButtons.YesNo,
-                                            MessageBoxIcon.Question,
-                                            MessageBoxDefaultButton.Button1);
-
-                            if (drs == DialogResult.Yes)
+                            if (bFolder)
                             {
+                                //checked, need to remove
                                 mess = FD.delete_dir(SubutaiDir);
-                            } else
+                            }
+                            else
                             {
-                                //bin should be deleted in any case
                                 mess = FD.delete_dir_bin(SubutaiDir);
                             }
                         }
-                        else
+                        else //silent
                         {
                             if (removeAll)
                             {
@@ -278,22 +366,29 @@ namespace uninstall_clean
                                 mess = FD.delete_dir_bin(SubutaiDir);
                             }
                         }
+
                         if (mess.Contains("Can not"))
                         {
                             mesg = string.Format("Folder {0}\\bin can not be removed.\n\n Please close running applications that can lock files (ssh sessions, file manager windows, stop p2p service if running etc) and delete it manually", SubutaiDir);
                             MessageBox.Show(mesg, "Removing Subutai folder", MessageBoxButtons.OK);
                         }
+                    }
 
-                        //Remove Subutai dir from ApplicationData
-                        string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                        //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
-                        appUserDir = Path.Combine(appUserDir, "Subutai Social");
-                        if (Directory.Exists(appUserDir))
+                    //Remove Subutai dir from ApplicationData
+                    string appUserDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                    //MessageBox.Show($"AppData: {appUserDir}", "AppData", MessageBoxButtons.OK);
+                    appUserDir = Path.Combine(appUserDir, "Subutai Social");
+                    if (Directory.Exists(appUserDir))
+                    {                    
+                        try
                         {
                             Directory.Delete(appUserDir, true);
                         }
+                        catch (Exception ex)
+                        {
+                            mesg = ex.Message;
+                        }
                     }
-
                     SetIndeterminate(false);
                     UpdateProgress(100);
                     StageReporter("", "Finished");
@@ -334,6 +429,128 @@ namespace uninstall_clean
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Handles the Click event of the btnUninstall control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void btnUninstall_Click(object sender, EventArgs e)
+        {
+            this.Height += 50;
+            panel2.Location = new Point(5,75);
+            panel2.Visible = true;
+            SetIndeterminate(false);
+
+            btnUninstall.Enabled = false;
+            panel1.Enabled = false;
+            panel2.Enabled = true;
+            runCleaning();
+            //progressBar1.
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbxTAP control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void cbxTAP_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbxTAP.Checked == true)
+            {
+                bTAP = true;
+            } else
+            {
+                bTAP = false;
+            }
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbxFolder control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void cbxFolder_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbxFolder.Checked == true)
+            {
+                bFolder = true;
+            }
+            else
+            {
+                bFolder = false;
+            }
+        }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbxVBox control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void cbxVBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbxVBox.Checked == true)
+            {
+                bVBox = true;
+            }
+            else
+            {
+                bVBox = false;
+            }
+         }
+
+        /// <summary>
+        /// Handles the CheckedChanged event of the cbxChrome control.
+        /// </summary>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="EventArgs"/> instance containing the event data.</param>
+        private void cbxChrome_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbxChrome.Checked == true)
+            {
+                bChrome = true;
+            }
+            else
+            {
+                bChrome = false;
+            }
+        }
+
+        private void cbxTAP_MouseHover(object sender, EventArgs e)
+        {
+            CheckBox TB = (CheckBox)sender;
+            int VisibleTime = 4000;  //in milliseconds
+            ToolTip tt = new ToolTip();
+            string msg = string.Format("Do not remove TAP driver if You are using OpenVPN");
+            tt.Show(msg, TB, 20, -20, VisibleTime);
+        }
+
+        private void cbxFolder_MouseHover(object sender, EventArgs e)
+        {
+            CheckBox TB = (CheckBox)sender;
+            int VisibleTime = 4000;  //in milliseconds
+            ToolTip tt = new ToolTip();
+            string msg = string.Format("Do not remove installation folder if You are going to install again");
+            tt.Show(msg, TB, 20, -20, VisibleTime);
+        }
+
+        private void cbxVBox_MouseHover(object sender, EventArgs e)
+        {
+            CheckBox TB = (CheckBox)sender;
+            int VisibleTime = 4000;  //in milliseconds
+            ToolTip tt = new ToolTip();
+            string msg = string.Format("Do not remove Oracle VirtualBox if You are using it for something else. \nNote: it's better to delete it from Control Panel");
+            tt.Show(msg, TB, -200, -35, VisibleTime);
+        }
+
+        private void cbxChrome_MouseHover(object sender, EventArgs e)
+        {
+            CheckBox TB = (CheckBox)sender;
+            int VisibleTime = 4000;  //in milliseconds
+            ToolTip tt = new ToolTip();
+            string msg = string.Format("Remove Chrome if You do not see it in Control Panel. \nNote: it's better to delete it from Control Panel");
+            tt.Show(msg, TB, -200, -35, VisibleTime);
         }
     }
 }

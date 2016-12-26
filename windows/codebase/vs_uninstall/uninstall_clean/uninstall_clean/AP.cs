@@ -18,7 +18,8 @@ namespace uninstall_clean
             }
             binPath = Path.Combine(clean.sysDrive, "Program Files", "TAP-Windows", "Uninstall.exe");
             string pathPath = Path.Combine(clean.sysDrive, "Program Files", "TAP-Windows", "bin");
-            remove_app("TAP-Windows", binPath, "/S", "TAP-Windows");
+            if (clean.bTAP)
+                remove_app("TAP-Windows", binPath, "/S", "TAP-Windows");
         }
 
         public static string get_env_var(string var_name)
@@ -50,16 +51,6 @@ namespace uninstall_clean
 
         public static  void remove_app(string app_name, string cmd, string args, string app_path)
         {
-            if (!clean.isSilent)
-            {
-                DialogResult drs = MessageBox.Show($"Remove {app_name}?", $"Removing {app_name}",
-                                   MessageBoxButtons.YesNo,
-                                   MessageBoxIcon.Question,
-                                   MessageBoxDefaultButton.Button1);
-
-                if (drs == DialogResult.No)
-                    return;
-            }
             string mess = "";
             if (File.Exists(cmd))
             {
@@ -89,16 +80,6 @@ namespace uninstall_clean
         /// </summary>
         public static void remove_chrome()
         {
-            if (!clean.isSilent)
-            {
-                DialogResult drs = MessageBox.Show($"Remove Google Chrome browser? NOTE: It's prefferable to delete Chrome from Control Panel->Programs.", $"Removing Google Chrome",
-                                   MessageBoxButtons.YesNo,
-                                   MessageBoxIcon.Question,
-                                   MessageBoxDefaultButton.Button1);
-
-                if (drs == DialogResult.No)
-                    return;
-            }
             //Check if Chrome is running
             SCP.stop_process("chrome.exe");
             SCP.stop_process("Google Chrome");

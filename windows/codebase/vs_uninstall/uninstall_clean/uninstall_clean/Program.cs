@@ -9,6 +9,7 @@ namespace uninstall_clean
     static class Program
     {
         public static clean form1;
+        //public static f_confirm form2;
         /// <summary>
         /// Mutex to ensure singletone 
         /// </summary>
@@ -57,6 +58,8 @@ namespace uninstall_clean
                 Application.SetCompatibleTextRenderingDefault(false);
                 form1 = new clean();
                 Application.Run(form1);
+                //form2 = new f_confirm();
+                //Application.Run(form2);
             }
         }
     }

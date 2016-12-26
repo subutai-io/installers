@@ -120,13 +120,6 @@ namespace uninstall_clean
         {
             string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
             //DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
-            DialogResult drs = MessageBox.Show(mesg, $"Removing {app_name}",
-                  MessageBoxButtons.YesNo,
-                  MessageBoxIcon.Question,
-                  MessageBoxDefaultButton.Button1);
-
-            if (drs == DialogResult.No)
-                return;
             string res = "";
             //VirtualBox Manager, VirtualBox Interface
             //Stop VMs
@@ -174,7 +167,6 @@ namespace uninstall_clean
                 mesg = string.Format("Oracle VirtualBox was not removed from Your machine");
             }
             MessageBox.Show(mesg, "Removing Oracle VirtualBox", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-
         }
 
         public static void remove_vm()
@@ -217,7 +209,7 @@ namespace uninstall_clean
             rg_repeated("", RegistryHive.ClassesRoot);
             //HKEY_LOCAL_MACHINE\SOFTWARE\Classes\
             rg_repeated("SOFTWARE\\Classes", RegistryHive.LocalMachine);
-
+              
             //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DIFx\DriverStore
             subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DIFx\\DriverStore";
             RG.DeleteKeyByName(subkey, "VBox", RegistryHive.LocalMachine);
