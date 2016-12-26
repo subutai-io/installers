@@ -41,7 +41,7 @@ namespace Deployment
         /// <summary>
         /// The host RAM in MB
         /// </summary>
-        private static long hostRam;
+        private static ulong hostRam;
         /// <summary>
         /// The VT-x is enamled in BIOS
         /// </summary>
@@ -79,7 +79,7 @@ namespace Deployment
         /// The logger, will log system information
         /// </summary>
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
- 
+
         /// <summary>
         /// Initializes a new instance of the <see cref="f_confirm"/> class.
         /// Form shows if Subutai can be installed and allows to choose installation type
@@ -119,12 +119,12 @@ namespace Deployment
             tbxAppDir.ReadOnly = true;
             //Defining system parameters
             hostOSversion = Environment.OSVersion.Version.ToString(); //OS version (6.1, 6.2, 10)
-            hostOSversion_user = SysCheck.OS_name().Replace("Windows","Win"); //OS name in human readable format
-            shortVersion = hostOSversion.Substring(0, 3); 
+            hostOSversion_user = SysCheck.OS_name().Replace("Windows", "Win"); //OS name in human readable format
+            shortVersion = hostOSversion.Substring(0, 3);
             hostCores = Environment.ProcessorCount; //number of logical processors
             host64 = Environment.Is64BitOperatingSystem; //Processor architecture - x86 or x64
             vboxVersion = SysCheck.vbox_version(); //Oracle VirtualBox version 
-            hostRam = (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;//RAM in MB
+            hostRam = (ulong)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;//RAM in MB
             hostVT = SysCheck.check_vt(); //Checking if VT-x is enabled
 
             //Filling textboxes
@@ -134,12 +134,16 @@ namespace Deployment
             l_OS.Text = hostOSversion_user;
             l_VT.Text = hostVT;
             l_VB.Text = vboxVersion;
-                   
+
             tb_Info.Text = "Subutai can be installed on Windows versions 7, 8, 8.1, 10.";
             // "* This value may need to be checked in BIOS. If installation fails, check if 
             //hardware support for virtualization(VT-x/AMD-V) is allowed in BIOS.";
             tb_Info.Text += Environment.NewLine;
             tb_Info.Text += Environment.NewLine;
+
+            tb_Proc_VM.Text = VMs.vm_CPUs().ToString();
+            tb_RAM_VM.Text = VMs.vm_RAM().ToString();
+
             //Log system info:
             logger.Info("OS: {0}, {1}", hostOSversion, hostOSversion_user);
             logger.Info("CPUs: {0}", hostCores);
@@ -160,48 +164,38 @@ namespace Deployment
         private void checking(string pType)
         {
             string msg = "";
+            string msg_res = "";
             //2 or more processor cores
-            if (pType != "client-only")
+            if (hostCores < 2)
             {
-                if (hostCores < 20)
-                    //////////////////////////////////////////////////////////////////////////
-                {
-                    l_Proc.ForeColor = Color.Red;
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "Subutai needs at least 2 cores!";
-                    res = false;
-                }
-                else
-                {
-                    l_Proc.ForeColor = Color.Green;
-                }
-            } else
-            {
-                    l_Proc.ForeColor = Color.DarkGray;
+                l_Proc.ForeColor = Color.Red;
+                tb_Info.Text += Environment.NewLine;
+                tb_Info.Text += Environment.NewLine;
+                tb_Info.Text += "Subutai needs at least 2 cores!";
+                res = false;
+                msg_res += "Number of cores on Your machine should be 2 or more\n";
             }
-            
+            else
+            {
+                l_Proc.ForeColor = Color.Green;
+            }
+
             //RAM > 4000 KB
             //here: change
-            if (pType != "client-only")
+            if ((long)hostRam < 3800)
             {
-                if ((long)hostRam < 3800)
-                {
-                    l_RAM.ForeColor = Color.Red;
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "Subutai needs more than 3000 MB of RAM.";
-                    res = false;
-                }
-                else
-                {
-                    l_RAM.ForeColor = Color.Green;
-                }
-            } else
-            {
-                    l_RAM.ForeColor = Color.DarkGray;
+                l_RAM.ForeColor = Color.Red;
+                tb_Info.Text += Environment.NewLine;
+                tb_Info.Text += Environment.NewLine;
+                tb_Info.Text += "Subutai needs more than 3000 MB of RAM.";
+                res = false;
+                msg_res += "RAM should be 3800 MB or more\n";
             }
-            
+            else
+            {
+                l_RAM.ForeColor = Color.Green;
+            }
+
             //Processor architecture x64
             if (!host64)
             {
@@ -211,6 +205,7 @@ namespace Deployment
                 tb_Info.Text += "Subutai needs x64 processor architecture.";
                 res = false;
                 res_client = false; // for now may be later can change
+                msg_res += "Processor architecture should be x64";
             }
             else
             {
@@ -218,60 +213,52 @@ namespace Deployment
             }
 
             //VT-x enabled
-            if (pType != "client-only")
+            if (!hostVT.ToLower().Contains("true"))
             {
-                if (!hostVT.ToLower().Contains("true"))
+                if (shortVersion != "6.1")//not Windows  7 
                 {
-                    if (shortVersion != "6.1")//not Windows  7 
-                    { 
-                        l_VT.ForeColor = Color.Red;
-                        tb_Info.Text += Environment.NewLine;
-                        tb_Info.Text += Environment.NewLine;
-                        tb_Info.Text += "Please, enable hardware virtualization support (Vt-X/AMD-V) in BIOS!";
-                        res = false;
-                    } else
-                    {
-                        l_VT.ForeColor = Color.DarkBlue;
-
-                    }
-                } else 
-                {
-                    l_VT.ForeColor = Color.Green;
-                }
-            }
-            else
-            {
-                l_VT.ForeColor = Color.DarkGray;
-            }
-            
-            //Oracle Virtual Box version >5.0
-            if (pType != "client-only")
-            {
-                if (!SysCheck.vbox_version_fit(vb_version2fit, l_VB.Text))
-                {
-                    l_VB.ForeColor = Color.Red;
+                    l_VT.ForeColor = Color.Red;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += Environment.NewLine;
+                    tb_Info.Text += "Please, enable hardware virtualization support (Vt-X/AMD-V) in BIOS!";
                     res = false;
-                }
-                else
+                    msg_res += "Processor virtualisation should be enabled\n";
+                } else
                 {
-                    l_VB.ForeColor = Color.Green;
+                    l_VT.ForeColor = Color.DarkBlue;
+
                 }
             } else
             {
-                l_VB.ForeColor = Color.DarkGray;
+                l_VT.ForeColor = Color.Green;
             }
+
+            //Oracle Virtual Box version >5.0
+            if (!SysCheck.vbox_version_fit(vb_version2fit, l_VB.Text))
+            {
+                l_VB.ForeColor = Color.Red;
+                res = false;
+                msg_res += "Oracle VirtualBox version should be 5.1.0 or higher";
+            }
+            else
+            {
+                l_VB.ForeColor = Color.Green;
+            }
+
             //Checking Windows version >= 6.1, 6.1 is Windows 7
             if (!SysCheck.vbox_version_fit("6.1", shortVersion))
             {
                 l_OS.ForeColor = Color.Red;
                 res = false;
                 res_client = false;
+                msg_res += "Windows version should 7 or hegher";
             }
             else
             {
                 l_OS.ForeColor = Color.Green;
             }
-            
+
+            //If meet requirements
             if (res)
             {
                 btnInstall.Text = $"Install Subutai {Program.inst_type}";
@@ -334,6 +321,9 @@ namespace Deployment
                     tb_Info.Text += "Close form to exit.";
                 } else if (pType != "client-only")
                 {
+                    tb_Proc_VM.Enabled = false;
+                    tb_RAM_VM.Enabled = false;
+
                     btnInstall.Text = "Exit";
                     msg = string.Format("Sorry, Subutai Social can not be installed on Your machine but \nYou still can try out Client Only version!");
                     lblCheckResult.Text = msg;
@@ -349,7 +339,8 @@ namespace Deployment
                     rbTrial.Enabled = false;
                     rbRHonly.Enabled = false;
 
-                    msg = string.Format("Sorry, Subutai Social cannot be installed on your machine but You still can try out Client Only version. \n\nDo you want to install Client Only version ?");
+                    msg = string.Format("Sorry, Subutai Social cannot be installed on your machine but You still can try out Client Only version. \n\n{0}\n\nDo you want to install Client Only version ?",
+                            msg_res);
                     DialogResult drs = MessageBox.Show(msg, "Client Only Installation",
                                             MessageBoxButtons.YesNo,
                                             MessageBoxIcon.Question,
@@ -357,7 +348,7 @@ namespace Deployment
 
                     if (drs == DialogResult.Yes)
                     {
-                         rbClientOnly.Checked = true;
+                        rbClientOnly.Checked = true;
                     }
                     else
                     {
@@ -367,7 +358,7 @@ namespace Deployment
                 else //client-only
                 {
                     btnInstall.Text = "Install Client Only";
-                    msg = string.Format("Subutai Social can be installed on Your system. \nPress Install button to proceed");
+                    msg = string.Format("Subutai Social Client Only can be installed on Your system. \nPress Install button to proceed");
                     lblCheckResult.Text = msg;
                     lblCheckResult.ForeColor = Color.Green;
 
@@ -377,7 +368,7 @@ namespace Deployment
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += "DHCP server must to be running on the local network.";
                 }
-             }
+            }
         }
 
         /// <summary>
@@ -436,7 +427,7 @@ namespace Deployment
                 return "client-only";
             }
             return "trial";
-            
+
         }
 
         /// <summary>
@@ -457,7 +448,7 @@ namespace Deployment
                 //Program.form_.Close();
             } else
             {
-                MessageBox.Show("Cannot define application folder for Subutai Social, please uninstall from Control Panel", 
+                MessageBox.Show("Cannot define application folder for Subutai Social, please uninstall from Control Panel",
                     "Installation Folder error",
                     MessageBoxButtons.OK);
                 Environment.Exit(1);
@@ -527,7 +518,7 @@ namespace Deployment
             {
                 //Show Copy
                 cms.Show(this, new Point(panelRight.Bounds.X + ll.Bounds.X, ll.Bounds.Y));
-             }
+            }
             else
             {
                 linkTutorials.LinkVisited = true;
@@ -587,24 +578,80 @@ namespace Deployment
             checking(peerType(getCheckedRadio(gbxTypeInst)));
         }
 
-        private void panelLeft_Paint(object sender, PaintEventArgs e)
+        private void tb_Proc_VM_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
+            int uProc = Int32.Parse(tb_Proc_VM.Text);
+            int uMinProc = 2;
+            int uMaxProc = maxProc();
+            if (uProc < uMinProc || uProc > uMaxProc)
+            {
+                string msg = string.Format("Number of CPU should be more that 1 and less than {0}\nChanges are not recommended", uMaxProc + 1);
+                epCPUs.SetError(tb_Proc_VM, msg);
+                e.Cancel = true;
+                return;
+            }
+            epCPUs.SetError(tb_Proc_VM, "");
+            Program.vmCPUs = (ulong)uProc;
         }
 
-        private void l_OS_min_Click(object sender, EventArgs e)
+        private void tb_RAM_VM_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
+            ulong uRAM = (ulong)Int32.Parse(tb_RAM_VM.Text);
+            ulong uMinRAM = 2048;
+            ulong uMaxRAM = maxRAM();
+            if (uRAM < uMinRAM || uRAM > uMaxRAM)
+            {
+                string msg = string.Format("RAM should be more that 2047 and less than {0}\nChanges are not recommended", uMaxRAM + 1);
+                epRAM.SetError(tb_RAM_VM, msg);
+                e.Cancel = true;
+                return;
+            }
+            epRAM.SetError(tb_RAM_VM, "");
+            Program.vmRAM = uRAM;
         }
 
-        private void l_OS_Click(object sender, EventArgs e)
+        private void tb_RAM_VM_MouseHover(object sender, EventArgs e)
         {
-
+            TextBox TB = (TextBox)sender;
+            int VisibleTime = 1000;  //in milliseconds
+            ToolTip tt = new ToolTip();
+            string msg = string.Format("RAM should be more that 2047 and less than {0}\nChanges are not recommended", maxRAM() + 1);
+            tt.Show(msg, TB, 0, 0, VisibleTime);
         }
 
-        private void lblWindows_Click(object sender, EventArgs e)
+        private void tb_Proc_VM_MouseHover(object sender, EventArgs e)
         {
-
+            TextBox TB = (TextBox)sender;
+            int VisibleTime = 1000;  //in milliseconds
+            ToolTip tt = new ToolTip();
+            string msg = string.Format("Number of CPU should be more that 1 and less than {0}\nChanges are not recommended", maxProc() + 1);
+            tt.Show(msg, TB, 0, 0, VisibleTime);
         }
+
+        private ulong maxRAM()
+        {
+            if (hostRam <= 4024)
+            {
+                return 2048;
+            }
+            else
+            {
+                return hostRam / 2;
+            }
+        }
+
+        private int maxProc()
+        {
+            if (hostCores <= 3)
+            {
+                return 2;
+            }
+            else
+            {
+                return hostCores / 2;
+            }
+        }
+
+
     }
 }

@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(f_confirm));
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -47,6 +48,11 @@
             this.lblAppDir = new System.Windows.Forms.Label();
             this.tb_Info = new System.Windows.Forms.TextBox();
             this.panelLeft = new System.Windows.Forms.Panel();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.tb_RAM_VM = new System.Windows.Forms.TextBox();
+            this.tb_Proc_VM = new System.Windows.Forms.TextBox();
             this.l_VB_min = new System.Windows.Forms.Label();
             this.l_VT_min = new System.Windows.Forms.Label();
             this.l_OS_min = new System.Windows.Forms.Label();
@@ -67,10 +73,16 @@
             this.lblRAM = new System.Windows.Forms.Label();
             this.lblCPU = new System.Windows.Forms.Label();
             this.pbSubutaiLogo = new System.Windows.Forms.PictureBox();
+            this.epCPUs = new System.Windows.Forms.ErrorProvider(this.components);
+            this.epRAM = new System.Windows.Forms.ErrorProvider(this.components);
+            this.ttpCPUs = new System.Windows.Forms.ToolTip(this.components);
+            this.ttpRAM = new System.Windows.Forms.ToolTip(this.components);
             this.gbxTypeInst.SuspendLayout();
             this.panelRight.SuspendLayout();
             this.panelLeft.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbSubutaiLogo)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.epCPUs)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.epRAM)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -214,7 +226,7 @@
             this.panelRight.Controls.Add(this.btnInstall);
             this.panelRight.Controls.Add(this.label3);
             this.panelRight.Controls.Add(this.linkManual);
-            this.panelRight.Location = new System.Drawing.Point(414, 8);
+            this.panelRight.Location = new System.Drawing.Point(422, 8);
             this.panelRight.Name = "panelRight";
             this.panelRight.Size = new System.Drawing.Size(423, 428);
             this.panelRight.TabIndex = 16;
@@ -271,6 +283,11 @@
             // 
             // panelLeft
             // 
+            this.panelLeft.Controls.Add(this.label6);
+            this.panelLeft.Controls.Add(this.label5);
+            this.panelLeft.Controls.Add(this.label4);
+            this.panelLeft.Controls.Add(this.tb_RAM_VM);
+            this.panelLeft.Controls.Add(this.tb_Proc_VM);
             this.panelLeft.Controls.Add(this.l_VB_min);
             this.panelLeft.Controls.Add(this.l_VT_min);
             this.panelLeft.Controls.Add(this.l_OS_min);
@@ -290,17 +307,70 @@
             this.panelLeft.Controls.Add(this.lblArch);
             this.panelLeft.Controls.Add(this.lblRAM);
             this.panelLeft.Controls.Add(this.lblCPU);
-            this.panelLeft.Location = new System.Drawing.Point(10, 137);
+            this.panelLeft.Location = new System.Drawing.Point(5, 137);
             this.panelLeft.Name = "panelLeft";
-            this.panelLeft.Size = new System.Drawing.Size(396, 299);
+            this.panelLeft.Size = new System.Drawing.Size(411, 299);
             this.panelLeft.TabIndex = 17;
-            this.panelLeft.Paint += new System.Windows.Forms.PaintEventHandler(this.panelLeft_Paint);
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(336, 14);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(58, 16);
+            this.label6.TabIndex = 52;
+            this.label6.Text = "Shared";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label5.Location = new System.Drawing.Point(260, 14);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(71, 16);
+            this.label5.TabIndex = 51;
+            this.label5.Text = "Available";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label4.Location = new System.Drawing.Point(192, 14);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(63, 16);
+            this.label4.TabIndex = 50;
+            this.label4.Text = "Needed";
+            // 
+            // tb_RAM_VM
+            // 
+            this.tb_RAM_VM.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_RAM_VM.Location = new System.Drawing.Point(342, 73);
+            this.tb_RAM_VM.Name = "tb_RAM_VM";
+            this.tb_RAM_VM.Size = new System.Drawing.Size(50, 23);
+            this.tb_RAM_VM.TabIndex = 49;
+            this.tb_RAM_VM.Text = "0";
+            this.tb_RAM_VM.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_RAM_VM.Validating += new System.ComponentModel.CancelEventHandler(this.tb_RAM_VM_Validating);
+            this.tb_RAM_VM.MouseHover += new System.EventHandler(this.tb_RAM_VM_MouseHover);
+            // 
+            // tb_Proc_VM
+            // 
+            this.tb_Proc_VM.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tb_Proc_VM.Location = new System.Drawing.Point(342, 42);
+            this.tb_Proc_VM.Name = "tb_Proc_VM";
+            this.tb_Proc_VM.Size = new System.Drawing.Size(50, 23);
+            this.tb_Proc_VM.TabIndex = 19;
+            this.tb_Proc_VM.Text = "0";
+            this.tb_Proc_VM.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.tb_Proc_VM.Validating += new System.ComponentModel.CancelEventHandler(this.tb_Proc_VM_Validating);
+            this.tb_Proc_VM.MouseHover += new System.EventHandler(this.tb_Proc_VM_MouseHover);
             // 
             // l_VB_min
             // 
             this.l_VB_min.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.l_VB_min.ForeColor = System.Drawing.Color.LimeGreen;
-            this.l_VB_min.Location = new System.Drawing.Point(199, 195);
+            this.l_VB_min.Location = new System.Drawing.Point(199, 192);
             this.l_VB_min.Name = "l_VB_min";
             this.l_VB_min.Size = new System.Drawing.Size(50, 16);
             this.l_VB_min.TabIndex = 42;
@@ -311,7 +381,7 @@
             // 
             this.l_VT_min.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.l_VT_min.ForeColor = System.Drawing.Color.LimeGreen;
-            this.l_VT_min.Location = new System.Drawing.Point(198, 160);
+            this.l_VT_min.Location = new System.Drawing.Point(198, 163);
             this.l_VT_min.Name = "l_VT_min";
             this.l_VT_min.Size = new System.Drawing.Size(50, 16);
             this.l_VT_min.TabIndex = 41;
@@ -322,19 +392,18 @@
             // 
             this.l_OS_min.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.l_OS_min.ForeColor = System.Drawing.Color.LimeGreen;
-            this.l_OS_min.Location = new System.Drawing.Point(198, 125);
+            this.l_OS_min.Location = new System.Drawing.Point(198, 134);
             this.l_OS_min.Name = "l_OS_min";
             this.l_OS_min.Size = new System.Drawing.Size(50, 16);
             this.l_OS_min.TabIndex = 40;
             this.l_OS_min.Text = "Win7";
             this.l_OS_min.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.l_OS_min.Click += new System.EventHandler(this.l_OS_min_Click);
             // 
             // l_S64_min
             // 
             this.l_S64_min.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.l_S64_min.ForeColor = System.Drawing.Color.LimeGreen;
-            this.l_S64_min.Location = new System.Drawing.Point(198, 90);
+            this.l_S64_min.Location = new System.Drawing.Point(198, 105);
             this.l_S64_min.Name = "l_S64_min";
             this.l_S64_min.Size = new System.Drawing.Size(50, 16);
             this.l_S64_min.TabIndex = 39;
@@ -345,7 +414,7 @@
             // 
             this.l_RAM_min.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.l_RAM_min.ForeColor = System.Drawing.Color.LimeGreen;
-            this.l_RAM_min.Location = new System.Drawing.Point(198, 55);
+            this.l_RAM_min.Location = new System.Drawing.Point(198, 76);
             this.l_RAM_min.Name = "l_RAM_min";
             this.l_RAM_min.Size = new System.Drawing.Size(50, 16);
             this.l_RAM_min.TabIndex = 38;
@@ -356,7 +425,7 @@
             // 
             this.l_Proc_min.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.l_Proc_min.ForeColor = System.Drawing.Color.LimeGreen;
-            this.l_Proc_min.Location = new System.Drawing.Point(198, 20);
+            this.l_Proc_min.Location = new System.Drawing.Point(198, 47);
             this.l_Proc_min.Name = "l_Proc_min";
             this.l_Proc_min.Size = new System.Drawing.Size(50, 16);
             this.l_Proc_min.TabIndex = 37;
@@ -368,14 +437,14 @@
             this.lblCheckResult.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblCheckResult.Location = new System.Drawing.Point(13, 230);
             this.lblCheckResult.Name = "lblCheckResult";
-            this.lblCheckResult.Size = new System.Drawing.Size(367, 61);
+            this.lblCheckResult.Size = new System.Drawing.Size(381, 61);
             this.lblCheckResult.TabIndex = 36;
             this.lblCheckResult.Text = "Checking requirements";
             // 
             // l_VB
             // 
             this.l_VB.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.l_VB.Location = new System.Drawing.Point(260, 195);
+            this.l_VB.Location = new System.Drawing.Point(253, 192);
             this.l_VB.Name = "l_VB";
             this.l_VB.Size = new System.Drawing.Size(84, 16);
             this.l_VB.TabIndex = 35;
@@ -386,7 +455,7 @@
             // 
             this.lblVirtualBox.AutoSize = true;
             this.lblVirtualBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblVirtualBox.Location = new System.Drawing.Point(13, 195);
+            this.lblVirtualBox.Location = new System.Drawing.Point(13, 193);
             this.lblVirtualBox.Name = "lblVirtualBox";
             this.lblVirtualBox.Size = new System.Drawing.Size(158, 16);
             this.lblVirtualBox.TabIndex = 34;
@@ -395,7 +464,7 @@
             // l_VT
             // 
             this.l_VT.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.l_VT.Location = new System.Drawing.Point(259, 160);
+            this.l_VT.Location = new System.Drawing.Point(252, 163);
             this.l_VT.Name = "l_VT";
             this.l_VT.Size = new System.Drawing.Size(84, 16);
             this.l_VT.TabIndex = 33;
@@ -405,18 +474,17 @@
             // l_OS
             // 
             this.l_OS.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.l_OS.Location = new System.Drawing.Point(259, 125);
+            this.l_OS.Location = new System.Drawing.Point(252, 134);
             this.l_OS.Name = "l_OS";
             this.l_OS.Size = new System.Drawing.Size(84, 16);
             this.l_OS.TabIndex = 32;
             this.l_OS.Text = "l_OS";
             this.l_OS.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.l_OS.Click += new System.EventHandler(this.l_OS_Click);
             // 
             // l_S64
             // 
             this.l_S64.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.l_S64.Location = new System.Drawing.Point(259, 90);
+            this.l_S64.Location = new System.Drawing.Point(252, 105);
             this.l_S64.Name = "l_S64";
             this.l_S64.Size = new System.Drawing.Size(84, 16);
             this.l_S64.TabIndex = 31;
@@ -426,7 +494,7 @@
             // l_RAM
             // 
             this.l_RAM.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.l_RAM.Location = new System.Drawing.Point(259, 55);
+            this.l_RAM.Location = new System.Drawing.Point(252, 76);
             this.l_RAM.Name = "l_RAM";
             this.l_RAM.Size = new System.Drawing.Size(84, 16);
             this.l_RAM.TabIndex = 30;
@@ -436,7 +504,7 @@
             // l_Proc
             // 
             this.l_Proc.Font = new System.Drawing.Font("Arial", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.l_Proc.Location = new System.Drawing.Point(259, 20);
+            this.l_Proc.Location = new System.Drawing.Point(252, 47);
             this.l_Proc.Name = "l_Proc";
             this.l_Proc.Size = new System.Drawing.Size(84, 16);
             this.l_Proc.TabIndex = 29;
@@ -447,7 +515,7 @@
             // 
             this.lblHW.AutoSize = true;
             this.lblHW.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblHW.Location = new System.Drawing.Point(13, 160);
+            this.lblHW.Location = new System.Drawing.Point(13, 164);
             this.lblHW.Name = "lblHW";
             this.lblHW.Size = new System.Drawing.Size(160, 16);
             this.lblHW.TabIndex = 28;
@@ -457,18 +525,17 @@
             // 
             this.lblWindows.AutoSize = true;
             this.lblWindows.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblWindows.Location = new System.Drawing.Point(13, 125);
+            this.lblWindows.Location = new System.Drawing.Point(13, 135);
             this.lblWindows.Name = "lblWindows";
             this.lblWindows.Size = new System.Drawing.Size(110, 16);
             this.lblWindows.TabIndex = 27;
             this.lblWindows.Text = "Windows version";
-            this.lblWindows.Click += new System.EventHandler(this.lblWindows_Click);
             // 
             // lblArch
             // 
             this.lblArch.AutoSize = true;
             this.lblArch.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblArch.Location = new System.Drawing.Point(13, 90);
+            this.lblArch.Location = new System.Drawing.Point(13, 106);
             this.lblArch.Name = "lblArch";
             this.lblArch.Size = new System.Drawing.Size(148, 16);
             this.lblArch.TabIndex = 26;
@@ -478,7 +545,7 @@
             // 
             this.lblRAM.AutoSize = true;
             this.lblRAM.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRAM.Location = new System.Drawing.Point(13, 55);
+            this.lblRAM.Location = new System.Drawing.Point(13, 77);
             this.lblRAM.Name = "lblRAM";
             this.lblRAM.Size = new System.Drawing.Size(173, 16);
             this.lblRAM.TabIndex = 25;
@@ -488,7 +555,7 @@
             // 
             this.lblCPU.AutoSize = true;
             this.lblCPU.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblCPU.Location = new System.Drawing.Point(13, 20);
+            this.lblCPU.Location = new System.Drawing.Point(13, 48);
             this.lblCPU.Name = "lblCPU";
             this.lblCPU.Size = new System.Drawing.Size(182, 16);
             this.lblCPU.TabIndex = 24;
@@ -505,6 +572,14 @@
             this.pbSubutaiLogo.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pbSubutaiLogo.TabIndex = 18;
             this.pbSubutaiLogo.TabStop = false;
+            // 
+            // epCPUs
+            // 
+            this.epCPUs.ContainerControl = this;
+            // 
+            // epRAM
+            // 
+            this.epRAM.ContainerControl = this;
             // 
             // f_confirm
             // 
@@ -532,6 +607,8 @@
             this.panelLeft.ResumeLayout(false);
             this.panelLeft.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pbSubutaiLogo)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.epCPUs)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.epRAM)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -576,5 +653,14 @@
         private System.Windows.Forms.Label l_S64_min;
         private System.Windows.Forms.Label l_RAM_min;
         private System.Windows.Forms.Label l_Proc_min;
+        private System.Windows.Forms.TextBox tb_RAM_VM;
+        private System.Windows.Forms.TextBox tb_Proc_VM;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ErrorProvider epCPUs;
+        private System.Windows.Forms.ErrorProvider epRAM;
+        private System.Windows.Forms.ToolTip ttpCPUs;
+        private System.Windows.Forms.ToolTip ttpRAM;
     }
 }
