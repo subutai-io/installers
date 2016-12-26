@@ -164,6 +164,45 @@ namespace Deployment
             string res = "";
 
             var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
+            ulong vmRam = Program.vmRAM;
+            if (vmRam == 0)
+                vmRam = vm_RAM();
+            ////Tested - NO
+            ////if (hostRam < 2000)
+            ////{
+            ////    vmRam = 1024;
+            ////}
+
+            //if ((hostRam <= 16500) && (hostRam > 8100))
+            //{
+            //    vmRam = hostRam / 2;
+            //}
+            //else if (hostRam > 16500)
+            //{
+            //    vmRam = 8124;
+            //}
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --memory {vmRam}", 120000);
+            logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", vmName, vmRam, res);
+            if (res.ToLower().Contains("error"))
+            {
+                logger.Error("Can not modify RAM, please check if VirtualBox installed properly", "Setting memory");
+                Program.ShowError("Can not modify RAM, please check if VitrualBox installed properly", "Setting memory");
+                Program.form1.Visible = false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Calculating RAM for VM.
+        /// </summary>
+        /// <returns>
+        /// minimal is 2048, 
+        /// if host RAM > 8100 returns hostRAM/2
+        /// if host RAM > 16500 returns 8124
+        /// </returns>
+        public static ulong vm_RAM()
+        {
+            var hostRam = new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory / 1024 / 1024;
             ulong vmRam = 2048; //Minimal size
             //Tested - NO
             //if (hostRam < 2000)
@@ -179,11 +218,38 @@ namespace Deployment
             {
                 vmRam = 8124;
             }
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --memory {vmRam}", 120000);
-            logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", vmName, vmRam, res);
+            return vmRam;
+        }
+
+
+        /// <summary>
+        /// Set up CPU quantity for VM
+        /// </summary>
+        /// <param name="vmName">Name of the VM.</param>
+        /// <returns>true if successfully set</returns>
+        public static bool vm_set_CPUs(string vmName)
+        {
+            string res = "";
+
+            int hostCores = Environment.ProcessorCount; //number of logical processors
+            ulong vmCores = Program.vmCPUs;
+            if (vmCores == 0)
+                vmCores = vm_CPUs();
+            
+            //if (hostCores > 4 && hostCores < 17) //to ensure that not > than half phys processors will be used
+            //{
+            //    vmCores = (ulong)hostCores / 2;
+            //}
+            //else if (hostCores > 16)
+            //{
+            //    vmCores = 8;
+            //}
+
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --cpus {vmCores}", 120000);
+            logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", vmName, vmCores.ToString(), res);
             if (res.ToLower().Contains("error"))
             {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Setting memory");
+                logger.Error("Can not run command, please check if VirtualBox installed properly", "Setting CPUs");
                 Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
                 Program.form1.Visible = false;
             }
@@ -191,14 +257,15 @@ namespace Deployment
         }
 
         /// <summary>
-        /// Set up CPU quantity for VM
+        /// Calculates number of CPUs for Vms.
         /// </summary>
-        /// <param name="vmName">Name of the VM.</param>
-        /// <returns>true if success, false if not</returns>
-        public static bool vm_set_CPUs(string vmName)
+        /// <returns>
+        /// minimal 2
+        /// if hostcores>4 hostcores/2
+        /// if hostcores>16 8
+        /// </returns>
+        public static ulong vm_CPUs()
         {
-            string res = "";
-
             int hostCores = Environment.ProcessorCount; //number of logical processors
             ulong vmCores = 2;
             if (hostCores > 4 && hostCores < 17) //to ensure that not > than half phys processors will be used
@@ -209,17 +276,7 @@ namespace Deployment
             {
                 vmCores = 8;
             }
-
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --cpus {vmCores}", 120000);
-            logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", vmName, vmCores.ToString(), res);
-            if (res.ToLower().Contains("error"))
-            {
-                logger.Error("Can not run command, please check if VirtualBox installed properly", "Setting CPUs");
-                Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Prepare VBox");
-                Program.form1.Visible = false;
-            }
-
-            return true;
+            return vmCores;
         }
 
         /// <summary>
