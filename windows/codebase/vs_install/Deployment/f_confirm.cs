@@ -613,19 +613,20 @@ namespace Deployment
         private void tb_RAM_VM_MouseHover(object sender, EventArgs e)
         {
             TextBox TB = (TextBox)sender;
-            int VisibleTime = 1000;  //in milliseconds
+            int VisibleTime = 4000;  //in milliseconds
             ToolTip tt = new ToolTip();
             string msg = string.Format("RAM should be more that 2047 and less than {0}\nChanges are not recommended", maxRAM() + 1);
-            tt.Show(msg, TB, 0, 0, VisibleTime);
+            tt.Show(msg, TB, 40, -20, VisibleTime);
         }
 
         private void tb_Proc_VM_MouseHover(object sender, EventArgs e)
         {
             TextBox TB = (TextBox)sender;
-            int VisibleTime = 1000;  //in milliseconds
+            int VisibleTime = 4000;  //in milliseconds
             ToolTip tt = new ToolTip();
             string msg = string.Format("Number of CPU should be more that 1 and less than {0}\nChanges are not recommended", maxProc() + 1);
-            tt.Show(msg, TB, 0, 0, VisibleTime);
+            
+            tt.Show(msg, TB, 40, -20, VisibleTime);
         }
 
         private ulong maxRAM()
@@ -651,7 +652,5 @@ namespace Deployment
                 return hostCores / 2;
             }
         }
-
-
     }
 }
