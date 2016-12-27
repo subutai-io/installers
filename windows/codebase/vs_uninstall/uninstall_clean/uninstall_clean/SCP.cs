@@ -13,6 +13,12 @@ namespace uninstall_clean
     /// </summary>
     class SCP
     {
+        /// <summary>
+        /// Stopping service.
+        /// </summary>
+        /// <param name="serviceName">Name of the service.</param>
+        /// <param name="timeoutMilliseconds">The timeout milliseconds.</param>
+        /// <returns></returns>
         public static  string stop_service(string serviceName, int timeoutMilliseconds)
         {
             ServiceController service = new ServiceController(serviceName);
@@ -33,6 +39,11 @@ namespace uninstall_clean
             }
         }
 
+        /// <summary>
+        /// Removing P2P Subutai Social service.
+        /// </summary>
+        /// <param name="serviceName">Name of the service.</param>
+        /// <returns></returns>
         public static string remove_service(string serviceName)
         {
             ServiceController ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == serviceName);
@@ -52,6 +63,11 @@ namespace uninstall_clean
             return (mess);
         }
 
+        /// <summary>
+        /// Stopping process.
+        /// </summary>
+        /// <param name="procName">Name of the process</param>
+        /// <returns></returns>
         public static string stop_process(string procName)
         {
             Process[] processes = Process.GetProcessesByName(procName);
@@ -72,6 +88,10 @@ namespace uninstall_clean
             return "1";
         }
 
+        /// <summary>
+        /// Removing firewall rules.
+        /// </summary>
+        /// <param name="appdir">Application installation directory</param>
         public static void remove_fw_rules(string appdir)
         {
             string res = "";
@@ -87,6 +107,14 @@ namespace uninstall_clean
             res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_out\"", true, false);
         }
 
+        /// <summary>
+        /// Launches the command line application.
+        /// </summary>
+        /// <param name="filename">The filename.</param>
+        /// <param name="arguments">The arguments.</param>
+        /// <param name="bCrNoWin">if set to <c>true</c> [b cr no win].</param>
+        /// <param name="bUseShExe">if set to <c>true</c> [b use sh executable].</param>
+        /// <returns></returns>
         public static string LaunchCommandLineApp(string filename, string arguments, bool bCrNoWin, bool bUseShExe)
         {
             // Use ProcessStartInfo class

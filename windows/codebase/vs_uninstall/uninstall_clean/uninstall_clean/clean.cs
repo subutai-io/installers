@@ -46,11 +46,11 @@ namespace uninstall_clean
         /// <summary>
         /// If TAP software should be installed
         /// </summary>
-        public static bool bTAP = false;
+        public static bool bTAP = true;
         /// <summary>
         /// If installation folder should be removed 
         /// </summary>
-        public static bool bFolder = false;
+        public static bool bFolder = true;
         /// <summary>
         /// if Oracle VirtualBox should be removed
         /// </summary>
@@ -121,18 +121,6 @@ namespace uninstall_clean
             }
         }
 
-        //void timer1_Tick(object sender, EventArgs e)
-        //{
-        //    if (progressBar1.Value != 10)
-        //    {
-        //        progressBar1.Value++;
-        //    }
-        //    else
-        //    {
-        //        timer1.Stop();
-        //    }
-        //}
-
         /// <summary>
         /// Reportin Uninstall stage
         /// </summary>
@@ -154,7 +142,7 @@ namespace uninstall_clean
         }
 
         /// <summary>
-        /// Updates Uninstall progress.
+        /// Updates Uninstall progress
         /// </summary>
         /// <param name="progress">The progress percent</param>
         public static void UpdateProgress(int progress)
@@ -392,6 +380,7 @@ namespace uninstall_clean
                     SetIndeterminate(false);
                     UpdateProgress(100);
                     StageReporter("", "Finished");
+                    
                     mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it");
                     MessageBox.Show(mesg, "Uninstall Subutai Social", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     Environment.Exit(0);
@@ -439,7 +428,7 @@ namespace uninstall_clean
         private void btnUninstall_Click(object sender, EventArgs e)
         {
             this.Height += 50;
-            panel2.Location = new Point(5,75);
+            panel2.Location = new Point(5,135);
             panel2.Visible = true;
             SetIndeterminate(false);
 
@@ -515,42 +504,6 @@ namespace uninstall_clean
             {
                 bChrome = false;
             }
-        }
-
-        private void cbxTAP_MouseHover(object sender, EventArgs e)
-        {
-            CheckBox TB = (CheckBox)sender;
-            int VisibleTime = 4000;  //in milliseconds
-            ToolTip tt = new ToolTip();
-            string msg = string.Format("Do not remove TAP driver if You are using OpenVPN");
-            tt.Show(msg, TB, 20, -20, VisibleTime);
-        }
-
-        private void cbxFolder_MouseHover(object sender, EventArgs e)
-        {
-            CheckBox TB = (CheckBox)sender;
-            int VisibleTime = 4000;  //in milliseconds
-            ToolTip tt = new ToolTip();
-            string msg = string.Format("Do not remove installation folder if You are going to install again");
-            tt.Show(msg, TB, 20, -20, VisibleTime);
-        }
-
-        private void cbxVBox_MouseHover(object sender, EventArgs e)
-        {
-            CheckBox TB = (CheckBox)sender;
-            int VisibleTime = 4000;  //in milliseconds
-            ToolTip tt = new ToolTip();
-            string msg = string.Format("Do not remove Oracle VirtualBox if You are using it for something else. \nNote: it's better to delete it from Control Panel");
-            tt.Show(msg, TB, -200, -35, VisibleTime);
-        }
-
-        private void cbxChrome_MouseHover(object sender, EventArgs e)
-        {
-            CheckBox TB = (CheckBox)sender;
-            int VisibleTime = 4000;  //in milliseconds
-            ToolTip tt = new ToolTip();
-            string msg = string.Format("Remove Chrome if You do not see it in Control Panel. \nNote: it's better to delete it from Control Panel");
-            tt.Show(msg, TB, -200, -35, VisibleTime);
         }
     }
 }

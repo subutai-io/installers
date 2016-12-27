@@ -417,6 +417,11 @@ namespace uninstall_clean
             return res;
         }
 
+        /// <summary>
+        /// Deleting system files.
+        /// </summary>
+        /// <param name="drvPath">Driver path</param>
+        /// <returns></returns>
         public static bool del_sysfile(string drvPath)
         {
             //take ownership
@@ -481,6 +486,7 @@ namespace uninstall_clean
         /// </summary>
         public static void fd_clean_chrome()
         {
+            //Need to decife if User's data should be removed
             //var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             //var dirPath = Path.Combine(dirApp, "Google", "Chrome");
             ////Deleting user's app folder

@@ -58,8 +58,6 @@ namespace uninstall_clean
                 Application.SetCompatibleTextRenderingDefault(false);
                 form1 = new clean();
                 Application.Run(form1);
-                //form2 = new f_confirm();
-                //Application.Run(form2);
             }
         }
     }

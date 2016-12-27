@@ -9,10 +9,17 @@ using System.Text.RegularExpressions;
 
 namespace uninstall_clean
 {
+    /// <summary>
+    /// Working with VirtualBox
+    /// </summary>
     class VBx
-        //Working with virtualbox
     {
-        
+
+        /// <summary>
+        /// Removes the Oracle VirtualBox application.
+        /// Problematic for now 
+        /// </summary>
+        /// <param name="app_name">Name of the application.</param>
         public static void remove_app_vbox(string app_name)
         {
 
@@ -116,6 +123,11 @@ namespace uninstall_clean
 
         }
 
+        /// <summary>
+        /// Removing Oracle VirtualBox - short version.
+        /// Using official msi uninstall
+        /// </summary>
+        /// <param name="app_name">Name of the application.</param>
         public static void remove_app_vbox_short(string app_name)
         {
             string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
@@ -169,6 +181,9 @@ namespace uninstall_clean
             MessageBox.Show(mesg, "Removing Oracle VirtualBox", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
         }
 
+        /// <summary>
+        /// Removing virtual machines containing "snappy" or "subutai" in names.
+        /// </summary>
         public static void remove_vm()
         {
             string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false);
@@ -198,6 +213,9 @@ namespace uninstall_clean
             }
         }
 
+        /// <summary>
+        /// Cleaning Registry from VirtualBox records.
+        /// </summary>
         public static void vb_clean_reg()
         {
             //Clear Registry: VBoxDrv, VBoxNetAdp, VBoxUSBMon
@@ -274,8 +292,11 @@ namespace uninstall_clean
             //HKEY_CLASSES_ROOT\VirtualBox.Session
             RG.DeleteKeyByName(subkey, "VirtualBox", rh);
 
-
         }
+
+        /// <summary>
+        /// Remove host only interfaces.
+        /// </summary>
         public static void remove_host_only()
         {
             string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false);

@@ -42,6 +42,10 @@
             this.cbxTAP = new System.Windows.Forms.CheckBox();
             this.cbxVBox = new System.Windows.Forms.CheckBox();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.lbTAP = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.SuspendLayout();
@@ -74,6 +78,10 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.label6);
+            this.panel1.Controls.Add(this.label5);
+            this.panel1.Controls.Add(this.label4);
+            this.panel1.Controls.Add(this.lbTAP);
             this.panel1.Controls.Add(this.btnUninstall);
             this.panel1.Controls.Add(this.cbxFolder);
             this.panel1.Controls.Add(this.label3);
@@ -82,12 +90,12 @@
             this.panel1.Controls.Add(this.cbxVBox);
             this.panel1.Location = new System.Drawing.Point(7, 2);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(557, 76);
+            this.panel1.Size = new System.Drawing.Size(572, 140);
             this.panel1.TabIndex = 11;
             // 
             // btnUninstall
             // 
-            this.btnUninstall.Location = new System.Drawing.Point(431, 47);
+            this.btnUninstall.Location = new System.Drawing.Point(447, 110);
             this.btnUninstall.Name = "btnUninstall";
             this.btnUninstall.Size = new System.Drawing.Size(116, 23);
             this.btnUninstall.TabIndex = 9;
@@ -100,66 +108,67 @@
             this.cbxFolder.AutoSize = true;
             this.cbxFolder.Checked = true;
             this.cbxFolder.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbxFolder.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.cbxFolder.Location = new System.Drawing.Point(6, 51);
+            this.cbxFolder.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.cbxFolder.Location = new System.Drawing.Point(6, 74);
             this.cbxFolder.Name = "cbxFolder";
-            this.cbxFolder.Size = new System.Drawing.Size(165, 19);
+            this.cbxFolder.Size = new System.Drawing.Size(170, 19);
             this.cbxFolder.TabIndex = 4;
             this.cbxFolder.Text = "Subutai Installation folder";
             this.cbxFolder.UseVisualStyleBackColor = true;
             this.cbxFolder.CheckedChanged += new System.EventHandler(this.cbxFolder_CheckedChanged);
-            this.cbxFolder.MouseHover += new System.EventHandler(this.cbxFolder_MouseHover);
+            //this.cbxFolder.MouseHover += new System.EventHandler(this.cbxFolder_MouseHover);
             // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label3.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.label3.Location = new System.Drawing.Point(3, 7);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(492, 16);
+            this.label3.Size = new System.Drawing.Size(238, 18);
             this.label3.TabIndex = 0;
-            this.label3.Text = "Please check components to be  removed (change for special cases)";
+            this.label3.Text = "Choose components to remove: ";
             // 
             // cbxChrome
             // 
             this.cbxChrome.AutoSize = true;
-            this.cbxChrome.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.cbxChrome.Location = new System.Drawing.Point(213, 51);
+            this.cbxChrome.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.cbxChrome.Location = new System.Drawing.Point(246, 74);
             this.cbxChrome.Name = "cbxChrome";
-            this.cbxChrome.Size = new System.Drawing.Size(165, 19);
+            this.cbxChrome.Size = new System.Drawing.Size(168, 19);
             this.cbxChrome.TabIndex = 3;
             this.cbxChrome.Text = "Google Chrome Software";
             this.cbxChrome.UseVisualStyleBackColor = true;
             this.cbxChrome.CheckedChanged += new System.EventHandler(this.cbxChrome_CheckedChanged);
-            this.cbxChrome.MouseHover += new System.EventHandler(this.cbxChrome_MouseHover);
+            //this.cbxChrome.MouseHover += new System.EventHandler(this.cbxChrome_MouseHover);
             // 
             // cbxTAP
             // 
             this.cbxTAP.AutoSize = true;
             this.cbxTAP.Checked = true;
             this.cbxTAP.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbxTAP.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.cbxTAP.Location = new System.Drawing.Point(6, 26);
+            this.cbxTAP.FlatAppearance.CheckedBackColor = System.Drawing.Color.AliceBlue;
+            this.cbxTAP.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.cbxTAP.Location = new System.Drawing.Point(6, 33);
             this.cbxTAP.Name = "cbxTAP";
-            this.cbxTAP.Size = new System.Drawing.Size(151, 19);
+            this.cbxTAP.Size = new System.Drawing.Size(158, 19);
             this.cbxTAP.TabIndex = 1;
             this.cbxTAP.Text = "TAP Windows software";
             this.cbxTAP.UseVisualStyleBackColor = true;
             this.cbxTAP.CheckedChanged += new System.EventHandler(this.cbxTAP_CheckedChanged);
-            this.cbxTAP.MouseHover += new System.EventHandler(this.cbxTAP_MouseHover);
+            //this.cbxTAP.MouseHover += new System.EventHandler(this.cbxTAP_MouseHover);
             // 
             // cbxVBox
             // 
             this.cbxVBox.AutoSize = true;
-            this.cbxVBox.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.cbxVBox.Location = new System.Drawing.Point(213, 26);
+            this.cbxVBox.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.cbxVBox.Location = new System.Drawing.Point(246, 33);
             this.cbxVBox.Name = "cbxVBox";
-            this.cbxVBox.Size = new System.Drawing.Size(172, 19);
+            this.cbxVBox.Size = new System.Drawing.Size(183, 19);
             this.cbxVBox.TabIndex = 2;
             this.cbxVBox.Text = "Oracle Virtual Box software";
             this.cbxVBox.UseVisualStyleBackColor = true;
             this.cbxVBox.CheckedChanged += new System.EventHandler(this.cbxVBox_CheckedChanged);
-            this.cbxVBox.MouseHover += new System.EventHandler(this.cbxVBox_MouseHover);
+            //this.cbxVBox.MouseHover += new System.EventHandler(this.cbxVBox_MouseHover);
             // 
             // panel2
             // 
@@ -167,17 +176,58 @@
             this.panel2.Controls.Add(this.label2);
             this.panel2.Controls.Add(this.label1);
             this.panel2.Enabled = false;
-            this.panel2.Location = new System.Drawing.Point(7, 17);
+            this.panel2.Location = new System.Drawing.Point(7, 78);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(557, 52);
+            this.panel2.Size = new System.Drawing.Size(572, 52);
             this.panel2.TabIndex = 12;
             this.panel2.Visible = false;
+            // 
+            // lbTAP
+            // 
+            this.lbTAP.AutoSize = true;
+            this.lbTAP.Font = new System.Drawing.Font("Arial", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lbTAP.Location = new System.Drawing.Point(23, 47);
+            this.lbTAP.Name = "lbTAP";
+            this.lbTAP.Size = new System.Drawing.Size(193, 15);
+            this.lbTAP.TabIndex = 10;
+            this.lbTAP.Text = "Do not remove  if  using OpenVPN";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Arial", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label4.Location = new System.Drawing.Point(23, 91);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(219, 15);
+            this.label4.TabIndex = 11;
+            this.label4.Text = "Do not remove  if  going to install again";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Arial", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label5.Location = new System.Drawing.Point(263, 90);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(288, 15);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "Remove Chrome if it is not present in Control Panel";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Arial", 8.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label6.Location = new System.Drawing.Point(262, 47);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(221, 15);
+            this.label6.TabIndex = 13;
+            this.label6.Text = "It\'s better to delete it from Control Panel";
             // 
             // clean
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(573, 82);
+            this.BackColor = System.Drawing.SystemColors.Window;
+            this.ClientSize = new System.Drawing.Size(584, 146);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel1);
             this.Font = new System.Drawing.Font("Arial", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
@@ -185,7 +235,6 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "clean";
             this.Text = "Subutai Social Uninstall";
-            this.TransparencyKey = System.Drawing.Color.White;
             this.Load += new System.EventHandler(this.clean_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -209,5 +258,9 @@
         private System.Windows.Forms.CheckBox cbxTAP;
         private System.Windows.Forms.CheckBox cbxVBox;
         private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Label lbTAP;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
     }
 }
