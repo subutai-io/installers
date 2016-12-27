@@ -439,13 +439,13 @@ namespace Deployment
                     Deploy.StageReporter("", "Allowing TCP trafic");
                     logger.Info("Allowing TCP trafic");
                     Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                        "sudo iptables - P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT");
+                        "sudo iptables - P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT", 7);
                 }
 
             }
             if (_arguments["peer"] == "rh-only")
                 Program.form1.finished = 1;
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync", 3);
         }
 
         /// <summary>
