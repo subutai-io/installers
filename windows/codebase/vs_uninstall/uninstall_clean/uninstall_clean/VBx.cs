@@ -184,13 +184,14 @@ namespace uninstall_clean
         /// <summary>
         /// Removing virtual machines containing "snappy" or "subutai" in names.
         /// </summary>
-        public static void remove_vm()
+        public  static bool remove_vm()
         {
             string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false, 420000);
             if (outputVms.Contains("Error"))
             {
-                return;
+                return false;
             }
+            string msg = "";
             //string outputVmsRunning = LaunchCommandLineApp("vboxmanage", $"list runningvms");
             string[] rows = Regex.Split(outputVms, "\n");
             foreach (string row in rows)
@@ -203,14 +204,27 @@ namespace uninstall_clean
                         if (wrd.Contains("subutai") || wrd.Contains("snappy"))
                         {
                             string vmName = wrd.Replace("\"", "");
+                            vmName = vmName.Replace("vms","");
+                            vmName = vmName.Replace("|","");
                             string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false, 420000);
-                            Thread.Sleep(5000);
+                            //if (res1.ToLower().Contains("error"))
+                            //{
+                            //    msg = string.Format("VM {0} was not stopped, please stop VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
+                            //    MessageBox.Show(msg, "Deleting Virtual Machine", MessageBoxButtons.OK);
+                            //}
+                            //Thread.Sleep(5000);
                             string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 420000);
-                            Thread.Sleep(5000);
+                            if (res2.ToLower().Contains("error"))
+                            {
+                                msg = string.Format("VM {0} was not removed, please delete VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
+                                MessageBox.Show(msg, "Deleting Virtual Machine", MessageBoxButtons.OK);
+                            }
+                            //Thread.Sleep(5000);
                         }
                     }
                 }
             }
+            return true;
         }
 
         /// <summary>
