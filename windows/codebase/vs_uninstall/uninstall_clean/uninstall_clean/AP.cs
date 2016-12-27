@@ -20,7 +20,7 @@ namespace uninstall_clean
             string res = "";
             if (File.Exists(binPath))
             {
-                res = SCP.LaunchCommandLineApp(binPath, "remove tap0901", true, false);
+                res = SCP.LaunchCommandLineApp(binPath, "remove tap0901", true, false, 480000);
             }
             binPath = Path.Combine(clean.sysDrive, "Program Files", "TAP-Windows", "Uninstall.exe");
             string pathPath = Path.Combine(clean.sysDrive, "Program Files", "TAP-Windows", "bin");
@@ -78,7 +78,7 @@ namespace uninstall_clean
             string mess = "";
             if (File.Exists(cmd))
             {
-                string res = SCP.LaunchCommandLineApp(cmd, args, false, false);
+                string res = SCP.LaunchCommandLineApp(cmd, args, false, false, 480000);
                 if (res.Contains("|Error"))
                 {
                     mess = $"{app_name} was not removed, please uninstall manually";

@@ -72,7 +72,7 @@ namespace uninstall_clean
             {
                 
                 res = SCP.LaunchCommandLineApp("sc", $"stop {drvName.Replace(".sys","")}", 
-                    true, false);
+                    true, false, 420000);
  
                 string drvPath = Path.Combine(dirStart, drvName);
 
@@ -186,7 +186,7 @@ namespace uninstall_clean
         /// </summary>
         public static void remove_vm()
         {
-            string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false);
+            string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false, 420000);
             if (outputVms.Contains("Error"))
             {
                 return;
@@ -203,9 +203,9 @@ namespace uninstall_clean
                         if (wrd.Contains("subutai") || wrd.Contains("snappy"))
                         {
                             string vmName = wrd.Replace("\"", "");
-                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
+                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false, 420000);
                             Thread.Sleep(5000);
-                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 180000);
+                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 420000);
                             Thread.Sleep(5000);
                         }
                     }
@@ -299,7 +299,7 @@ namespace uninstall_clean
         /// </summary>
         public static void remove_host_only()
         {
-            string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false);
+            string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false, 300000);
             res = res.Remove(0, res.IndexOf("stdout"));
             res = res.Substring(0, res.IndexOf("stderr"));
             res = res.Replace("stdout:","");
@@ -311,9 +311,8 @@ namespace uninstall_clean
                 if (tmp == "" || iface == null)
                     continue;
                 clean.StageReporter("", $"Removing {tmp}");
-                res = SCP.LaunchCommandLineApp("vboxmanage ", $" hostonlyif remove \"{tmp}\"",true, false);
+                res = SCP.LaunchCommandLineApp("vboxmanage ", $" hostonlyif remove \"{tmp}\"",true, false, 420000);
             }
         }
     }
-
 }

@@ -59,7 +59,7 @@ namespace uninstall_clean
             ////}
 
             //mess = LaunchCommandLineApp("nssm", $"remove \"Subutai Social P2P\" confirm", true, false);
-            mess = LaunchCommandLineApp("sc", $"delete \"Subutai Social P2P\"", true, false);
+            mess = LaunchCommandLineApp("sc", $"delete \"Subutai Social P2P\"", true, false, 300000);
             return (mess);
         }
 
@@ -95,16 +95,16 @@ namespace uninstall_clean
         public static void remove_fw_rules(string appdir)
         {
             string res = "";
-            res = LaunchCommandLineApp("netsh", " advfirewall firewall delete rule name=all service=\"Subutai Social P2P\"", true, false);
+            res = LaunchCommandLineApp("netsh", " advfirewall firewall delete rule name=all service=\"Subutai Social P2P\"", true, false, 300000);
 
-            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=all program=\"{appdir}bin\\p2p.exe\"", true, false);
-            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=all program=\"{appdir}bin\\tray\\SubutaiTray.exe\"", true, false);
+            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=all program=\"{appdir}bin\\p2p.exe\"", true, false, 300000);
+            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=all program=\"{appdir}bin\\tray\\SubutaiTray.exe\"", true, false, 300000);
 
-            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"vboxheadless_in\"", true, false);
-            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"vboxheadless_out\"", true, false);
+            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"vboxheadless_in\"", true, false, 300000);
+            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"vboxheadless_out\"", true, false, 300000);
 
-            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_in\"", true, false);
-            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_out\"", true, false);
+            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_in\"", true, false, 300000);
+            res = LaunchCommandLineApp("netsh", $" advfirewall firewall delete rule name=\"virtualbox_out\"", true, false, 300000);
         }
 
         /// <summary>
