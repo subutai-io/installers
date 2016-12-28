@@ -176,7 +176,7 @@ namespace Deployment
                 if ( Inst.app_installed("Oracle\\VirtualBox") == 1 || _arguments["peer"] == "client-only")
                     shouldWeDownload = false;
             }
- 
+
             if (shouldWeDownload)
             {
                 var dirInfo = new DirectoryInfo(path: Path.GetDirectoryName(destination));
@@ -592,9 +592,9 @@ namespace Deployment
             }
         }
 
+
         /// <summary>
-        /// Sends the SSH command with username/password authentication.
-        /// </summary>
+        /// Sends the SSH command with username/password authentication and timeout.
         /// <param name="hostname">The hostname.</param>
         /// <param name="port">The port.</param>
         /// <param name="username">The username.</param>
@@ -635,7 +635,6 @@ namespace Deployment
             }
         }
 
->>>>>>> cfd4b06e2394cb9e6b915d2224acb36875f1f662
         /// <summary>
         /// Retrieves part of putput of Launch command (returning exit code | output| error)
         /// </summary>

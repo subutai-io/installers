@@ -306,6 +306,7 @@ namespace Deployment
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
             if (res.ToLower().Contains("error"))
             {
+
                 string mesg = string.Format("Can not Import Snappy, please check if snappy files deleted in Default Machine Folder: \n (usually <SystemDrive:>\\Users\\<UserName>\\VirtualBox VMs). \naDelete Snappy folder, press OK and installation will continue");
                 MessageBox.Show(mesg, "Importing Snappy", MessageBoxButtons.OK);
                 res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova", 240000);
@@ -440,13 +441,13 @@ namespace Deployment
                     Deploy.StageReporter("", "Allowing TCP trafic");
                     logger.Info("Allowing TCP trafic");
                     Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                        "sudo iptables - P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT");
+                        "sudo iptables - P INPUT ACCEPT; sudo iptables -P OUTPUT ACCEPT", 7);
                 }
 
             }
             if (_arguments["peer"] == "rh-only")
                 Program.form1.finished = 1;
-            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync", 3);
         }
 
         /// <summary>

@@ -163,7 +163,7 @@ namespace Deployment
             Deploy.StageReporter("", "TAP driver");
             if (app_installed("TAP-Windows") == 0)
             {
-                res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\tap-driver.exe", "/S");
+                res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\tap-driver.exe", "/S", 420000);
                 logger.Info("TAP driver: {0}", res);
             }
             else
@@ -210,7 +210,7 @@ namespace Deployment
             if (app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
             {
                 Deploy.StageReporter("", "Chrome");
-                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}redist\\chrome.msi\"");
+                res = Deploy.LaunchCommandLineApp("msiexec", $"/qn /i \"{instDir}redist\\chrome.msi\"", 480000);
                 logger.Info("Chrome: {0}", res);
             }
             else
@@ -327,7 +327,7 @@ namespace Deployment
             string res = "";
             if (app_installed("Oracle\\VirtualBox") == 0)
             {
-                res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\virtualbox.exe", "--silent");
+                res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\virtualbox.exe", "--silent", 480000);
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
@@ -377,7 +377,7 @@ namespace Deployment
             string path_l = Path.Combine(instDir, "home");
             if (!Directory.Exists(path_l))
             {
-                string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}");
+                string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}", 300000);
                 logger.Info("ssh - creating home: {0}", res);
             }
             else
@@ -429,7 +429,7 @@ namespace Deployment
         {
             string res = "";
             //res = Deploy.LaunchCommandLineApp("nssm", $"stop \"{serviceName}\"");
-            res = Deploy.LaunchCommandLineApp("sc", $"stop \"{serviceName}\"");
+            res = Deploy.LaunchCommandLineApp("sc", $"stop \"{serviceName}\"", 420000);
             logger.Info("Stopping service {0}: {1}", serviceName, res);
         }
 
@@ -444,7 +444,7 @@ namespace Deployment
         public static void service_install(string serviceName, string binPath, string binArgument)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("nssm", $"install \"{serviceName}\" \"{binPath}\" \"{binArgument}\"");
+            res = Deploy.LaunchCommandLineApp("nssm", $"install \"{serviceName}\" \"{binPath}\" \"{binArgument}\"", 420000);
             string cmd = $"create \"{serviceName}\" binpath= \"\"{binPath}\" \"{binArgument}\"\" start= auto";
             //res = Deploy.LaunchCommandLineApp("sc", cmd);
             logger.Info("Installing P2P service: {0} {1}", cmd, res);
@@ -458,7 +458,7 @@ namespace Deployment
         public static void service_start(string serviceName)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("nssm", $"start \"{serviceName}\"");
+            res = Deploy.LaunchCommandLineApp("nssm", $"start \"{serviceName}\"", 420000);
             //res = Deploy.LaunchCommandLineApp("sc", $"start \"{serviceName}\"");
             logger.Info("Starting P2P service: {0}", res);
             Thread.Sleep(2000);
@@ -472,7 +472,7 @@ namespace Deployment
         public static void service_config(string serviceName)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("sc", $"failure \"{serviceName}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400");
+            res = Deploy.LaunchCommandLineApp("sc", $"failure \"{serviceName}\" actions= restart/10000/restart/15000/restart/18000 reset= 86400", 420000);
             logger.Info("Configuring P2P service {0}", res);
             Thread.Sleep(5000);
         }
@@ -529,7 +529,7 @@ namespace Deployment
                 //need to remove previouis import
                 string killcmd = "sudo kill `ps -ef | grep import | grep -v grep | awk '{print $2}'`";
                 ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                    killcmd);
+                    killcmd, 7);
                 logger.Info("Importing stuck first time, killing processes: {0}", ssh_res);
 
                 if (ssh_res.Contains("Connection Error"))
@@ -547,11 +547,11 @@ namespace Deployment
                 }
                 //remove previously installed master
                 ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                    "sudo subutai destroy master");
+                    "sudo subutai destroy master", 7);
                 logger.Info("Destroying master to import second time: {0}", ssh_res);
 
                 ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                    "sudo subutai destroy management");
+                    "sudo subutai destroy management", 7);
                 logger.Info("Destroying management to import second time: {0}", ssh_res);
 
                 b_res = import_templ_task("master");
@@ -569,7 +569,7 @@ namespace Deployment
             }
 
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu",
-                "sudo bash subutai info ipaddr");
+                "sudo bash subutai info ipaddr", 7);
             //todo: delete old
             logger.Info("Import management address returned by subutai info: {0}", ssh_res);
 
@@ -751,7 +751,7 @@ namespace Deployment
 
             string fname = $"{rhTemplatePlace}/*.tar.gz";
             string ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567,
-                    "ubuntu", "ubuntu", $"du -b {fname} --total | grep total"); //find size in bytes
+                    "ubuntu", "ubuntu", $"du -b {fname} --total | grep total", 5); //find size in bytes
             logger.Info("Checking RH import: {0}", ssh_res);
             string stcode = Deploy.com_out(ssh_res, 0);
             string stres = Deploy.com_out(ssh_res, 1);
@@ -830,7 +830,7 @@ namespace Deployment
             string ssh_res = "";
             // creating tmpfs folder
             Deploy.StageReporter("", "Creating tmps folder");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 7);
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             if (ssh_res.Contains("Connection Error"))
             {
@@ -838,7 +838,7 @@ namespace Deployment
                 {
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs");
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 7);
                 logger.Info("Creating tmpfs folder second time: {0}", ssh_res);
                 if (ssh_res.Contains("Connection Error"))
                 {
@@ -884,11 +884,11 @@ namespace Deployment
             string ssh_res = "";
             Deploy.StageReporter("", "Adapting installation scripts");
             ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
-            logger.Info("Adapting installation scripts: {0}", ssh_res);
+            logger.Info("Adapting installation scripts: {0}", ssh_res, 7);
             if (ssh_res.Contains("Connection Error"))
             {
                 ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sed -i 's/IPPLACEHOLDER/192.168.56.1/g' /home/ubuntu/tmpfs/prepare-server.sh");
-                logger.Info("Adapting installation scripts second time: {0}", ssh_res);
+                logger.Info("Adapting installation scripts second time: {0}", ssh_res, 7);
                 if (ssh_res.Contains("Connection Error"))
                 {
                     return false;
@@ -908,7 +908,7 @@ namespace Deployment
             string ssh_res_1 = "";
             bool b_res = false;
             Deploy.StageReporter("", "Running installation scripts");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
             logger.Info("Running installation scripts: {0}", ssh_res);
             if (ssh_res.Contains("Connection Error"))
             {
@@ -917,8 +917,8 @@ namespace Deployment
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                     Program.form1.Visible = false;
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls /home/ubuntu/tmpfs/prepare-server.sh");
-                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls bash /home/ubuntu/tmpfs/{TC.snapFile}");
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "ls /home/ubuntu/tmpfs/prepare-server.sh", 7);
+                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls bash /home/ubuntu/tmpfs/{TC.snapFile}", 3);
                 if (ssh_res.ToLower().Contains("no such file") || ssh_res_1.ToLower().Contains("no such file"))
                 {
                     b_res = upload_files(appDir);
@@ -937,7 +937,7 @@ namespace Deployment
             }
             // deploying peer options
             Thread.Sleep(5000);
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync", 3);
             Thread.Sleep(5000);
             return true;
         }
@@ -964,7 +964,7 @@ namespace Deployment
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                     Program.form1.Visible = false;
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs");
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs", 5);
                 if (ssh_res.ToLower().Contains("no such file"))
                 {
                     b_res = create_tmpfs();
@@ -975,12 +975,12 @@ namespace Deployment
                     }
                 } else
                 {
-                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs");
+                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs", 5);
                     logger.Info("Chmod tmpfs", ssh_res);
                 }
 
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh");
-                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}");
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh", 5);
+                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}", 5);
                 if (ssh_res.ToLower().Contains("no such file") || ssh_res_1.ToLower().Contains("no such file"))
                 {
                     b_res = upload_files(appDir);
@@ -1009,7 +1009,7 @@ namespace Deployment
             }
             // deploying peer options
             Thread.Sleep(5000);
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync");
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync", 3);
             Thread.Sleep(5000);
             return true;
         }

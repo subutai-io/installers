@@ -26,6 +26,9 @@ namespace Deployment
         public static string inst_args = "";
         public static string inst_type = "";
         public static string inst_Dir = "";
+        public static ulong vmCPUs = 0;
+        public static ulong vmRAM = 0;
+        
 
         public static bool stRun = false; 
 
