@@ -130,6 +130,12 @@ namespace uninstall_clean
         /// <param name="app_name">Name of the application.</param>
         public static void remove_app_vbox_short(string app_name)
         {
+            if (AP.app_installed("Oracle\\VirtualBox") == 0)
+            {
+                MessageBox.Show("Oracle VirtualBox is not installed on Your machine", "Removing Oracle VirtualBox", MessageBoxButtons.OK);
+                return;
+            }
+
             string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
             //DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
             string res = "";
@@ -187,7 +193,7 @@ namespace uninstall_clean
         public  static bool remove_vm()
         {
             string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false, 420000);
-            if (outputVms.Contains("Error"))
+            if (outputVms.ToLower().Contains("error") || outputVms.ToLower().Contains("can not"))
             {
                 return false;
             }
@@ -313,10 +319,11 @@ namespace uninstall_clean
         public static void remove_host_only()
         {
             string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false, 300000);
-            res = res.Remove(0, res.IndexOf("stdout"));
-            res = res.Substring(0, res.IndexOf("stderr"));
-            res = res.Replace("stdout:","");
-            res = res.Replace("Name:", "");
+            string[] splitted = res.Split('|');
+            //res = res.Remove(0, res.IndexOf("stdout"));
+            //res = res.Substring(0, res.IndexOf("stderr"));
+            //res = res.Replace("stdout:","");
+            res = splitted[2].Replace("Name:", "");
             string[] ifaces = res.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             foreach (string iface in ifaces)
             {

@@ -56,7 +56,7 @@ namespace uninstall_clean
         /// </summary>
         public static bool bVBox = false;
         /// <summary>
-        /// Ша Сщкщьу ырщзгдв иу куьщмув
+        /// if Google Chrome should be removed
         /// </summary>
         public static bool bChrome = false;
 

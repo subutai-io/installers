@@ -387,7 +387,7 @@ namespace ChromeUninstall
             //}
 
             //Deleting from Program Files
-            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             dirPath = Path.Combine(dirApp, "Google", "Chrome");
             //Deleting user's app folder
             try
@@ -404,7 +404,7 @@ namespace ChromeUninstall
             }
 
             //Deleting from Program Files
-            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             dirPath = Path.Combine(dirApp, "Google", "Chrome");
             //Deleting user's app folder
             try
