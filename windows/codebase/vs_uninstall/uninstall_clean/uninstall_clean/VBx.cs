@@ -9,10 +9,17 @@ using System.Text.RegularExpressions;
 
 namespace uninstall_clean
 {
+    /// <summary>
+    /// Working with VirtualBox
+    /// </summary>
     class VBx
-        //Working with virtualbox
     {
-        
+
+        /// <summary>
+        /// Removes the Oracle VirtualBox application.
+        /// Problematic for now 
+        /// </summary>
+        /// <param name="app_name">Name of the application.</param>
         public static void remove_app_vbox(string app_name)
         {
 
@@ -65,7 +72,7 @@ namespace uninstall_clean
             {
                 
                 res = SCP.LaunchCommandLineApp("sc", $"stop {drvName.Replace(".sys","")}", 
-                    true, false);
+                    true, false, 420000);
  
                 string drvPath = Path.Combine(dirStart, drvName);
 
@@ -116,17 +123,15 @@ namespace uninstall_clean
 
         }
 
+        /// <summary>
+        /// Removing Oracle VirtualBox - short version.
+        /// Using official msi uninstall
+        /// </summary>
+        /// <param name="app_name">Name of the application.</param>
         public static void remove_app_vbox_short(string app_name)
         {
             string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
             //DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
-            DialogResult drs = MessageBox.Show(mesg, $"Removing {app_name}",
-                  MessageBoxButtons.YesNo,
-                  MessageBoxIcon.Question,
-                  MessageBoxDefaultButton.Button1);
-
-            if (drs == DialogResult.No)
-                return;
             string res = "";
             //VirtualBox Manager, VirtualBox Interface
             //Stop VMs
@@ -174,38 +179,56 @@ namespace uninstall_clean
                 mesg = string.Format("Oracle VirtualBox was not removed from Your machine");
             }
             MessageBox.Show(mesg, "Removing Oracle VirtualBox", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-
         }
 
-        public static void remove_vm()
+        /// <summary>
+        /// Removing virtual machines containing "snappy" or "subutai" in names.
+        /// </summary>
+        public  static bool remove_vm()
         {
-            string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false);
+            string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false, 420000);
             if (outputVms.Contains("Error"))
             {
-                return;
+                return false;
             }
-            //string outputVmsRunning = LaunchCommandLineApp("vboxmanage", $"list runningvms");
+            string msg = "";
             string[] rows = Regex.Split(outputVms, "\n");
             foreach (string row in rows)
             {
                 if (row.Contains("subutai") || row.Contains("snappy"))
                 {
-                    string[] wrds = row.Split(' ');
+                    string[] cmdout = row.Split('|');
+                    string[] wrds = cmdout[1].Split(' ');
                     foreach (string wrd in wrds)
                     {
                         if (wrd.Contains("subutai") || wrd.Contains("snappy"))
                         {
                             string vmName = wrd.Replace("\"", "");
-                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false);
-                            Thread.Sleep(5000);
-                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 180000);
-                            Thread.Sleep(5000);
-                        }
+                            vmName = vmName.Replace("vms","");
+                            vmName = vmName.Replace("|","");
+                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false, 420000);
+                            //if (res1.ToLower().Contains("error"))
+                            //{
+                            //    msg = string.Format("VM {0} was not stopped, please stop VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
+                            //    MessageBox.Show(msg, "Deleting Virtual Machine", MessageBoxButtons.OK);
+                            //}
+                            //Thread.Sleep(5000);
+                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 420000);
+                            if (res2.ToLower().Contains("error"))
+                            {
+                                msg = string.Format("VM {0} was not removed, please delete VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
+                                MessageBox.Show(msg, "Deleting Virtual Machine", MessageBoxButtons.OK);
+                            }
+                         }
                     }
                 }
             }
+            return true;
         }
 
+        /// <summary>
+        /// Cleaning Registry from VirtualBox records.
+        /// </summary>
         public static void vb_clean_reg()
         {
             //Clear Registry: VBoxDrv, VBoxNetAdp, VBoxUSBMon
@@ -217,7 +240,7 @@ namespace uninstall_clean
             rg_repeated("", RegistryHive.ClassesRoot);
             //HKEY_LOCAL_MACHINE\SOFTWARE\Classes\
             rg_repeated("SOFTWARE\\Classes", RegistryHive.LocalMachine);
-
+              
             //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\DIFx\DriverStore
             subkey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\DIFx\\DriverStore";
             RG.DeleteKeyByName(subkey, "VBox", RegistryHive.LocalMachine);
@@ -282,11 +305,14 @@ namespace uninstall_clean
             //HKEY_CLASSES_ROOT\VirtualBox.Session
             RG.DeleteKeyByName(subkey, "VirtualBox", rh);
 
-
         }
+
+        /// <summary>
+        /// Remove host only interfaces.
+        /// </summary>
         public static void remove_host_only()
         {
-            string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false);
+            string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false, 300000);
             res = res.Remove(0, res.IndexOf("stdout"));
             res = res.Substring(0, res.IndexOf("stderr"));
             res = res.Replace("stdout:","");
@@ -298,9 +324,8 @@ namespace uninstall_clean
                 if (tmp == "" || iface == null)
                     continue;
                 clean.StageReporter("", $"Removing {tmp}");
-                res = SCP.LaunchCommandLineApp("vboxmanage ", $" hostonlyif remove \"{tmp}\"",true, false);
+                res = SCP.LaunchCommandLineApp("vboxmanage ", $" hostonlyif remove \"{tmp}\"",true, false, 420000);
             }
         }
     }
-
 }

@@ -148,7 +148,7 @@ namespace Deployment
         /// <returns>IP address of default gateway</returns>
         public static string gw_from_netstat()
         {
-            string res = Deploy.LaunchCommandLineApp("cmd.exe", " /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0");
+            string res = Deploy.LaunchCommandLineApp("cmd.exe", " /C netstat -r| findstr /i /r \"0.0.0.0.*0.0.0.0", 420000);
             logger.Info("netstat = {0}", res);
             res = Deploy.com_out(res, 2);
             if (res == "" || res == null)
@@ -179,18 +179,18 @@ namespace Deployment
             string res = "";
             if (is_service)
             {
-                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_in\" dir=in action=allow service=\"{ppath}\"  enable=yes");
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_in\" dir=in action=allow service=\"{ppath}\"  enable=yes", 300000);
                 logger.Info("Adding {0} service to to firewall exceptions {1}: {2}", rname, ppath, res);
 
-                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow service=\"{ppath}\" enable=yes");
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow service=\"{ppath}\" enable=yes", 300000);
                 logger.Info("Adding {0} service to to firewall exceptions {1}: {2}", rname, ppath, res);
             }
             else
             {
-                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_in\" dir=in action=allow program=\"{ppath}\" enable=yes");
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_in\" dir=in action=allow program=\"{ppath}\" enable=yes", 300000);
                 logger.Info("Adding {0}_in rule to to firewall exceptions {1}: {2}", rname, ppath, res);
 
-                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow  program=\"{ppath}\" enable=yes");
+                res = Deploy.LaunchCommandLineApp("netsh", $" advfirewall firewall add rule name=\"{rname}_out\" dir=out action=allow  program=\"{ppath}\" enable=yes", 300000);
                 logger.Info("Adding {0}_out rule to to firewall exceptions {1}: {2}", rname, ppath, res);
             }
         }

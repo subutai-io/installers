@@ -63,6 +63,30 @@ namespace uninstall_clean
                 }
             }
 
+            string redistDir = Path.Combine(dirName, "redist\\subutai");
+            if (Directory.Exists(redistDir))
+            {
+                try
+                {
+                    Directory.Delete(redistDir, true);
+                }
+                catch (Exception)
+                {
+                    string[] files = Directory.GetFiles(redistDir, "*", SearchOption.TopDirectoryOnly);
+                    foreach (string fl in files)
+                    {
+                        try
+                        {
+                            File.Delete(fl);
+                        }
+                        catch (Exception ex)
+                        {
+                            mesg = "Can not delete folder " + redistDir + " and files. Close running applications that can lock files and delete manually." + ex.Message.ToString();
+                        }
+                    }
+                }
+            }
+
             string binDir = Path.Combine(dirName, "bin");
             if (Directory.Exists(binDir))
             {
@@ -86,7 +110,7 @@ namespace uninstall_clean
                     }
                 }
             }
-            return "0";
+           return "0";
         }
 
         /// <summary>
@@ -391,6 +415,11 @@ namespace uninstall_clean
             return res;
         }
 
+        /// <summary>
+        /// Deleting system files.
+        /// </summary>
+        /// <param name="drvPath">Driver path</param>
+        /// <returns></returns>
         public static bool del_sysfile(string drvPath)
         {
             //take ownership
@@ -455,35 +484,31 @@ namespace uninstall_clean
         /// </summary>
         public static void fd_clean_chrome()
         {
-            
-            var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            //Need to decife if User's data should be removed
+            //var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            //var dirPath = Path.Combine(dirApp, "Google", "Chrome");
+            ////Deleting user's app folder
+            //try
+            //{
+            //    if (Directory.Exists(dirPath))
+            //        Directory.Delete(dirPath, true);
+
+            //    //Thread.Sleep(5000);
+            //    //return "0";
+            //}
+            //catch (Exception ex)
+            //{
+            //    MessageBox.Show("Can not delete folder " + dirPath + ". " + ex.Message.ToString());
+            //}
+
+            //Deleting from Program Files
+            var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
             var dirPath = Path.Combine(dirApp, "Google", "Chrome");
             //Deleting user's app folder
             try
             {
                 if (Directory.Exists(dirPath))
                     Directory.Delete(dirPath, true);
-
-                //Thread.Sleep(5000);
-                //return "0";
-            }
-            catch (Exception ex)
-            {
-
-                MessageBox.Show("Can not delete folder " + dirPath + ". " + ex.Message.ToString());
-            }
-
-            //Deleting from Program Files
-            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
-            dirPath = Path.Combine(dirApp, "Google", "Chrome");
-            //Deleting user's app folder
-            try
-            {
-                if (Directory.Exists(dirPath))
-                    Directory.Delete(dirPath, true);
-
-                //Thread.Sleep(5000);
-                //return "0";
             }
             catch (Exception ex)
             {
@@ -498,9 +523,6 @@ namespace uninstall_clean
             {
                 if (Directory.Exists(dirPath))
                     Directory.Delete(dirPath, true);
-
-                //Thread.Sleep(5000);
-                //return "0";
             }
             catch (Exception ex)
             {

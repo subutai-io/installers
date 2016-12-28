@@ -592,7 +592,9 @@ namespace Deployment
             }
         }
 
-        /// </summary>
+
+        /// <summary>
+        /// Sends the SSH command with username/password authentication and timeout.
         /// <param name="hostname">The hostname.</param>
         /// <param name="port">The port.</param>
         /// <param name="username">The username.</param>
