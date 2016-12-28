@@ -583,9 +583,9 @@ namespace Deployment
             int uProc = Int32.Parse(tb_Proc_VM.Text);
             int uMinProc = 2;
             int uMaxProc = maxProc();
-            if (uProc < uMinProc || uProc > uMaxProc)
+            if (!(uProc >= uMinProc && uProc <= uMaxProc))
             {
-                string msg = string.Format("Number of CPU should be more that 1 and less than {0}\nChanges are not recommended", uMaxProc + 1);
+                string msg = string.Format("Number of CPU should be more than 1 and less than {0}\nChanges are not recommended", uMaxProc + 1);
                 epCPUs.SetError(tb_Proc_VM, msg);
                 e.Cancel = true;
                 return;
@@ -599,9 +599,9 @@ namespace Deployment
             ulong uRAM = (ulong)Int32.Parse(tb_RAM_VM.Text);
             ulong uMinRAM = 2048;
             ulong uMaxRAM = maxRAM();
-            if (uRAM < uMinRAM || uRAM > uMaxRAM)
+            if (!(uRAM >= uMinRAM && uRAM <= uMaxRAM))
             {
-                string msg = string.Format("RAM should be more that 2047 and less than {0}\nChanges are not recommended", uMaxRAM + 1);
+                string msg = string.Format("RAM should be more than 2047 and less than {0}\nChanges are not recommended", uMaxRAM + 1);
                 epRAM.SetError(tb_RAM_VM, msg);
                 e.Cancel = true;
                 return;
@@ -631,7 +631,7 @@ namespace Deployment
 
         private ulong maxRAM()
         {
-            if (hostRam <= 4024)
+            if (hostRam <= 4096)
             {
                 return 2048;
             }
