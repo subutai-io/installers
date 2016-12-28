@@ -192,13 +192,13 @@ namespace uninstall_clean
                 return false;
             }
             string msg = "";
-            //string outputVmsRunning = LaunchCommandLineApp("vboxmanage", $"list runningvms");
             string[] rows = Regex.Split(outputVms, "\n");
             foreach (string row in rows)
             {
                 if (row.Contains("subutai") || row.Contains("snappy"))
                 {
-                    string[] wrds = row.Split(' ');
+                    string[] cmdout = row.Split('|');
+                    string[] wrds = cmdout[1].Split(' ');
                     foreach (string wrd in wrds)
                     {
                         if (wrd.Contains("subutai") || wrd.Contains("snappy"))
@@ -219,8 +219,7 @@ namespace uninstall_clean
                                 msg = string.Format("VM {0} was not removed, please delete VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
                                 MessageBox.Show(msg, "Deleting Virtual Machine", MessageBoxButtons.OK);
                             }
-                            //Thread.Sleep(5000);
-                        }
+                         }
                     }
                 }
             }
