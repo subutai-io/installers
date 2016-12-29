@@ -439,7 +439,7 @@ namespace Deployment
         {
             string appDir = tbxAppDir.Text;//.Replace("/","//");
             string peerOption = peerType(getCheckedRadio(gbxTypeInst));
-            Program.inst_Dir = appDir;
+            //Program.inst_Dir = $"\"{appDir}\"";
 
             if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {

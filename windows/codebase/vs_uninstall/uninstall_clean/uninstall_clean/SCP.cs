@@ -232,13 +232,13 @@ namespace uninstall_clean
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Can not run {filename}: {ex.Message}");
+                    //MessageBox.Show($"Can not run {filename}: {ex.Message}");
+                    return ($"1|{filename} was not executed|Error");
                     //try to repeat, counting 
                     //uncomment if need repeated tries 
                     //LaunchCommandLineApp(filename, arguments, 0);//will try 3 times
                     //Thread.Sleep(10000); 
                 }
-                return ($"1|{filename} was not executed|Error");
             }
         }
     }
