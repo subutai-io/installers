@@ -48,7 +48,7 @@ namespace Deployment
             }
             Deploy.StageReporter("", $"Creating download list for installation type: {installation_type}");
 
-            rows = FD.repo_rows($"{_arguments["appDir"]}{_arguments["repo_descriptor"]}", _arguments["peer"], installation_type);
+            rows = FD.repo_rows($"{Program.inst_Dir}{_arguments["repo_descriptor"]}", _arguments["peer"], installation_type);
             string regfile = Path.Combine(FD.logDir(), "subutai-clean-registry.reg");
             Deploy.HideMarquee();
             download_file(regfile, download_prerequisites);
@@ -65,7 +65,7 @@ namespace Deployment
             Deploy.StageReporter("", "Getting description file");
             Program.form1._deploy.DownloadFile(
                 url: _arguments["kurjunUrl"],
-                destination: $"{_arguments["appDir"]}{_arguments[arg_name]}",
+                destination: $"{Program.inst_Dir}{_arguments[arg_name]}",
                 onComplete: download_prerequisites,
                 report: "Getting repo descriptor",
                 async: false,
@@ -157,7 +157,7 @@ namespace Deployment
                 _prerequisitesDownloaded++;
                 Program.form1._deploy.DownloadFile(
                     url: _arguments["kurjunUrl"],
-                    destination: $"{_arguments["appDir"]}{folder}/{file}",
+                    destination: $"{Program.inst_Dir}{folder}/{file}",
                     onComplete: download_prerequisites,
                     report: $"Getting {file}",
                     async: true,
@@ -170,7 +170,7 @@ namespace Deployment
                 snapFile = file; //Last is .snap, need to remember name
                 Program.form1._deploy.DownloadFile(
                    url: _arguments["kurjunUrl"],
-                   destination: $"{_arguments["appDir"]}{folder}/{file}",
+                   destination: $"{Program.inst_Dir}{folder}/{file}",
                    onComplete: Program.form1.TaskFactory,
                    report: $"Getting {file}",
                    async: true,
@@ -225,7 +225,7 @@ namespace Deployment
             logger.Info("Unzipping");
             Deploy.HideMarquee();
             //Deploy.ShowMarquee();
-            Program.form1._deploy.unzip_files(_arguments["appDir"]);
+            Program.form1._deploy.unzip_files(Program.inst_Dir);
         }
 
         /// <summary>
@@ -239,8 +239,9 @@ namespace Deployment
             Deploy.StageReporter("Installing redistributables", "");
             logger.Info("Installing redistributables");
             Deploy.ShowMarquee();
-            string appDir = _arguments["appDir"];
-
+            string appDir = Program.inst_Dir;
+            string appPath = Path.Combine(Program.inst_Dir, "redist");
+            
             if (_arguments["peer"] != "rh-only") //install components if not installing RH only
             {
                 string res = "";
@@ -249,7 +250,9 @@ namespace Deployment
                 Inst.inst_TAP(appDir);
 
                 Deploy.StageReporter("", "MS Visual C++");
-                res = Deploy.LaunchCommandLineApp($"{appDir}redist\\vcredist64.exe", "/install /quiet", 240000);
+
+                appPath = Path.Combine(appDir, "redist", "vcredist64.exe");
+                res = Deploy.LaunchCommandLineApp(appPath, "/install /quiet", 240000);
                 logger.Info("MS Visual C++: {0}", res);
 
                 Deploy.StageReporter("", "Chrome browser");
@@ -302,13 +305,14 @@ namespace Deployment
             }
             // import OVAs
             Deploy.StageReporter("", "Importing Snappy");
-            res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova", 240000);
+            string snappyDir = Path.Combine(Program.inst_Dir, "ova", "snappy.ova");
+            res = Deploy.LaunchCommandLineApp("vboxmanage", $"import \"{snappyDir}\"", 240000);
             logger.Info("Importing snappy: {0}", Deploy.com_out(res, 0));
             if (res.ToLower().Contains("error"))
             {
                 string mesg = string.Format("Can not Import Snappy, please check if snappy files deleted in Default Machine Folder: \n (usually <SystemDrive:>\\Users\\<UserName>\\VirtualBox VMs). \naDelete Snappy folder, press OK and installation will continue");
                 MessageBox.Show(mesg, "Importing Snappy", MessageBoxButtons.OK);
-                res = Deploy.LaunchCommandLineApp("vboxmanage", $"import {_arguments["appDir"]}ova\\snappy.ova", 240000);
+                res = Deploy.LaunchCommandLineApp("vboxmanage", $"import \"{snappyDir}\"", 240000);
                 logger.Info("Importing snappy second time: {0}", Deploy.com_out(res, 0));
                 if (res.ToLower().Contains("error"))
                 {
@@ -406,11 +410,11 @@ namespace Deployment
                 Program.form1.Visible = false;
             }
             // DEPLOY PEER
-            Inst.run_scripts(_arguments["appDir"], _cloneName);
+            Inst.run_scripts(Program.inst_Dir, _cloneName);
 
             Deploy.StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
-
+            
             if (_arguments["peer"] == "trial")
             {
                 Deploy.StageReporter("Preparing management host", "");
@@ -459,11 +463,12 @@ namespace Deployment
             //_arguments["appDir"] = "C:\\Subutai\\"; for debug
             Deploy.StageReporter(" ", " ");
             Deploy.StageReporter("Installing P2P service", "");
-            string appPath = _arguments["appDir"];
+            string appPath = Program.inst_Dir;
             Deploy.ShowMarquee();
             
             string name = "Subutai Social P2P";
-            var binPath = $"{appPath}bin\\p2p.exe";
+            var binPath = Path.Combine(appPath,"bin", "p2p.exe");
+            //binPath = FD.path_with_commas(binPath);
             const string binArgument = "daemon";
             //Check if service is running and remove if yes
             Inst.service_stop(name);
@@ -476,7 +481,10 @@ namespace Deployment
             Net.set_fw_rules(name, "p2p_s", true);
 
             Net.set_fw_rules(binPath, "p2p", false);
-            Net.set_fw_rules($"{appPath}bin\\tray\\{Deploy.SubutaiTrayName}", "SubutaiTray", false);
+
+            binPath = Path.Combine(appPath, "bin", "tray", Deploy.SubutaiTrayName);
+            //binPath = FD.path_with_commas(binPath);
+            Net.set_fw_rules(binPath, "SubutaiTray", false);
 
             //Configuring service logs
             Deploy.StageReporter("", "Configuring P2P service logs");

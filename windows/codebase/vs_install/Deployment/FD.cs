@@ -55,7 +55,7 @@ namespace Deployment
         public static bool copy_uninstall()
         {
             string binName = Deploy.SubutaiUninstallName;
-            string fpath = Path.Combine(Program.form1._arguments["appDir"], "bin", binName);
+            string fpath = Path.Combine(Program.inst_Dir, "bin", binName);
             string fpath_dest = Path.Combine(logDir(), binName);
             if (!File.Exists(fpath))
             {
@@ -237,7 +237,7 @@ namespace Deployment
         /// <returns>True on success, false on fault</returns>
         public static bool edit_known_hosts(string fpath)
         {
-            string tempFile = $"{ fpath}_temp";
+            string tempFile = $"{fpath}_temp";
             try
             {
                 using (var sr = new StreamReader(fpath))
@@ -326,6 +326,11 @@ namespace Deployment
             }
             return "Deleted";
         }
-             
+
+        public static string path_with_commas(string path)
+        {
+            return (path.Contains(" ")) ? "\"" + path + "\"" : path;
+        }
+
     }
 }

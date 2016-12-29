@@ -81,8 +81,8 @@ namespace Deployment
 
             if (!path_orig.Contains("Subutai"))
             {
-                path_orig += $";{_arguments["appDir"]}bin";
-                path_orig += $";{_arguments["appDir"]}bin\\tray";
+                path_orig += $";{Program.inst_Dir}bin";
+                path_orig += $";{Program.inst_Dir}bin\\tray";
                
             }
 
@@ -93,8 +93,8 @@ namespace Deployment
             logger.Info("Path machine: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Machine);
             logger.Info("Path Process: {0}", Environment.GetEnvironmentVariable("Path"), EnvironmentVariableTarget.Process);
 
-            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Machine);
-            Environment.SetEnvironmentVariable("Subutai", _arguments["appDir"], EnvironmentVariableTarget.Process);
+            Environment.SetEnvironmentVariable("Subutai", Program.inst_Dir, EnvironmentVariableTarget.Machine);
+            Environment.SetEnvironmentVariable("Subutai", Program.inst_Dir, EnvironmentVariableTarget.Process);
 
             logger.Info("Subutai machine: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Machine);
             logger.Info("Subutai Process: {0}", Environment.GetEnvironmentVariable("Subutai"), EnvironmentVariableTarget.Process);
@@ -393,11 +393,13 @@ namespace Deployment
         public static string LaunchCommandLineApp(string filename, string arguments)
         {
             // Use ProcessStartInfo class
+            string fname = FD.path_with_commas(filename);
+
             var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
                 UseShellExecute = false,
-                FileName = filename,
+                FileName = fname,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
@@ -437,11 +439,13 @@ namespace Deployment
         public static string LaunchCommandLineApp(string filename, string arguments, int timeout)
         {
             // Use ProcessStartInfo class
+            string fname = FD.path_with_commas(filename);
+            
             var startInfo = new ProcessStartInfo
             {
                 CreateNoWindow = true,
                 UseShellExecute = false,
-                FileName = filename,
+                FileName = fname,
                 WindowStyle = ProcessWindowStyle.Hidden,
                 Arguments = arguments,
                 RedirectStandardOutput = true,
@@ -675,16 +679,70 @@ namespace Deployment
                 {
                     client.Connect();
                     client.BufferSize = 4 * 1024;
-                    logger.Info("After client connected");
-                    foreach (var filePath in localFilesPath)
+                    foreach (string filePath in localFilesPath)
                     {
-                        var fileStream = new FileStream(filePath, FileMode.Open);
-                        {
-                            var destination =
+                        string fname = filePath;
+                        //new FileInfo(filePath).ToString();
+
+                        //var fileStream = new FileStream(fname, FileMode.Open);
+                        FileStream fileStream = File.OpenRead(fname);
+                        var destination =
                                 $"{remotePath}/{new FileInfo(filePath).Name}";
                             client.UploadFile(fileStream, destination, true, null);
                             logger.Info("Uploaded: {0}", destination);
-                        }
+                     }
+
+                    client.Disconnect();
+                    client.Dispose();
+                    return "Uploaded";
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                return "Cannot upload";
+            }
+        }
+
+        /// <summary>
+        /// Sends the file to virtual machine using SSH.NET SFTP. OLD
+        /// </summary>
+        /// <param name="hostname">The hostname.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="localFilesPath">The local files path.</param>
+        /// <param name="remotePath">The remote path.</param>
+        /// <returns></returns>
+        public static string SendFileSftp_(string hostname, int port, string username, string password, List<string> localFilesPath, string remotePath)
+        {
+            SftpClient client;
+            try
+            {
+                client = new SftpClient(hostname, port, username, password);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex.Message);
+                return "Cannot create client";
+            }
+
+            try
+            {
+                using (client)
+                {
+                    client.Connect();
+                    client.BufferSize = 4 * 1024;
+                    foreach (string filePath in localFilesPath)
+                    {
+                        string fname = filePath;
+                        //new FileInfo(filePath).ToString();
+
+                        var fileStream = new FileStream(fname, FileMode.Open);
+                        var destination =
+                                $"{remotePath}/{new FileInfo(filePath).Name}";
+                        client.UploadFile(fileStream, destination, true, null);
+                        logger.Info("Uploaded: {0}", destination);
                     }
 
                     client.Disconnect();
@@ -848,12 +906,12 @@ namespace Deployment
         public void createAppShortCuts()
         {
             logger.Info("Creating shortcuts");
-            var binPath = Path.Combine(_arguments["appDir"], "bin\\tray", SubutaiTrayName);
+            var binPath = Path.Combine(Program.inst_Dir, "bin\\tray", SubutaiTrayName);
             var destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), 
                 "Subutai.lnk");
              
             //Desktop
-            string iconPath = Path.Combine(_arguments["appDir"], SubutaiIconName);
+            string iconPath = Path.Combine(Program.inst_Dir, SubutaiIconName);
             Deploy.CreateShortcut(
                 binPath,
                 destPath,
@@ -894,7 +952,7 @@ namespace Deployment
                 false);
             destPath = Path.Combine(folderpath, "Uninstall.lnk");
             binPath = Path.Combine(FD.logDir(), SubutaiUninstallName);
-            iconPath = Path.Combine(_arguments["appDir"], SubutaiUninstallIconName);
+            iconPath = Path.Combine(Program.inst_Dir, SubutaiUninstallIconName);
             Deploy.CreateShortcut(
                 binPath,
                 destPath,
