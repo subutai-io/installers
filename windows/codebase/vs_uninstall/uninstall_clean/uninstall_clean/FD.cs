@@ -273,10 +273,10 @@ namespace uninstall_clean
             //logger.Info("Remove env");
 
             string strPath = AP.get_env_var("Path");
-            if (str2delete == "Subutai")
-            {
-                str2delete = AP.get_env_var("Subutai");
-            }
+            //if (str2delete == "Subutai")
+            //{
+            //    str2delete = AP.get_env_var("Subutai");
+            //}
 
             if (strPath == null || strPath == "")
                 return "Path Empty";
