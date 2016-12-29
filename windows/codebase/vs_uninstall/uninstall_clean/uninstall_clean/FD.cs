@@ -271,10 +271,10 @@ namespace uninstall_clean
             //logger.Info("Remove env");
 
             string strPath = AP.get_env_var("Path");
-            if (str2delete == "Subutai")
-            {
-                str2delete = AP.get_env_var("Subutai");
-            }
+            //if (str2delete == "Subutai")
+            //{
+            //    str2delete = AP.get_env_var("Subutai");
+            //}
 
             if (strPath == null || strPath == "")
                 return "Path Empty";
@@ -484,14 +484,15 @@ namespace uninstall_clean
         /// </summary>
         public static void fd_clean_chrome()
         {
-            //Need to decife if User's data should be removed
+            ////Need to decide if User's data should be removed
             //var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             //var dirPath = Path.Combine(dirApp, "Google", "Chrome");
             ////Deleting user's app folder
             //try
             //{
             //    if (Directory.Exists(dirPath))
-            //        Directory.Delete(dirPath, true);
+            //        //Directory.Delete(dirPath, true);
+            //        deleteDirectory(dirPath, true);
 
             //    //Thread.Sleep(5000);
             //    //return "0";
@@ -502,13 +503,14 @@ namespace uninstall_clean
             //}
 
             //Deleting from Program Files
-            var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+            var dirApp = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
             var dirPath = Path.Combine(dirApp, "Google", "Chrome");
-            //Deleting user's app folder
+            //Deleting from Program Files
             try
             {
                 if (Directory.Exists(dirPath))
-                    Directory.Delete(dirPath, true);
+                    //Directory.Delete(dirPath, true);
+                    deleteDirectory(dirPath, true);
             }
             catch (Exception ex)
             {
@@ -516,13 +518,14 @@ namespace uninstall_clean
             }
 
             //Deleting from Program Files
-            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFilesX86);
+            dirApp = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             dirPath = Path.Combine(dirApp, "Google", "Chrome");
             //Deleting user's app folder
             try
             {
                 if (Directory.Exists(dirPath))
-                    Directory.Delete(dirPath, true);
+                    //Directory.Delete(dirPath, true);
+                    deleteDirectory(dirPath, true);
             }
             catch (Exception ex)
             {

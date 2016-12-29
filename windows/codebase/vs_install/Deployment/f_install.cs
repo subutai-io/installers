@@ -64,12 +64,12 @@ namespace Deployment
         private void f_install_Load(object sender, EventArgs e)
         {
             _deploy.SetEnvironmentVariables();
-            Inst.remove_repo_desc(_arguments["appDir"], _arguments["repo_descriptor"]);
+            Inst.remove_repo_desc(Program.inst_Dir, _arguments["repo_descriptor"]);
 
             string strUninstall = "";
             if (!FD.copy_uninstall())
             {
-                strUninstall = Path.Combine(_arguments["appDir"], "bin", "uninstall-clean.exe");
+                strUninstall = Path.Combine(Program.inst_Dir, "bin", "uninstall-clean.exe");
             }
             else
             {
@@ -78,11 +78,11 @@ namespace Deployment
 
             Inst.update_uninstallString(strUninstall);
 
-            string res = FD.delete_dir_bin(_arguments["appDir"]);
+            string res = FD.delete_dir_bin(Program.inst_Dir);
             if (!res.Contains("Deleted"))
             {
                 MessageBox.Show(res, "Delete bin folder", MessageBoxButtons.OK);
-                res = FD.delete_dir_bin(_arguments["appDir"]);
+                res = FD.delete_dir_bin(Program.inst_Dir);
                 if (!res.Contains("Deleted"))
                 {
                     Program.ShowError("Can not delete bin folder.\nPlease, close running applications (Subutay tray, cmd sessions, file explorer) that can lock files \nand install again", "Delete bin folder");
@@ -134,7 +134,7 @@ namespace Deployment
         /// </summary>
         public string installDir()
         {
-            string sTmp = _arguments["appDir"].ToString();
+            string sTmp = Program.inst_Dir.ToString();
             return sTmp;
         }
 
@@ -359,7 +359,7 @@ namespace Deployment
                {
                    logger.Info("finished = {0}", finished);
                    if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") 
-                       Deploy.LaunchCommandLineApp($"{_arguments["appDir"]}bin\\tray\\{Deploy.SubutaiTrayName}", "");
+                       Deploy.LaunchCommandLineApp($"{Program.inst_Dir}bin\\tray\\{Deploy.SubutaiTrayName}", "");
                });
         }
         #endregion
@@ -390,7 +390,7 @@ namespace Deployment
 
             logger.Info("show finished = {0}", finished);
             Program.form1.Visible = false;
-            InstallationFinished form2 = new InstallationFinished(st, _arguments["appDir"]);
+            InstallationFinished form2 = new InstallationFinished(st, Program.inst_Dir);
             if (finished != 11)
             {
                 if (finished == 1)

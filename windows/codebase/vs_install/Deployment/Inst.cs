@@ -163,7 +163,7 @@ namespace Deployment
             Deploy.StageReporter("", "TAP driver");
             if (app_installed("TAP-Windows") == 0)
             {
-                res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\tap-driver.exe", "/S", 420000);
+                res = Deploy.LaunchCommandLineApp($"{instDir}redist\\tap-driver.exe", "/S", 420000);
                 logger.Info("TAP driver: {0}", res);
             }
             else
@@ -327,7 +327,7 @@ namespace Deployment
             string res = "";
             if (app_installed("Oracle\\VirtualBox") == 0)
             {
-                res = Deploy.LaunchCommandLineApp($"{instDir}\\redist\\virtualbox.exe", "--silent", 480000);
+                res = Deploy.LaunchCommandLineApp($"{instDir}redist\\virtualbox.exe", "--silent", 480000);
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
@@ -375,6 +375,7 @@ namespace Deployment
         {
             string path_t = Path.Combine(FD.sysDrive(), "Users");
             string path_l = Path.Combine(instDir, "home");
+            path_l = FD.path_with_commas(path_l);
             if (!Directory.Exists(path_l))
             {
                 string res = Deploy.LaunchCommandLineApp("cmd.exe", $"/C mklink /d {path_l} {path_t}", 300000);
@@ -444,7 +445,7 @@ namespace Deployment
         public static void service_install(string serviceName, string binPath, string binArgument)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("nssm", $"install \"{serviceName}\" \"{binPath}\" \"{binArgument}\"", 420000);
+            res = Deploy.LaunchCommandLineApp("nssm", $" install  \"{serviceName}\"  \"{binPath}\"  \"{binArgument}\"", 420000);
             string cmd = $"create \"{serviceName}\" binpath= \"\"{binPath}\" \"{binArgument}\"\" start= auto";
             //res = Deploy.LaunchCommandLineApp("sc", cmd);
             logger.Info("Installing P2P service: {0} {1}", cmd, res);
@@ -458,7 +459,7 @@ namespace Deployment
         public static void service_start(string serviceName)
         {
             string res = "";
-            res = Deploy.LaunchCommandLineApp("nssm", $"start \"{serviceName}\"", 420000);
+            res = Deploy.LaunchCommandLineApp("nssm", $" start  \"{serviceName}\"", 420000);
             //res = Deploy.LaunchCommandLineApp("sc", $"start \"{serviceName}\"");
             logger.Info("Starting P2P service: {0}", res);
             Thread.Sleep(2000);
@@ -534,7 +535,7 @@ namespace Deployment
 
                 if (ssh_res.Contains("Connection Error"))
                 {
-                    string kh_path = Path.Combine($"{ Program.inst_Dir}\\home", Environment.UserName, ".ssh", "known_hosts");
+                    string kh_path = Path.Combine($"{ Program.inst_Dir}home", Environment.UserName, ".ssh", "known_hosts");
                     FD.edit_known_hosts(kh_path);
 
                     //restarting VM
@@ -856,17 +857,25 @@ namespace Deployment
         public static bool upload_files(string appDir)
         {
             Deploy.StageReporter("", "Copying Subutai files");
+            string shPath = Path.Combine(appDir, "redist", "subutai", "prepare-server.sh");
+            //shPath = "\"" + shPath + "\""; 
+            string snapPath = Path.Combine(appDir, "redist", "subutai", TC.snapFile);
+            //snapPath = "@\"" + snapPath + "\"";
             string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                $"{appDir}/redist/subutai/prepare-server.sh",
-                $"{appDir}/redist/subutai/{TC.snapFile}"
-                }, "/home/ubuntu/tmpfs");
+                shPath,
+                snapPath}, 
+                "/home/ubuntu/tmpfs");
             logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
             if (!ftp_res.Equals("Uploaded"))
             {
+                //ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
+                //    $"{appDir}/redist/subutai/prepare-server.sh",
+                //    $"{appDir}/redist/subutai/{TC.snapFile}"
+                //    }, "/home/ubuntu/tmpfs");
                 ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                    $"{appDir}/redist/subutai/prepare-server.sh",
-                    $"{appDir}/redist/subutai/{TC.snapFile}"
-                    }, "/home/ubuntu/tmpfs");
+                    shPath,
+                    snapPath}, 
+                    "/home/ubuntu/tmpfs");
                 if (!ftp_res.Equals("Uploaded"))
                 {
                     return false;

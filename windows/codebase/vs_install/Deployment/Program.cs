@@ -89,7 +89,7 @@ namespace Deployment
                     return;
                 }
             }
-            
+            inst_Dir = Inst.subutai_path();
             form_ = new f_confirm();
             form_.ShowDialog();
             if (stRun)
@@ -100,12 +100,13 @@ namespace Deployment
                 Application.Run(form1);
             } else
             {
-                if (inst_Dir.Equals(""))
+                if (inst_Dir.Equals("") || inst_Dir.Equals("\"\""))
                 {
-                    inst_Dir = $"{Inst.subutai_path()}\\";
+                    inst_Dir = Inst.subutai_path();
                 }
                
                 string cmd = $"{inst_Dir}bin\\uninstall-clean.exe";
+                cmd = FD.path_with_commas(cmd);
                 var startInfo = new ProcessStartInfo
                 {
                     CreateNoWindow = true,
@@ -132,8 +133,9 @@ namespace Deployment
                 =>
                 {
                     mTimer.Elapsed -= mTimerHandler;
-                    mTimer.Close();
-                    mTimer.Dispose();
+                    mTimer.Enabled = false;
+                    //mTimer.Close();
+                    //mTimer.Dispose();
                     MsgBoxClose(Caption);
                 });
 

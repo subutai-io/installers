@@ -80,7 +80,7 @@ namespace uninstall_clean
             if (File.Exists(cmd))
             {
                 string res = SCP.LaunchCommandLineApp(cmd, args, false, false, 480000);
-                if (res.Contains("|Error"))
+                if (res.Contains("|Error") || res.ToLower().Contains("error"))
                 {
                     mess = $"{app_name} was not removed, please uninstall manually";
                 }

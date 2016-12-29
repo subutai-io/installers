@@ -130,6 +130,12 @@ namespace uninstall_clean
         /// <param name="app_name">Name of the application.</param>
         public static void remove_app_vbox_short(string app_name)
         {
+            if (AP.app_installed("Oracle\\VirtualBox") == 0)
+            {
+                MessageBox.Show("Oracle VirtualBox is not installed on Your machine", "Removing Oracle VirtualBox", MessageBoxButtons.OK);
+                return;
+            }
+
             string mesg = string.Format("Remove {0}? \n\nPlease do not try to remove {1} if uninstalling from Control Panel. \n\nNote: it is better to remove {2} separately.", app_name, app_name, app_name);
             //DialogResult drs = MessageBox.Show($"Remove {app_name}? Please do not try to remove {app_name} if uninstalling from Control Panel. Note: it is better to remove {app_name} separately.", $"Removing {app_name}",
             string res = "";
@@ -186,8 +192,10 @@ namespace uninstall_clean
         /// </summary>
         public  static bool remove_vm()
         {
-            string outputVms = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false, 420000);
-            if (outputVms.Contains("Error"))
+            string outputList = SCP.LaunchCommandLineApp("vboxmanage", $"list vms", true, false, 420000);
+            string[] outputListSplitted = outputList.Split('|');
+            string outputVms = outputListSplitted[1];
+            if (outputVms.ToLower().Contains("error") || outputVms.ToLower().Contains("can not"))
             {
                 return false;
             }
@@ -197,23 +205,15 @@ namespace uninstall_clean
             {
                 if (row.Contains("subutai") || row.Contains("snappy"))
                 {
-                    string[] cmdout = row.Split('|');
-                    string[] wrds = cmdout[1].Split(' ');
+                    string[] wrds = row.Split('{');
                     foreach (string wrd in wrds)
                     {
                         if (wrd.Contains("subutai") || wrd.Contains("snappy"))
                         {
                             string vmName = wrd.Replace("\"", "");
-                            vmName = vmName.Replace("vms","");
-                            vmName = vmName.Replace("|","");
-                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm {vmName} poweroff ", true, false, 420000);
-                            //if (res1.ToLower().Contains("error"))
-                            //{
-                            //    msg = string.Format("VM {0} was not stopped, please stop VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
-                            //    MessageBox.Show(msg, "Deleting Virtual Machine", MessageBoxButtons.OK);
-                            //}
-                            //Thread.Sleep(5000);
-                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete {vmName}", true, false, 420000);
+                            vmName = vmName.Trim();
+                            string res1 = SCP.LaunchCommandLineApp("vboxmanage", $"controlvm \"{vmName}\" poweroff ", true, false, 420000);
+                            string res2 = SCP.LaunchCommandLineApp("vboxmanage", $"unregistervm  --delete \"{vmName}\"", true, false, 420000);
                             if (res2.ToLower().Contains("error"))
                             {
                                 msg = string.Format("VM {0} was not removed, please delete VM {1} and it's files manually \n and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer", vmName, vmName);
@@ -312,10 +312,11 @@ namespace uninstall_clean
         public static void remove_host_only()
         {
             string res = SCP.LaunchCommandLineApp("cmd.exe"," /C vboxmanage list hostonlyifs| findstr /b \"Name:\"", true, false, 300000);
-            res = res.Remove(0, res.IndexOf("stdout"));
-            res = res.Substring(0, res.IndexOf("stderr"));
-            res = res.Replace("stdout:","");
-            res = res.Replace("Name:", "");
+            string[] splitted = res.Split('|');
+            //res = res.Remove(0, res.IndexOf("stdout"));
+            //res = res.Substring(0, res.IndexOf("stderr"));
+            //res = res.Replace("stdout:","");
+            res = splitted[2].Replace("Name:", "");
             string[] ifaces = res.Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             foreach (string iface in ifaces)
             {
