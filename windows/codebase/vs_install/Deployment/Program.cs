@@ -57,13 +57,14 @@ namespace Deployment
             inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338";
             inst_type = InstType(cmd_args[1]);
             string repo_desc = cmd_args[2];
-            
+            string kurjunURL = cmd_args[4];
+                        
             if (inst_type != "" && inst_type != null && inst_type != "prod")
             {
-                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor={repo_desc}";
+                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl={kurjunURL} repo_descriptor={repo_desc}";
             } else
             {
-                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor={repo_desc}";
+                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl={kurjunURL} repo_descriptor={repo_desc}";
             }
             logger.Info("Argument string: {0}", inst_args);
             //Check if_installer_run - if "Installer", will run application in new process - to close installer
@@ -74,7 +75,7 @@ namespace Deployment
                 startInfo.UseShellExecute = true;
                 startInfo.WorkingDirectory = Environment.CurrentDirectory;
                 startInfo.FileName = Application.ExecutablePath;
-                startInfo.Arguments = $"{cmd_args[1]} {cmd_args[2]} Run";
+                startInfo.Arguments = $"{cmd_args[1]} {cmd_args[2]} Run {kurjunURL}";
                 startInfo.Verb = "runas";
                 try
                 {
