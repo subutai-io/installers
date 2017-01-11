@@ -9,6 +9,7 @@
 #define MyAppExeName "Deployment.exe"
 #define MySRCFiles "E:\Projects\Subutai_Installer_4Git\installers\windows\codebase\installation_files_4_VS_Install"
 #define MyInnDir "E:\Projects\Subutai_Installer_4Git\installers\windows\codebase\Inno"
+#define kurjunURL "https://cdn.subut.ai:8338"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -147,7 +148,7 @@ begin
   end;
 end;
 [Run]
-Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "{#MyAppType} repomd5 Run"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent  runascurrentuser
+Filename: "{app}\bin\{#MyAppExeName}"; Parameters: "{#MyAppType} repomd5 Run {#kurjunURL}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent  runascurrentuser
 
 [UninstallRun]
 Filename: "{app}\bin\uninstall-clean.exe"; Flags: nowait 
@@ -158,3 +159,6 @@ FinishedHeadingLabel=Completing the [name] First Stage Setup
 FinishedLabel=Setup has finished the first stage of  [name] installation. Please do not uncheck Launch combo box. Close Setup and wait for Second Stage Window
 SetupLdrStartupMessage=This is the first stage of  %1 Installation. Do you wish to continue?
 ButtonFinish=&Next
+
+[CustomMessages]
+LaunchProgram=Start second stage of %1 Installation
