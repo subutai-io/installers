@@ -382,20 +382,18 @@ namespace Deployment
                 Thread.Sleep(10000);
                 if (!VMs.start_vm(_cloneName))
                 {
-                    logger.Error("Can not start VM, please try to start manually", "Waiting for SSH");
-                    Program.ShowError("Can not start VM, please try to start manually", "Waiting for SSH");
+                    logger.Error("Can not start VM, please try to start manually", "Starting VM");
+                    Program.ShowError("Can not start VM, please try to start manually", "Starting VM");
                     Program.form1.Visible = false;
                 }
             }
-
-            //prepare_mh();
         }
 
         /// <summary>
-        /// public static void prepare_mh()
-        /// setting up peer, import Management if needed
+        /// public static void prepare_peer()
+        /// import Management if needed
         /// </summary>
-        public static void prepare_mh()
+        public static void prepare_peer()
         {
             Deploy.StageReporter("Setting up peer", "");
             logger.Info("Setting up peer");
@@ -498,8 +496,7 @@ namespace Deployment
             Deploy.StageReporter("", "Configuring P2P service");
             Inst.service_config(name);
 
-            if (_arguments["peer"] != "rh-only")
-                Program.form1.finished = 1;
+            //Program.form1.finished = 1;
         }
     }
 }

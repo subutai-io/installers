@@ -265,11 +265,8 @@ namespace Deployment
                     if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
                     {
                         TC.prepare_rh();
-                    }
-                    Deploy.StageReporter("Preparing Management Host", "");
-                    if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] == "trial")
-                    {
-                        TC.prepare_mh();
+                        Deploy.StageReporter("Preparing Management Host", "");
+                        TC.prepare_peer();
                     }
 
                     stage_counter++;
@@ -303,6 +300,7 @@ namespace Deployment
                         }
 
                         TC.deploy_p2p();
+                        finished = 1;
                         logger.Info("Stage: {0}", "deploy-p2p");
                     }
                     stage_counter++;
@@ -325,8 +323,12 @@ namespace Deployment
                         //Program.ShowError(ex.Message, "deploy p2p faulted");
                     }
 
-                    _deploy.createAppShortCuts();
-                    Inst.rg_run_on_login("SubutaiTray", "bin\\tray\\SubutaiTray.exe");
+                    if (_arguments["peer"] != "rh-only")
+                    {
+                        _deploy.createAppShortCuts();
+                        Inst.rg_run_on_login("SubutaiTray", "bin\\tray\\SubutaiTray.exe");
+                    }
+                     
                     stage_counter++;
                     logger.Info("Stage create shortcuts: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -343,7 +345,7 @@ namespace Deployment
                            logger.Error(ex.Message, "create shortcuts faulted");
                        }
                        finished = 3;
-                       Program.ShowError(ex.Message, "Create shortcuts faulted");
+                       //Program.ShowError(ex.Message, "Create shortcuts faulted");
                    }
 
                    logger.Info("stage_counter = {0}", stage_counter);

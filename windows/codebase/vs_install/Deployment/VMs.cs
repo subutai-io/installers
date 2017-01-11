@@ -22,7 +22,7 @@ namespace Deployment
             Deploy.StageReporter("", "Starting virtual machine");
             string res = Deploy.LaunchCommandLineApp("vboxmanage", 
                 $"startvm --type headless {name} ",
-                60000);
+                240000);
 
             logger.Info("vm 1: {0} starting: {1}", name, Deploy.com_out(res, 0));
             logger.Info("vm 1: {0} stdout: {1}", name, Deploy.com_out(res, 1));
@@ -34,6 +34,7 @@ namespace Deployment
                 logger.Info("vm 1: {0} stdout: {1}", name, err);
                 return false;
             }
+            Thread.Sleep(30000);
             return true;
         }
 
