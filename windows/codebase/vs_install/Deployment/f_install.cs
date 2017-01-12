@@ -107,7 +107,7 @@ namespace Deployment
         /// <param name="_args">Parameter string formed from command line arguments and confirmation form</param>
         private void ParseArguments(string _args)
         {
-            //"params=deploy-redist,prepare-vbox,dev,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev ";
+            //"type=dev network-installation=true kurjunUrl=https://cdn.subut.ai:8338 repo_descriptor=repomd5-dev peer= appDir=";
             string[] s_args = _args.Split(' '); ;
             foreach (string s_splitted in s_args)
             {
@@ -208,13 +208,9 @@ namespace Deployment
                        Program.ShowError(ex.Message, "unzipping faulted");
                        throw new InvalidOperationException();
                     }
-                   Deploy.StageReporter("Installing redistributables", "");
-                   if (_arguments["params"].Contains("deploy-redist"))
-                    {
-                        TC.deploy_redist();
-                        logger.Info("Stage deploy-redist: {0}", "deploy-redist");
-                    }
-
+                    Deploy.StageReporter("Installing redistributables", "");
+                    TC.deploy_redist();
+                    logger.Info("Stage deploy-redist: {0}", "deploy-redist");
                     stage_counter++;
                     logger.Info("Stage deploy redistributables: {0}", stage_counter);
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
@@ -236,7 +232,8 @@ namespace Deployment
                         throw new InvalidOperationException();
                     }
                     Deploy.StageReporter("Preparing Virtual machine", "");
-                    if (_arguments["params"].Contains("prepare-vbox") && _arguments["peer"] != "client-only")
+                    //not "client-only")
+                    if (_arguments["peer"].Contains("MH") || _arguments["peer"].Contains("RH"))
                     {
                         TC.prepare_vbox();
                         logger.Info("Stage prepare vbox: {0}", "prepare-vbox");
@@ -262,7 +259,8 @@ namespace Deployment
                         throw new InvalidOperationException();
                     }
                     Deploy.StageReporter("Preparing Resource Host", "");
-                    if (_arguments["params"].Contains("prepare-rh") && _arguments["peer"] != "client-only")
+                    //not "client-only")
+                    if (_arguments["peer"].Contains("MH") || _arguments["peer"].Contains("RH"))
                     {
                         TC.prepare_rh();
                         Deploy.StageReporter("Preparing Management Host", "");
@@ -284,16 +282,17 @@ namespace Deployment
                         while (ex is AggregateException && ex.InnerException != null)
                         {
                             ex = ex.InnerException;
-                            logger.Error(ex.Message, "prepare rh faulted");
+                            logger.Error(ex.Message, "prepare peer faulted");
                         }
                         finished = 3;
-                        Program.ShowError(ex.Message, "prepare rh faulted");
+                        Program.ShowError(ex.Message, "prepare peer faulted");
                         throw new InvalidOperationException();
                     }
                     Deploy.StageReporter("Setting up P2P Service", "");
-                    if (_arguments["params"].Contains("deploy-p2p") && _arguments["peer"] != "rh-only")
+                    //not "rh-only")
+                    if (_arguments["peer"] !="RH,")
                     {
-                        if (!Inst.imported && _arguments["peer"] == "trial")
+                        if (!Inst.imported && _arguments["peer"].Contains("MH"))
                         {
                             finished = 3;
                             Program.ShowError("Import was not completed, please check network and VM state and reinstall", "prepare rh faulted");
@@ -323,10 +322,15 @@ namespace Deployment
                         //Program.ShowError(ex.Message, "deploy p2p faulted");
                     }
 
-                    if (_arguments["peer"] != "rh-only")
+                    //not "rh-only")
+                    if (_arguments["peer"] != "RH,")
                     {
-                        _deploy.createAppShortCuts();
+                        //Create shortcuts and put in registry "run tray on login"
+                        _deploy.createAppShortCuts(true);
                         Inst.rg_run_on_login("SubutaiTray", "bin\\tray\\SubutaiTray.exe");
+                    } else
+                    {
+                        _deploy.createAppShortCuts(false);
                     }
                      
                     stage_counter++;
@@ -345,7 +349,6 @@ namespace Deployment
                            logger.Error(ex.Message, "create shortcuts faulted");
                        }
                        finished = 3;
-                       //Program.ShowError(ex.Message, "Create shortcuts faulted");
                    }
 
                    logger.Info("stage_counter = {0}", stage_counter);
@@ -359,7 +362,8 @@ namespace Deployment
                .ContinueWith((prevTask) =>
                {
                    logger.Info("finished = {0}", finished);
-                   if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only") 
+                   //if (finished == 11 && st == "complete" && _arguments["peer"] != "rh-only")
+                   if (finished == 11 && st == "complete" && _arguments["peer"] != "RH,")
                        Deploy.LaunchCommandLineApp($"{Program.inst_Dir}bin\\tray\\{Deploy.SubutaiTrayName}", "");
                });
         }

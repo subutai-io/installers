@@ -54,21 +54,16 @@ namespace Deployment
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             //Add installation type command line parameter to parameter string
-            inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl=https://cdn.subut.ai:8338";
             inst_type = InstType(cmd_args[1]);
             string repo_desc = cmd_args[2];
+            string if_installer_run = cmd_args[3];
             string kurjunURL = cmd_args[4];
-                        
-            if (inst_type != "" && inst_type != null && inst_type != "prod")
-            {
-                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p,{inst_type} network-installation=true kurjunUrl={kurjunURL} repo_descriptor={repo_desc}";
-            } else
-            {
-                inst_args = $"params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p network-installation=true kurjunUrl={kurjunURL} repo_descriptor={repo_desc}";
-            }
+
+            inst_args = $"type={inst_type} network-installation=true kurjunUrl={kurjunURL} repo_descriptor={repo_desc}";
+
             logger.Info("Argument string: {0}", inst_args);
             //Check if_installer_run - if "Installer", will run application in new process - to close installer
-            string if_installer_run = cmd_args[3];
+            
             if (if_installer_run.Equals("Installer"))
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo();
@@ -82,7 +77,6 @@ namespace Deployment
                     Thread.Sleep(3000);
                     Process p = Process.Start(startInfo);
                     Environment.Exit(0);
-                    //Application.Exit();
                 }
                 catch (System.ComponentModel.Win32Exception)
                 {
@@ -199,12 +193,6 @@ namespace Deployment
         /// <param name="inStr">Text for message box</param>
         static string InstType(string inStr)
         {
-            //string outStr = "";
-            // inStr.Substring(inStr.LastIndexOf('-'), inStr.Length - inStr.LastIndexOf('.') + 1);
-            //if (!outStr.Equals("dev") && !outStr.Equals("master"))
-            //{
-            //    return "";
-            //}
             if (inStr.Contains("dev"))
             {
                 return "dev";

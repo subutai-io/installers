@@ -34,18 +34,8 @@ namespace Deployment
 
             logger.Info("Downloading repo_descriptor");
             download_description_file("repo_descriptor");
-            if (_arguments["params"].Contains("dev"))
-            {
-                installation_type = "dev";
-            }
-            else if (_arguments["params"].Contains("master"))
-            {
-                installation_type = "master";
-            }
-            else
-            {
-                installation_type = "prod";
-            }
+            installation_type = _arguments["type"];
+
             Deploy.StageReporter("", $"Creating download list for installation type: {installation_type}");
 
             rows = FD.repo_rows($"{Program.inst_Dir}{_arguments["repo_descriptor"]}", _arguments["peer"], installation_type);
@@ -242,8 +232,9 @@ namespace Deployment
             string appDir = Program.inst_Dir;
             string appPath = Path.Combine(Program.inst_Dir, "redist");
             
-            if (_arguments["peer"] != "rh-only") //install components if not installing RH only
-            {
+            //install components if not installing RH only
+            if (_arguments["peer"] != "RH," ) //install components if not installing RH only
+                {
                 string res = "";
 
                 Deploy.StageReporter("", "TAP driver");
@@ -265,7 +256,7 @@ namespace Deployment
                 Inst.inst_ssh(appDir);
             }
 
-            if (_arguments["peer"] != "client-only")
+            if (_arguments["peer"].Contains("RH") || _arguments["peer"].Contains("MH"))
             {
                 Deploy.StageReporter("", "Virtual Box");//installing VBox if not Client-only installation
                 Inst.inst_VBox(appDir);
@@ -296,7 +287,6 @@ namespace Deployment
 
             res = Deploy.LaunchCommandLineApp("vboxmanage", "natnetwork add --netname natnet1 --network '10.0.5.0/24' --enable --dhcp on", 120000);
             logger.Info("Configuring NAT network: {0}", res);
-            //if (Deploy.com_out(res,2) == "Error") remove
             if (res.ToLower().Contains("error"))
             {
                 logger.Error("Can not run command, please check if VirtualBox installed properly", "Configure VM");
@@ -352,15 +342,11 @@ namespace Deployment
             if (res.ToLower().Contains("error"))
             {
                 logger.Error("Can not run command, please check if VirtualBox installed properly", "Configuring nic1 nat");
-                //Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Configuring nic1 nat");
-                //Program.form1.Visible = false;
             }
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {_cloneName} --nic4 none", 60000);
             if (res.ToLower().Contains("error"))
             {
                 logger.Error("Can not run command, please check if VirtualBox installed properly", "Configuring nic4 none");
-                //Program.ShowError("Can not modify VM, please check if VitrualBox installed properly", "Configuring nic4 none");
-                //Program.form1.Visible = false;
             }
             // set RAM
             Deploy.StageReporter("", "Setting RAM");
@@ -383,7 +369,7 @@ namespace Deployment
                 if (!VMs.start_vm(_cloneName))
                 {
                     logger.Error("Can not start VM, please try to start manually", "Starting VM");
-                    Program.ShowError("Can not start VM, please try to start manually", "Starting VM");
+                    Program.ShowError("Can not start VM, please try to start manually", "Waiting for SSH");
                     Program.form1.Visible = false;
                 }
             }
@@ -412,8 +398,9 @@ namespace Deployment
 
             Deploy.StageReporter("", "Setting peer options");
             logger.Info("Setting peer options");
-            
-            if (_arguments["peer"] == "trial")
+
+            //if (_arguments["peer"] == "trial")
+            if (_arguments["peer"].Contains("MH"))
             {
                 Deploy.StageReporter("Preparing management host", "");
                 logger.Info("Preparing management host");
@@ -445,7 +432,8 @@ namespace Deployment
                 }
 
             }
-            if (_arguments["peer"] == "rh-only")
+            //if (_arguments["peer"] == "rh-only")
+            if (!_arguments["peer"].Contains("MH") && !_arguments["peer"].Contains("DC"))
                 Program.form1.finished = 1;
             Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo sync;sync", 3);
         }
@@ -466,7 +454,6 @@ namespace Deployment
             
             string name = "Subutai Social P2P";
             var binPath = Path.Combine(appPath,"bin", "p2p.exe");
-            //binPath = FD.path_with_commas(binPath);
             const string binArgument = "daemon";
             //Check if service is running and remove if yes
             Inst.service_stop(name);
@@ -474,14 +461,12 @@ namespace Deployment
             // installing service
             Deploy.StageReporter("", "Installing P2P service");
             Inst.service_install(name, binPath, binArgument);
-            //Inst.service_install(name, "C:\\Subutai\\bin\\p2p.exe", binArgument);
             Deploy.StageReporter("", "Adding P2P service to firewall exceptions");
             Net.set_fw_rules(name, "p2p_s", true);
 
             Net.set_fw_rules(binPath, "p2p", false);
 
             binPath = Path.Combine(appPath, "bin", "tray", Deploy.SubutaiTrayName);
-            //binPath = FD.path_with_commas(binPath);
             Net.set_fw_rules(binPath, "SubutaiTray", false);
 
             //Configuring service logs
@@ -495,8 +480,6 @@ namespace Deployment
             //configuring service restart on failure
             Deploy.StageReporter("", "Configuring P2P service");
             Inst.service_config(name);
-
-            //Program.form1.finished = 1;
         }
     }
 }

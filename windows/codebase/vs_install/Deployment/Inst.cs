@@ -332,10 +332,6 @@ namespace Deployment
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
                     "", "", true);
-                //Deploy.CreateShortcut(
-                //    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                //    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                //    "", true, "");
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
@@ -564,7 +560,7 @@ namespace Deployment
                     Program.form1.Invoke((MethodInvoker)delegate
                     {
                         Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
-                        //Program.form1.Visible = false;
+                        Program.form1.Visible = false;
                     });
                 }
             }
@@ -858,9 +854,7 @@ namespace Deployment
         {
             Deploy.StageReporter("", "Copying Subutai files");
             string shPath = Path.Combine(appDir, "redist", "subutai", "prepare-server.sh");
-            //shPath = "\"" + shPath + "\""; 
             string snapPath = Path.Combine(appDir, "redist", "subutai", TC.snapFile);
-            //snapPath = "@\"" + snapPath + "\"";
             string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 shPath,
                 snapPath}, 
@@ -868,10 +862,6 @@ namespace Deployment
             logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
             if (!ftp_res.Equals("Uploaded"))
             {
-                //ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                //    $"{appDir}/redist/subutai/prepare-server.sh",
-                //    $"{appDir}/redist/subutai/{TC.snapFile}"
-                //    }, "/home/ubuntu/tmpfs");
                 ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                     shPath,
                     snapPath}, 

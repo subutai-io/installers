@@ -146,10 +146,7 @@ namespace Deployment
             logger.Info("vboxmanage unregistervm --delete snappy: {0}", res);
             if (res.ToLower().Contains("error"))
             {
-                //logger.Error("Can not run command, please check if VirtualBox installed properly", "Deleting Snappy");
-                //Program.ShowError("Can not unregister VM, please check if VitrualBox installed properly", "Prepare VBox");
-                //Program.form1.Visible = false;
-                MessageBox.Show("VM snappy was not removed, please delete VM snappy and it's files manually after installation and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folfer","Deleting snappy",MessageBoxButtons.OK);
+                MessageBox.Show("VM snappy was not removed, please delete VM snappy and it's files manually after installation and check logs in <SystemDrive>:\\Users\\<UserName>\\.Virtualbox folder","Deleting snappy",MessageBoxButtons.OK);
             }
             return true;//check res
         }
@@ -168,20 +165,7 @@ namespace Deployment
             ulong vmRam = Program.vmRAM;
             if (vmRam == 0)
                 vmRam = vm_RAM();
-            ////Tested - NO
-            ////if (hostRam < 2000)
-            ////{
-            ////    vmRam = 1024;
-            ////}
 
-            //if ((hostRam <= 16500) && (hostRam > 8100))
-            //{
-            //    vmRam = hostRam / 2;
-            //}
-            //else if (hostRam > 16500)
-            //{
-            //    vmRam = 8124;
-            //}
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --memory {vmRam}", 120000);
             logger.Info("vboxmanage modifyvm {0} --memory {1}: {2}", vmName, vmRam, res);
             if (res.ToLower().Contains("error"))
@@ -237,15 +221,6 @@ namespace Deployment
             if (vmCores == 0)
                 vmCores = vm_CPUs();
             
-            //if (hostCores > 4 && hostCores < 17) //to ensure that not > than half phys processors will be used
-            //{
-            //    vmCores = (ulong)hostCores / 2;
-            //}
-            //else if (hostCores > 16)
-            //{
-            //    vmCores = 8;
-            //}
-
             res = Deploy.LaunchCommandLineApp("vboxmanage", $"modifyvm {vmName} --cpus {vmCores}", 120000);
             logger.Info("vboxmanage modifyvm {0} --cpus {1}: {2}", vmName, vmCores.ToString(), res);
             if (res.ToLower().Contains("error"))
@@ -339,7 +314,6 @@ namespace Deployment
         /// <returns>true if success, false if not</returns>
         public static bool set_nat(string name)
         {
-            //NAT (eth1) 
             //NAT on nic2
             Deploy.StageReporter("", "Setting nic2 NAT");
             string res = Deploy.LaunchCommandLineApp("vboxmanage",

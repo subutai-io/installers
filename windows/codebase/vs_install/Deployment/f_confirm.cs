@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using System.Collections.Generic;
 using NLog;
 
 namespace Deployment
@@ -81,6 +82,16 @@ namespace Deployment
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
+        /// Dictionary to keep text and keys for Peer types 
+        /// </summary>
+        Dictionary<string, string> dPeerTypes = new Dictionary<string, string>()
+        {
+            {"Resource Host", "RH"},
+            {"Management Host", "MH"},
+            {"Desktop Client", "DC"}
+        };
+       
+        /// <summary>
         /// Initializes a new instance of the <see cref="f_confirm"/> class.
         /// Form shows if Subutai can be installed and allows to choose installation type
         /// </summary>
@@ -103,6 +114,12 @@ namespace Deployment
             cms.Items.Add("Copy URL");
             cms.ItemClicked += new ToolStripItemClickedEventHandler(cms_ItemClicked);
 
+            foreach (string key in dPeerTypes.Keys)
+            {
+                clbPeerType.Items.Add(key, true);
+            }
+
+            clbPeerType.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.clbPeerType_ItemCheck);
             showing();
         }
 
@@ -152,7 +169,10 @@ namespace Deployment
             logger.Info("VT/x enabled: {0}", hostVT);
             logger.Info("Oracle VBox version: {0}", vboxVersion);
             //Check if can install
-            checking(peerType(getCheckedRadio(gbxTypeInst)));
+            //checking(peerType(getCheckedRadio(gbxTypeInst)));
+            string pType = peerType(clbPeerType);
+            if (pType != "")
+                checking(peerType(clbPeerType));
         }
 
         /// <summary>
@@ -278,7 +298,7 @@ namespace Deployment
                 else
                 {
                     //Windows 7
-                    if (pType != "client-only")
+                    if (pType != "DC,")
                     {
                         lblCheckResult.Text = "Impossible to check if VT-x is enabled.";
                         lblCheckResult.ForeColor = Color.Blue;
@@ -319,7 +339,7 @@ namespace Deployment
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += "Close form to exit.";
-                } else if (pType != "client-only")
+                } else if (pType != "DC,")
                 {
                     tb_Proc_VM.Enabled = false;
                     tb_RAM_VM.Enabled = false;
@@ -416,7 +436,7 @@ namespace Deployment
         /// for peer type
         /// </summary>
         /// <returns>Returns peer type. By default peer type is "trial" - RH + Management + Client will be installed</returns>
-        private string peerType(RadioButton btn_checked)
+        private string peerType_(RadioButton btn_checked)
         {
             if (btn_checked.Text.Equals("RH only"))
             {
@@ -427,9 +447,20 @@ namespace Deployment
                 return "client-only";
             }
             return "trial";
-
         }
 
+        private string peerType(CheckedListBox clb)
+        {
+            string res = "";
+            foreach (string item in clb.CheckedItems)
+            {
+                res += dPeerTypes[item];
+                res += ",";
+            }
+            return res;
+        }
+
+        
         /// <summary>
         /// private void btnInstall_Click(object sender, EventArgs e)
         /// If can install, starts installation. If not - exit
@@ -438,9 +469,9 @@ namespace Deployment
         private void btnInstall_Click(object sender, EventArgs e)
         {
             string appDir = tbxAppDir.Text;//.Replace("/","//");
-            string peerOption = peerType(getCheckedRadio(gbxTypeInst));
-            //Program.inst_Dir = $"\"{appDir}\"";
+            //string peerOption = peerType(getCheckedRadio(gbxTypeInst));
 
+            string peerOption = peerType(clbPeerType);
             if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {
                 Program.inst_args = $"{Program.inst_args} appDir={appDir} peer={peerOption}";
@@ -575,7 +606,8 @@ namespace Deployment
         {
             RadioButton radioButton = sender as RadioButton;
             string name = radioButton.Name;
-            checking(peerType(getCheckedRadio(gbxTypeInst)));
+            //checking(peerType(getCheckedRadio(gbxTypeInst)));
+         
         }
 
         private void tb_Proc_VM_Validating(object sender, System.ComponentModel.CancelEventArgs e)
@@ -651,6 +683,49 @@ namespace Deployment
             {
                 return hostCores / 2;
             }
+        }
+
+        private void clbPeerType_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            CheckedListBox clb = (CheckedListBox)sender;
+            //ErrorProvider epClb = new ErrorProvider();
+
+            clbPeerType.ItemCheck -= new System.Windows.Forms.ItemCheckEventHandler(clbPeerType_ItemCheck);
+            clb.SetItemCheckState(e.Index, e.NewValue);
+            if (e.NewValue == CheckState.Checked)
+                {
+                    if (clb.Items[e.Index].ToString() == "Management Host")
+                    {
+                        int ind = GetItemIndex("Desktop Client", clb);
+                        clb.SetItemChecked(ind, true);
+                        //RH should be true too
+                    }
+                } else //Item Unchecked
+                {
+                    if (clb.Items[e.Index].ToString() == "Desktop Client")
+                    {
+                        int ind = GetItemIndex("Management Host", clb);
+                        clb.SetItemChecked(ind, false);
+                    }
+                }
+            clbPeerType.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(clbPeerType_ItemCheck);
+            checking(peerType(clb));
+         }
+
+        private int GetItemIndex(string item, CheckedListBox clb)
+        {
+            int index = 0;
+
+            foreach (object o in clb.Items)
+            {
+                if (item == o.ToString())
+                {
+                    return index;
+                }
+
+                index++;
+            }
+            return -1;
         }
     }
 }
