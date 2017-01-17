@@ -1,12 +1,12 @@
-bin | tray-dev.zip | 1 | 0 | 1 |1|1|1
-bin | ssh.zip | 1 | 0 | 1 |1|1|1
-bin | p2p_dev.exe | 1 | 0 | 1 |1|1|1
+bin | tray.zip | 0 | 0 | 1 |1|1|1
+bin | ssh.zip | 0 | 0 | 1 |1|1|1
+bin | p2p.exe | 0 | 0 | 1 |1|1|1
 ova | snappy.ova | 1 | 1 | 0 |1|1|1
-redist | chrome.msi | 1 | 0 | 1 |1|1|1
-redist | tap-driver.exe | 1 | 0 | 1 |1|1|1
-redist | addtap.bat | 1 | 0 | 1 |1|1|1
-redist | deltapall.bat | 1 | 0 | 1 |1|1|1
-redist | vcredist64.exe | 1 | 0 | 1 |1|1|1
+redist | chrome.msi | 0 | 0 | 1 |1|1|1
+redist | tap-driver.exe | 0| 0 | 1 |1|1|1
+redist | addtap.bat | 0 | 0 | 1 |1|1|1
+redist | deltapall.bat | 0 | 0 | 1 |1|1|1
+redist | vcredist64.exe | 0 | 0 | 1 |1|1|1
 redist | virtualbox.exe | 1 | 1 | 0 |1|1|1
 redist/subutai | subutai_4.0.13_amd64.snap  | 1 | 1 | 0 |1|0|0
 redist/subutai | subutai_4.0.14_amd64-dev.snap | 1 | 1 | 0 |0|1|0

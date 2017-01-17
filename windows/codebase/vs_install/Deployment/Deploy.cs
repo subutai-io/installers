@@ -10,7 +10,6 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 using Deployment.items;
-using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;

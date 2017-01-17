@@ -293,7 +293,7 @@ namespace Deployment
                     tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "DHCP server must to be running on the local network.";
+                    tb_Info.Text += "DHCP server must be running on the local network.";
                 }
                 else
                 {
@@ -309,7 +309,7 @@ namespace Deployment
                         tb_Info.Text += Environment.NewLine;
                         tb_Info.Text += "If VT-x enabled, please turn off Antivirus software for installation time!";
                         tb_Info.Text += Environment.NewLine;
-                        tb_Info.Text += "DHCP server must to be running on the local network.";
+                        tb_Info.Text += "DHCP server must be running on the local network.";
                     } else
                     {
                         lblCheckResult.Text = "Impossible to check if VT-x is enabled, but Client-Only version can be installed.";
@@ -318,7 +318,7 @@ namespace Deployment
                         tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
                         tb_Info.Text += Environment.NewLine;
                         tb_Info.Text += Environment.NewLine;
-                        tb_Info.Text += "DHCP server must to be running on the local network.";
+                        tb_Info.Text += "DHCP server must be running on the local network.";
                     }
                 }
                 tb_Info.Text += Environment.NewLine;
@@ -386,7 +386,7 @@ namespace Deployment
                     tb_Info.Text += "Please turn off SmartScreen and Antivirus software for installation time.";
                     tb_Info.Text += Environment.NewLine;
                     tb_Info.Text += Environment.NewLine;
-                    tb_Info.Text += "DHCP server must to be running on the local network.";
+                    tb_Info.Text += "DHCP server must be running on the local network.";
                 }
             }
         }
@@ -472,6 +472,14 @@ namespace Deployment
             //string peerOption = peerType(getCheckedRadio(gbxTypeInst));
 
             string peerOption = peerType(clbPeerType);
+            if (peerOption == "")
+            {
+                MessageBox.Show(String.Format("No installation options checked. \n\nPlease check what needs to be installed"),
+                    "No Installation Options checked",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             if (appDir != null && appDir != "" && !appDir.Contains("NA"))
             {
                 Program.inst_args = $"{Program.inst_args} appDir={appDir} peer={peerOption}";
@@ -696,17 +704,21 @@ namespace Deployment
                 {
                     if (clb.Items[e.Index].ToString() == "Management Host")
                     {
+                        //If management host installed RH and client should be installed too
                         int ind = GetItemIndex("Desktop Client", clb);
                         clb.SetItemChecked(ind, true);
-                        //RH should be true too
+                        ind = GetItemIndex("Resource Host", clb);
+                        clb.SetItemChecked(ind, true);
                     }
                 } else //Item Unchecked
                 {
-                    if (clb.Items[e.Index].ToString() == "Desktop Client")
+                    if (clb.Items[e.Index].ToString() == "Desktop Client" || clb.Items[e.Index].ToString() == "Resource Host")
                     {
+                        //If RH or client unchecked MH should not be installed too
                         int ind = GetItemIndex("Management Host", clb);
                         clb.SetItemChecked(ind, false);
                     }
+ 
                 }
             clbPeerType.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(clbPeerType_ItemCheck);
             checking(peerType(clb));
