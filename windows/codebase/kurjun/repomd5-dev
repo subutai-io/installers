@@ -7,7 +7,7 @@ redist | tap-driver.exe | 0| 0 | 1 |1|1|1
 redist | addtap.bat | 0 | 0 | 1 |1|1|1
 redist | deltapall.bat | 0 | 0 | 1 |1|1|1
 redist | vcredist64.exe | 0 | 0 | 1 |1|1|1
-redist | virtualbox.exe | 1 | 1 | 0 |1|1|1
+redist | virtualbox-test.exe | 1 | 1 | 0 |1|1|1
 redist/subutai | subutai_4.0.13_amd64.snap  | 1 | 1 | 0 |1|0|0
 redist/subutai | subutai_4.0.14_amd64-dev.snap | 1 | 1 | 0 |0|1|0
 redist/subutai | subutai_4.0.14_amd64-master.snap | 1 | 1 | 0 |0|0|1
