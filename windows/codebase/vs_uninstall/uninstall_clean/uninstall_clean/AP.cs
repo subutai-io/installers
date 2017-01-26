@@ -104,6 +104,12 @@ namespace uninstall_clean
         /// </summary>
         public static void remove_chrome()
         {
+            if (AP.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
+            {
+                MessageBox.Show("Google Chrome is not installed on Your machine", "Removing Google Chrome", MessageBoxButtons.OK);
+                return;
+            }
+
             //Check if Chrome is running
             SCP.stop_process("chrome.exe");
             SCP.stop_process("Google Chrome");
