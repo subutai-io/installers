@@ -135,7 +135,7 @@ namespace Deployment
                     try
                     {
                         rk.SetValue("UninstallString", strUninst);
-                        rk.SetValue("QuietUninstallString", $"{strUninst} Silent NoAll");
+                        rk.SetValue("QuietUninstallString", $"{strUninst} Silent false NoAll");
                         rk.Close();
                         logger.Info("Updated uninstall strings");
                         return true;
