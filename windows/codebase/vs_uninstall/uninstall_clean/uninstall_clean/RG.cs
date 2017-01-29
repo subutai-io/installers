@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+//using System.Windows.Forms;
 
 namespace uninstall_clean
 {
@@ -499,8 +500,11 @@ namespace uninstall_clean
             if (guids.Count > 0) {
                 chromeGUID = guids["Google Chrome"];
                 //MessageBox.Show($"Chrome GUID {chromeGUID}", "Chrome GUID", MessageBoxButtons.OK);
-                chromeGUIDbinaries = guids["Google Chrome binaries"];
-                //MessageBox.Show($"Chrome binaries GUID {chromeGUIDbinaries}", "Chrome GUID", MessageBoxButtons.OK);
+                if (guids.Count > 1)
+                {
+                    chromeGUIDbinaries = guids["Google Chrome binaries"];
+                    //MessageBox.Show($"Chrome binaries GUID {chromeGUIDbinaries}", "Chrome GUID", MessageBoxButtons.OK);
+                }
             }
             
             //[-HKEY_LOCAL_MACHINE\SOFTWARE\Classes\ChromeHTML]

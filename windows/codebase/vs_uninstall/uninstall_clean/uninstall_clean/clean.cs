@@ -15,6 +15,7 @@ namespace uninstall_clean
     public partial class clean : Form
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        //private static NLog.Logger logger1 = LogManager.GetLogger("logger1");
         private int curWidth = 0;
         private int curHeight = 0;
         private int minWidth = 565;
@@ -87,11 +88,11 @@ namespace uninstall_clean
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             sysDrive = Path.GetPathRoot(sysPath);
             SubutaiDir = AP.get_env_var("Subutai");
-
+            logger.Info("Uninstalling: date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
             if (toLog)
             {
                 logger.Info("Starting to uninstall Subutai with parameters: sysDrive: {0}; SubutaiDir: {1}; isSilent: {2}; removeAll: {3}", sysDrive, SubutaiDir, isSilent, removeAll);
-                MessageBox.Show($"sysDrive: {sysDrive}; SubutaiDir: {SubutaiDir}; isSilent: {isSilent}; removeAll: {removeAll}", "OnLoad", MessageBoxButtons.OK);
+                MessageBox.Show($"sysDrive: {sysDrive}; SubutaiDir: {SubutaiDir}; isSilent: {isSilent}; removeAll: {removeAll}; toLog: {toLog}", "OnLoad", MessageBoxButtons.OK);
             }
             if (isSilent)
                 runCleaning();
@@ -111,7 +112,7 @@ namespace uninstall_clean
 
                 this.panel2.Enabled = true;
                 this.panel2.Visible = true;
-
+                   
                 this.panel1.Enabled = false;
                 this.panel1.Visible = false;
             }
@@ -217,6 +218,7 @@ namespace uninstall_clean
             string mess = "";
             SetIndeterminate(false);
             UpdateProgress(0);
+            logger.Info("sysDrive: {0}; SubutaiDir: {1}; isSilent: {2}; removeAll: {3}", sysDrive, SubutaiDir, isSilent, removeAll);
             Task.Factory.StartNew(() =>
             {
                 StageReporter("", "Starting uninstall");
@@ -435,7 +437,7 @@ namespace uninstall_clean
                         logger.Info("Removing Subutai Virtual  Box software");
                         MessageBox.Show("Removing Subutai Virtual  Box software", "Removing", MessageBoxButtons.OK);
                     }
-                        if (!isSilent && bVBox)
+                    if (!isSilent && bVBox)
                     {
                         if (toLog)
                         {
@@ -446,7 +448,7 @@ namespace uninstall_clean
                     }
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
-                 .ContinueWith((prevTask) =>
+                .ContinueWith((prevTask) =>
                  {
                      Exception ex = prevTask.Exception;
                      if (prevTask.IsFaulted)

@@ -115,10 +115,15 @@ namespace uninstall_clean
             SCP.stop_process("Google Chrome");
             SCP.stop_process("Google Chrome (32 bit)");
             //Unpin from taskbar
-
+            if (clean.toLog)
+                MessageBox.Show("Google Chrome processes stopped", "Removing Google Chrome", MessageBoxButtons.OK);
             RG.rg_clean_chrome();
+            if (clean.toLog)
+                MessageBox.Show("Google Chrome register cleaned", "Removing Google Chrome", MessageBoxButtons.OK);
             FD.fd_clean_chrome();
-         }
+            if (clean.toLog)
+                MessageBox.Show("Google Chrome files cleaned", "Removing Google Chrome", MessageBoxButtons.OK);
+        }
        
     }
 }
