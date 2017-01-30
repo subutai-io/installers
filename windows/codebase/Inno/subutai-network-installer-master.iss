@@ -105,7 +105,6 @@ begin
   Result := not RegKeyExists(HKEY_LOCAL_MACHINE, 'Software\Microsoft\.NETFramework\policy\v4.0');   
 end;
 
-
 function GetUninstallString: string;
 var
   sUnInstPath: string;
@@ -119,6 +118,38 @@ begin
   Result := sUnInstallString;
 end;
 
+function GetUninstallParams(): TArrayOfString;
+var
+  sUnInstPath: string;
+  i, p: Integer;
+  Dest: TArrayOfString;
+  Text: String; 
+  Separator: String;
+  begin
+  Result := [];
+  Separator := ' ';
+  Text := '';
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1'); 
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'QuietUninstallString', Text) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'QuietUninstallString', Text);
+  SetArrayLength(Dest, 2);
+  if Pos(' ', Text) > 0  then begin
+    i := 0;
+    SetArrayLength(Dest, 2);
+    p := Pos(Separator,Text);
+    if p > 0 then begin
+      Dest[i] := Copy(Text, 1, p-1);
+      Text := Copy(Text, p + Length(Separator), Length(Text) - p - Length(Separator));
+      Dest[i + 1] := Text;
+      end else begin
+        Dest[i] := Text;
+        Dest[i + 1] := '';
+        Text := '';
+    end;
+  end;
+  Result := Dest;
+end;
+
 function IsUpgrade: Boolean;
 begin
   Result := (GetUninstallString() <> '');
@@ -126,19 +157,24 @@ end;
 
 function InitializeSetup: Boolean;
 var
-  V: Integer;
+  V, l: Integer;
   iResultCode: Integer;
   sUnInstallString: string;
+  sUnInstallPar: string;
+  var dUninstallStringPar: TArrayOfString;
 begin
   Result := True; // in case when no previous version is found
-  if RegValueExists(HKEY_LOCAL_MACHINE,'Software\Microsoft\Windows\CurrentVersion\Uninstall\{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1', 'UninstallString') then  
+
+  if RegValueExists(HKEY_LOCAL_MACHINE,'Software\Microsoft\Windows\CurrentVersion\Uninstall\{D8AEAA94-0C20-4F7E-A106-4E9617A3D7B9}_is1', 'QuietUninstallString') then  
   begin
     V := MsgBox(ExpandConstant('Subutai is already installed. It must be uninstalled before new installation. Do you want to uninstall it now?'), mbInformation, MB_YESNO); //Custom Message if App installed
     if V = IDYES then
     begin
-      sUnInstallString := GetUninstallString();
-      sUnInstallString :=  RemoveQuotes(sUnInstallString);
-      Exec(ExpandConstant(sUnInstallString), '', '', SW_SHOW, ewWaitUntilTerminated, iResultCode);
+      SetArrayLength(dUninstallStringPar,2);
+      dUninstallStringPar := GetUninstallParams();
+      sUnInstallString :=  RemoveQuotes(dUnInstallStringPar[0]);
+      sUnInstallPar := RemoveQuotes(dUnInstallStringPar[1])
+      Exec(ExpandConstant(sUnInstallString), ExpandConstant(sUnInstallPar), '', SW_SHOW, ewWaitUntilTerminated, iResultCode);
       Result := True; //if you want to proceed after uninstall
       //Exit; //if you want to quit after uninstall
     end
