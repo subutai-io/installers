@@ -792,7 +792,7 @@ namespace Deployment
             b_res = prepare_server_task(appDir);
             if (!b_res)
             {
-                Program.ShowError("Can not open ssh to run scripts, please check network and VM state and reinstall later", "No prepare-server");
+                Program.ShowError("Can not run scripts, please check network and VM state and reinstall later", "No prepare-server");
                 Program.form1.Visible = false;
             }
             
@@ -827,7 +827,7 @@ namespace Deployment
             string ssh_res = "";
             // creating tmpfs folder
             Deploy.StageReporter("", "Creating tmps folder");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 7);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 20);
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             if (ssh_res.Contains("Connection Error"))
             {
@@ -835,7 +835,7 @@ namespace Deployment
                 {
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 7);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 20);
                 logger.Info("Creating tmpfs folder second time: {0}", ssh_res);
                 if (ssh_res.Contains("Connection Error"))
                 {
@@ -954,7 +954,7 @@ namespace Deployment
             Deploy.StageReporter("", "Running installation scripts");
 
             //ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 20);
             logger.Info("Running installation scripts: {0}", ssh_res);
             if (ssh_res.Contains("Error"))
             {
@@ -963,7 +963,7 @@ namespace Deployment
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                     Program.form1.Visible = false;
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs", 5);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs", 10);
                 if (ssh_res.ToLower().Contains("no such file"))
                 {
                     b_res = create_tmpfs();
@@ -974,12 +974,12 @@ namespace Deployment
                     }
                 } else
                 {
-                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs", 5);
+                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs", 10);
                     logger.Info("Chmod tmpfs", ssh_res);
                 }
 
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh", 5);
-                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}", 5);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh", 20);
+                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}", 10);
                 if (ssh_res.ToLower().Contains("no such file") || ssh_res_1.ToLower().Contains("no such file"))
                 {
                     b_res = upload_files(appDir);
@@ -998,7 +998,7 @@ namespace Deployment
                 }
 
                 Deploy.StageReporter("", "Running installation scripts");
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 20);
                 logger.Info("Running installation scripts second time: {0}", b_res);
                 if (ssh_res.Contains("Error"))
                 {
