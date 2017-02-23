@@ -105,14 +105,25 @@ namespace uninstall_clean
         /// </summary>
         public static void remove_chrome()
         {
+            if (AP.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 0)
+            {
+                MessageBox.Show("Google Chrome is not installed on Your machine", "Removing Google Chrome", MessageBoxButtons.OK);
+                return;
+            }
+
             //Check if Chrome is running
             SCP.stop_process("chrome.exe");
             SCP.stop_process("Google Chrome");
             SCP.stop_process("Google Chrome (32 bit)");
             //Unpin from taskbar
-
+            if (clean.toLog)
+                MessageBox.Show("Google Chrome processes stopped", "Removing Google Chrome", MessageBoxButtons.OK);
             RG.rg_clean_chrome();
+            if (clean.toLog)
+                MessageBox.Show("Google Chrome register cleaned", "Removing Google Chrome", MessageBoxButtons.OK);
             FD.fd_clean_chrome();
-         }
+            if (clean.toLog)
+                MessageBox.Show("Google Chrome files cleaned", "Removing Google Chrome", MessageBoxButtons.OK);
+        }
     }
 }

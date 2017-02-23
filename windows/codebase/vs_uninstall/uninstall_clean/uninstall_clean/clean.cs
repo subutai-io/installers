@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
+using NLog;
 
 
 namespace uninstall_clean
@@ -13,7 +14,8 @@ namespace uninstall_clean
     /// <seealso cref="System.Windows.Forms.Form" />
     public partial class clean : Form
     {
-        //private static NLog.logger logger = LogManager.GetCurrentClasslogger();
+        private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+        //private static NLog.Logger logger1 = LogManager.GetLogger("logger1");
         private int curWidth = 0;
         private int curHeight = 0;
         private int minWidth = 565;
@@ -30,7 +32,7 @@ namespace uninstall_clean
         /// <summary>
         /// The subutai dir
         /// </summary>
-        public static string  SubutaiDir = AP.get_env_var("Subutai");
+        public static string  SubutaiDir = "";
         /// <summary>
         /// If uninstall is silent
         /// </summary>
@@ -59,6 +61,10 @@ namespace uninstall_clean
         /// if Google Chrome should be removed
         /// </summary>
         public static bool bChrome = false;
+        /// <summary>
+        /// if run with logging
+        /// </summary>
+        public static bool toLog = false;
 
         public clean()
         {
@@ -67,8 +73,9 @@ namespace uninstall_clean
             if (cmd_args.Length > 1)
                 isSilent = defineSilent(cmd_args[1]);
             if (cmd_args.Length > 2)
-                removeAll = defineDeleteAll(cmd_args[2]);
-
+                toLog = defineSilent(cmd_args[2]);
+            if (cmd_args.Length > 3)
+                removeAll = defineDeleteAll(cmd_args[3]);
             if (isSilent)
             {
                 curPanel = this.panel1;
@@ -81,6 +88,12 @@ namespace uninstall_clean
             string sysPath = Environment.GetFolderPath(Environment.SpecialFolder.System);
             sysDrive = Path.GetPathRoot(sysPath);
             SubutaiDir = AP.get_env_var("Subutai");
+            logger.Info("Uninstalling: date = {0}", $"{ DateTime.Now.ToString("yyyyMMddhhmm")}");
+            if (toLog)
+            {
+                logger.Info("Starting to uninstall Subutai with parameters: sysDrive: {0}; SubutaiDir: {1}; isSilent: {2}; removeAll: {3}", sysDrive, SubutaiDir, isSilent, removeAll);
+                MessageBox.Show($"sysDrive: {sysDrive}; SubutaiDir: {SubutaiDir}; isSilent: {isSilent}; removeAll: {removeAll}; toLog: {toLog}", "OnLoad", MessageBoxButtons.OK);
+            }
             if (isSilent)
                 runCleaning();
          }
@@ -99,7 +112,7 @@ namespace uninstall_clean
 
                 this.panel2.Enabled = true;
                 this.panel2.Visible = true;
-
+                   
                 this.panel1.Enabled = false;
                 this.panel1.Visible = false;
             }
@@ -205,9 +218,18 @@ namespace uninstall_clean
             string mess = "";
             SetIndeterminate(false);
             UpdateProgress(0);
+            logger.Info("sysDrive: {0}; SubutaiDir: {1}; isSilent: {2}; removeAll: {3}", sysDrive, SubutaiDir, isSilent, removeAll);
             Task.Factory.StartNew(() =>
             {
                 StageReporter("", "Starting uninstall");
+                if (toLog)
+                {
+                    logger.Info("sysDrive: {0}; SubutaiDir: {1}; isSilent: {2}; removeAll: {3}", sysDrive, SubutaiDir, isSilent, removeAll);
+                    logger.Info("Will delete: TAP software: {0}; Chrome: {1}; VBox: {2}; Subutai Directory: {3}", bTAP, bChrome, bVBox, bFolder);
+                    mess = string.Format("Will delete: TAP software: {0}; Chrome: {1}; VBox: {2}; Subutai Directory: {3}", bTAP, bChrome, bVBox, bFolder);
+                    MessageBox.Show(mess, "Start", MessageBoxButtons.OK);
+                    mess = "";
+                }
                 SetIndeterminate(true);
             })
 
@@ -219,18 +241,43 @@ namespace uninstall_clean
                       while (ex is AggregateException && ex.InnerException != null)
                       {
                           ex = ex.InnerException;
+                          if (toLog)
+                          {
+                              logger.Info("Exception on start: {0}", ex.Message);
+                          }
+                          MessageBox.Show(ex.Message, "Start", MessageBoxButtons.OK);
                       }
-                      MessageBox.Show(ex.Message, "Start", MessageBoxButtons.OK);
                   }
                   StageReporter("", "Removing firewall rules");
-                  SetIndeterminate(true);
+                  if (toLog)
+                  {
+                      logger.Info("Removing firewall rules");
+                      MessageBox.Show("Removing firewall rules", "Removing", MessageBoxButtons.OK);
+                  }
+                      SetIndeterminate(true);
                   SCP.remove_fw_rules(SubutaiDir);
                   //UpdateProgress(10);
-              })
+              }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                  .ContinueWith((prevTask) =>
                  {
+                     Exception ex = prevTask.Exception;
+                     if (prevTask.IsFaulted)
+                     {
+                         while (ex is AggregateException && ex.InnerException != null)
+                         {
+                             ex = ex.InnerException;
+                             if (toLog)
+                                 logger.Info("Exception on Firewall rules: {0}", ex.Message);
+                             MessageBox.Show(ex.Message, "Firewall rules", MessageBoxButtons.OK);
+                         }
+                     }
                      StageReporter("", "Removing Subutai Social P2P service");
+                     if (toLog)
+                     {
+                         logger.Info("Removing Subutai Social P2P service");
+                         MessageBox.Show("Removing Subutai Social P2P service", "Removing", MessageBoxButtons.OK);
+                     }
                      mess = SCP.stop_process("p2p");
                      mess = "";
                      mess = SCP.stop_service("Subutai Social P2P", 5000);
@@ -238,6 +285,11 @@ namespace uninstall_clean
                      mess = SCP.remove_service("Subutai Social P2P");
                      //UpdateProgress(20);
                      StageReporter("", "Stopping SubutaiTray processes");
+                     if (toLog)
+                     {
+                         logger.Info("Stopping SubutaiTray processes");
+                         MessageBox.Show("Stopping SubutaiTray processes", "Removing", MessageBoxButtons.OK);
+                     }
                      mess = SCP.stop_process("SubutaiTray");
                      //UpdateProgress(30);
 
@@ -245,16 +297,39 @@ namespace uninstall_clean
 
                  .ContinueWith((prevTask) =>
                  {
-
+                     Exception ex = prevTask.Exception;
+                     if (prevTask.IsFaulted)
+                     {
+                         while (ex is AggregateException && ex.InnerException != null)
+                         {
+                             ex = ex.InnerException;
+                             if (toLog)
+                                 logger.Info("Exception on Removing Subutai Social P2P service and tray: {0}", ex.Message);
+                             MessageBox.Show(ex.Message, "Subutai P2P service and SubutaiTray", MessageBoxButtons.OK);
+                         }
+                         
+                     }
                      StageReporter("", "Removing /home directory link");
+                     if (toLog)
+                     {
+                         logger.Info("Removing //home directory link");
+                         MessageBox.Show("Removing //home directory link", "Removing", MessageBoxButtons.OK);
+                     }
                      //Remove /home shortcut
-                     mess = FD.remove_from_home(SubutaiDir);
-                     mess = FD.remove_home(SubutaiDir);
-
+                     if (SubutaiDir != "")
+                     {
+                         mess = FD.remove_from_home(SubutaiDir);
+                         mess = FD.remove_home(SubutaiDir);
+                     }
                      //Remove Subutai dirs from Path
                      //UpdateProgress(55);
 
                      StageReporter("", "Removing Subutai dirs from %Path%");
+                     if (toLog)
+                     {
+                         logger.Info("Removing Subutai dirs from %Path%");
+                         MessageBox.Show("Removing Subutai dirs from %Path%", "Removing", MessageBoxButtons.OK);
+                     }
                      //Remove Subutai dirs from Path
                      mess = FD.remove_from_Path("Subutai");
                      //Remove %Subutai%
@@ -266,7 +341,23 @@ namespace uninstall_clean
 
                  .ContinueWith((prevTask) =>
                  {
+                     Exception ex = prevTask.Exception;
+                     if (prevTask.IsFaulted)
+                     {
+                         while (ex is AggregateException && ex.InnerException != null)
+                         {
+                             ex = ex.InnerException;
+                             if (toLog)
+                                 logger.Info("Exception on Removing link, Subutai dirs from %Path% and envs: {0}", ex.Message);
+                             MessageBox.Show(ex.Message, "Subutai dirs", MessageBoxButtons.OK);
+                         }
+                     }
                      StageReporter("", "Cleaning Registry");
+                     if (toLog)
+                     {
+                         logger.Info("Cleaning Registry");
+                         MessageBox.Show("Cleaning Registry", "Removing", MessageBoxButtons.OK);
+                     }
                      //Clean registry
                      RG.delete_from_reg();
                      //UpdateProgress(70);
@@ -274,14 +365,46 @@ namespace uninstall_clean
 
                  .ContinueWith((prevTask) =>
                  {
+                     Exception ex = prevTask.Exception;
+                     if (prevTask.IsFaulted)
+                     {
+                         while (ex is AggregateException && ex.InnerException != null)
+                         {
+                             ex = ex.InnerException;
+                             if (toLog)
+                                 logger.Info("Exception on Cleaning Registry: {0}", ex.Message);
+                             MessageBox.Show(ex.Message, "Cleaning Registry", MessageBoxButtons.OK);
+                         }
+                     }
                      StageReporter("", "Removing TAP interfaces");
+                     if (toLog)
+                     {
+                         logger.Info("Removing TAP interfaces");
+                         MessageBox.Show("Removing TAP interfaces", "Removing", MessageBoxButtons.OK);
+                     }
                      AP.del_TAP();
                      //UpdateProgress(80);
                  }, TaskContinuationOptions.OnlyOnRanToCompletion)
 
                 .ContinueWith((prevTask) =>
                 {
+                    Exception ex = prevTask.Exception;
+                    if (prevTask.IsFaulted)
+                    {
+                        while (ex is AggregateException && ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            if (toLog)
+                                logger.Info("Exception on Removing TAP interfaces: {0}", ex.Message);
+                            MessageBox.Show(ex.Message, "Removing TAP interfaces", MessageBoxButtons.OK);
+                        }
+                    }
                     StageReporter("", "Removing old logs");
+                    if (toLog)
+                    {
+                        logger.Info("Removing old logs");
+                        MessageBox.Show("Removing old logs", "Removing", MessageBoxButtons.OK);
+                    }
                     //Remove log dir
                     FD.remove_log_dir();
 
@@ -289,31 +412,94 @@ namespace uninstall_clean
 
                 .ContinueWith((prevTask) =>
                 {
-                    if (bChrome)
+                    Exception ex = prevTask.Exception;
+                    if (prevTask.IsFaulted)
                     {
-                        StageReporter("", "Removing Google Chrome");
-                        AP.remove_chrome();
+                        while (ex is AggregateException && ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            if (toLog)
+                                logger.Info("Exception on Removing old logs: {0}", ex.Message);
+                            MessageBox.Show(ex.Message, "Removing old logs", MessageBoxButtons.OK);
+                        }
                     }
-                    
-                }, TaskContinuationOptions.OnlyOnRanToCompletion)
-
-                .ContinueWith((prevTask) =>
-                {
                     StageReporter("", "Removing Subutai Virtual Machines");
+                    if (toLog)
+                    {
+                        logger.Info("Removing Subutai Virtual Machines");
+                        MessageBox.Show("Removing Subutai Virtual Machines", "Removing", MessageBoxButtons.OK);
+                    }
                     //Remove snappy and subutai machines
                     VBx.remove_vm();
                     //Remove Oracle VirtualBox
                     StageReporter("", "Removing Oracle Virtual Box software");
+                    if (toLog)
+                    {
+                        logger.Info("Removing Subutai Virtual  Box software");
+                        MessageBox.Show("Removing Subutai Virtual  Box software", "Removing", MessageBoxButtons.OK);
+                    }
                     if (!isSilent && bVBox)
                     {
-                        VBx.remove_app_vbox_short("Oracle VirtualBox");
+                        if (toLog)
+                        {
+                            logger.Info("Removing Subutai Virtual Box software - yes");
+                            MessageBox.Show("Removing Subutai Virtual Box software - yes", "Removing", MessageBoxButtons.OK);
+                        }
+                       VBx.remove_app_vbox_short("Oracle VirtualBox");
                     }
                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
+                .ContinueWith((prevTask) =>
+                 {
+                     Exception ex = prevTask.Exception;
+                     if (prevTask.IsFaulted)
+                     {
+                         while (ex is AggregateException && ex.InnerException != null)
+                         {
+                             ex = ex.InnerException;
+                             if (toLog)
+                                 logger.Info("Exception on Removing virtual machines: {0}", ex.Message);
+                             MessageBox.Show(ex.Message, "VirtualBox", MessageBoxButtons.OK);
+                         }
+                     }
+                     StageReporter("", "Removing Google Chrome");
+                     if (toLog)
+                     {
+                         logger.Info("Removing Google Chrome");
+                         MessageBox.Show("Removing Google Chrome", "Removing", MessageBoxButtons.OK);
+                     }
+                     if (!isSilent && bChrome)
+                     {
+                         if (toLog)
+                         {
+                             logger.Info("Removing Google Chrome - yes");
+                             MessageBox.Show("Removing Google Chrome - yes", "Removing", MessageBoxButtons.OK);
+                         }
+                         AP.remove_chrome();
+                     }
+                 }, TaskContinuationOptions.OnlyOnRanToCompletion)
+
 
 
                 .ContinueWith((prevTask) =>
                 {
+                    Exception ex = prevTask.Exception;
+                    if (prevTask.IsFaulted)
+                    {
+                        while (ex is AggregateException && ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            if (toLog)
+                                logger.Info("Exception on Removing Google Chrome:{0}", ex.Message);
+                            MessageBox.Show(ex.Message, "Chrome", MessageBoxButtons.OK);
+                        }
+                    }
                     //Remove service if was installed during cancelling
+                    if (toLog)
+                    {
+                        logger.Info("Removing Subutai P2P service if was installed after uninstall started");
+                        MessageBox.Show("Removing Subutai P2P service if was installed after uninstall started", "Removing", MessageBoxButtons.OK);
+                    }
                     mess = SCP.stop_process("p2p");
                     mess = "";
                     mess = SCP.stop_service("Subutai Social P2P", 5000);
@@ -324,11 +510,32 @@ namespace uninstall_clean
 
                 .ContinueWith((prevTask) =>
                 {
+                    Exception ex = prevTask.Exception;
+                    if (prevTask.IsFaulted)
+                    {
+                        while (ex is AggregateException && ex.InnerException != null)
+                        {
+                            ex = ex.InnerException;
+                            if (toLog)
+                                logger.Info("Exception on Removing Subutai P2P Service: {0}", ex.Message);
+                            MessageBox.Show(ex.Message, "Subutai P2P Service", MessageBoxButtons.OK);
+                        }
+                     }
                     StageReporter("", "Removing Subutai shortcuts");
+                    if (toLog)
+                    {
+                        logger.Info("Removing Subutai shortcuts");
+                        MessageBox.Show("Removing Subutai shortcuts", "Removing", MessageBoxButtons.OK);
+                    }
                     FD.delete_Shortcuts("Subutai");
                     //UpdateProgress(80);
                     StageReporter("", "Removing Subutai directories");
-                    mess = "";
+                    if (toLog)
+                    {
+                        logger.Info("Removing Subutai directories");
+                        MessageBox.Show("Removing Subutai directories", "Removing", MessageBoxButtons.OK);
+                    }
+                        mess = "";
                     string mesg = "";
                     if (SubutaiDir != "" && SubutaiDir != null && SubutaiDir != "C:\\" && SubutaiDir != "D:\\" && SubutaiDir != "E:\\" && !(SubutaiDir.Length < 4))
                     {
@@ -336,11 +543,22 @@ namespace uninstall_clean
                         {
                             if (bFolder)
                             {
-                                //checked, need to remove
-                                mess = FD.delete_dir(SubutaiDir);
+                                if (toLog)
+                                {
+                                    logger.Info("Not silent, Removing Subutai directories completely");
+                                    MessageBox.Show("Not silent, Removing Subutai directories completely", "Removing", MessageBoxButtons.OK);
+                                }
+                                    //checked, need to remove
+                                    mess = FD.delete_dir(SubutaiDir);
                             }
                             else
                             {
+                                if (toLog)
+                                {
+                                    logger.Info("Not silent, Removing Subutai bin directory");
+                                    MessageBox.Show("Not silent, Removing Subutai bin directory", "Removing", MessageBoxButtons.OK);
+                                }
+                                    
                                 mess = FD.delete_dir_bin(SubutaiDir);
                             }
                         }
@@ -348,10 +566,20 @@ namespace uninstall_clean
                         {
                             if (removeAll)
                             {
+                                if (toLog)
+                                {
+                                    logger.Info("Silent, Removing Subutai directories completely");
+                                    MessageBox.Show("Silent, Removing Subutai directories completely", "Removing", MessageBoxButtons.OK);
+                                }
                                 mess = FD.delete_dir(SubutaiDir);
                             }
                             else
                             {
+                                if (toLog)
+                                {
+                                    logger.Info("Silent, Removing Subutai bin directory");
+                                    MessageBox.Show("Silent, Removing Subutai bin directory", "Removing", MessageBoxButtons.OK);
+                                }
                                 mess = FD.delete_dir_bin(SubutaiDir);
                             }
                         }
@@ -359,6 +587,11 @@ namespace uninstall_clean
                         if (mess.Contains("Can not"))
                         {
                             mesg = string.Format("Folder {0}\\bin can not be removed.\n\n Please close running applications that can lock files (ssh sessions, file manager windows, stop p2p service if running etc) and delete it manually", SubutaiDir);
+                            if (toLog)
+                            {
+                                logger.Info("Failed to remove Subutai directory");
+                                MessageBox.Show("Failed to remove Subutai directory", "Removing", MessageBoxButtons.OK);
+                            }
                             MessageBox.Show(mesg, "Removing Subutai folder", MessageBoxButtons.OK);
                         }
                     }
@@ -373,16 +606,43 @@ namespace uninstall_clean
                         {
                             Directory.Delete(appUserDir, true);
                         }
-                        catch (Exception ex)
+                        catch (Exception exx)
                         {
-                            mesg = ex.Message;
+                            mesg = exx.Message;
                         }
                     }
                     SetIndeterminate(false);
                     UpdateProgress(100);
                     StageReporter("", "Finished");
-                    
-                    mesg = string.Format("Subutai Social uninstalled. \n\nPlease delete Oracle VirtualBox and Google Chrome software manually from Control Panel if You are not going to use it");
+                    string mes = "Subutai Social uninstalled. \n";
+                    string mes1 = "\nPlease delete ";
+                    string mes2 = "";
+                    string mes3 = " software manually from Control Panel if You are not going to use it";
+                    if (AP.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
+                    {
+                        mes1 += "Google Chrome ";
+                        mes += $"{mes1}{mes2}";
+                    }
+                    if (AP.app_installed("Oracle\\VirtualBox") == 1)
+                    {
+                        if (mes.Contains("Chrome"))
+                        {
+                            mes += " and Oracle VirtualBox ";
+                        } else
+                        {
+                            mes += "\nPlease delete Oracle VirtualBox ";
+                        }
+                    }
+
+                    if (mes.Contains("Chrome") || mes.Contains("VirtualBox"))
+                    {
+                        mes += mes3;
+                    }
+                    mesg = string.Format($"{mes}");
+                    if (toLog)
+                    {
+                        logger.Info("Subutai Social uninstalled");
+                    }
                     MessageBox.Show(mesg, "Uninstall Subutai Social", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     Environment.Exit(0);
                 });
@@ -401,6 +661,11 @@ namespace uninstall_clean
             }
 
             if (arg.ToLower().Contains("noall"))
+            {
+                return true;
+            }
+
+            if (arg.ToLower().Contains("true"))
             {
                 return true;
             }

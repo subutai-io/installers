@@ -49,15 +49,6 @@ namespace uninstall_clean
             ServiceController ctl = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName == serviceName);
             string mess = "";
 
-            ////if (ctl == null)
-            ////{
-            ////    mess = "Not installed";
-            ////}
-            ////else
-            ////{
-            ////    mess = LaunchCommandLineApp("nssm", $"remove \"Subutai Social P2P\" confirm", true, false);
-            ////}
-
             //mess = LaunchCommandLineApp("nssm", $"remove \"Subutai Social P2P\" confirm", true, false);
             mess = LaunchCommandLineApp("sc", $"delete \"Subutai Social P2P\"", true, false, 300000);
             return (mess);
@@ -75,9 +66,7 @@ namespace uninstall_clean
             {
                 try
                 {
-                    //label1.Text = "Stopping " + procName + " process";
                     process.Kill();
-                    //Thread.Sleep(3000);
                     return "0";
                 }
                 catch (Exception ex)
@@ -147,7 +136,6 @@ namespace uninstall_clean
             catch (Exception)
             {
                 Thread.Sleep(2000);
-                //LaunchCommandLineApp(filename, arguments);
             }
             return ($"1|{filename} was not executed|Error");
         }

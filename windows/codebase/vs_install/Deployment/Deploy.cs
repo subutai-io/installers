@@ -11,7 +11,6 @@ using System.Text;
 using System.Windows.Forms;
 using System.Threading;
 using Deployment.items;
-using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
 using IWshRuntimeLibrary;
@@ -136,6 +135,9 @@ namespace Deployment
                 logger.Info("Getting file {0} from kurjun, md5sum:{1}", destination, md5);
             }
 
+            ///////////////////////////////////////////////////////////////////////////////
+            /////////////This part will be modified (removed) when 3 env deployed//////////
+            ///////////////////////////////////////////////////////////////////////////////
             var shouldWeDownload = true;//will download in any case now
             if (destination.Contains("tray-dev"))
             {
@@ -151,6 +153,9 @@ namespace Deployment
             {
                 destination = destination.Remove(destination.IndexOf('-'), 5);
             }
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
 
             var fileInfo = new FileInfo(destination);
             if (fileInfo.Exists)
@@ -166,17 +171,6 @@ namespace Deployment
                 }
             }
    
-            if (destination.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
-            {
-                shouldWeDownload = false;
-            }
-            if (destination.Contains("virtualbox"))
-            {
-                //vbox already installed or peer optin is client-only
-                if ( Inst.app_installed("Oracle\\VirtualBox") == 1 || _arguments["peer"] == "client-only")
-                    shouldWeDownload = false;
-            }
-
             if (shouldWeDownload)
             {
                 var dirInfo = new DirectoryInfo(path: Path.GetDirectoryName(destination));
@@ -737,8 +731,7 @@ namespace Deployment
                     foreach (string filePath in localFilesPath)
                     {
                         string fname = filePath;
-                        //new FileInfo(filePath).ToString();
-
+                        
                         var fileStream = new FileStream(fname, FileMode.Open);
                         var destination =
                                 $"{remotePath}/{new FileInfo(filePath).Name}";
@@ -854,7 +847,6 @@ namespace Deployment
                 shortcut.Arguments = arguments;
                 if (!iconPath.Equals(""))
                 {
-                    //shortcut.IconLocation = "cmd.exe, 0";
                     shortcut.IconLocation = $"{iconPath}, 0";
                 }
                 
@@ -904,36 +896,44 @@ namespace Deployment
         /// <summary>
         /// Creates all shortcuts needed.
         /// </summary>
-        public void createAppShortCuts()
+        public void createAppShortCuts(bool forAll)
         {
             logger.Info("Creating shortcuts");
-            var binPath = Path.Combine(Program.inst_Dir, "bin\\tray", SubutaiTrayName);
-            var destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), 
-                "Subutai.lnk");
-             
-            //Desktop
-            string iconPath = Path.Combine(Program.inst_Dir, SubutaiIconName);
-            Deploy.CreateShortcut(
-                binPath,
-                destPath,
-                "",
-                iconPath,
-                false);
+            var binPath = "";
+            var destPath = "";
+            string iconPath = "";
 
-            //StartMenu/Programs
-            destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu), 
-                "Programs",
-                "Subutai.lnk");
-            Deploy.CreateShortcut(
-                binPath,
-                destPath,
-                "",
-                iconPath,
-                false);
+            if (forAll)
+            {
+                //Creating tray shortcuts
+                binPath = Path.Combine(Program.inst_Dir, "bin\\tray", SubutaiTrayName);
+                destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory),
+                    "Subutai.lnk");
+
+
+                //Desktop
+                iconPath = Path.Combine(Program.inst_Dir, SubutaiIconName);
+                Deploy.CreateShortcut(
+                    binPath,
+                    destPath,
+                    "",
+                    iconPath,
+                    false);
+
+                //StartMenu/Programs
+                destPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu),
+                    "Programs",
+                    "Subutai.lnk");
+                Deploy.CreateShortcut(
+                    binPath,
+                    destPath,
+                    "",
+                    iconPath,
+                    false);
+            }
             
             //Create App folder in Programs
             string folderpath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "Subutai");
-            destPath = Path.Combine(folderpath, "Subutai.lnk");
             try
             {
                 if (!Directory.Exists(folderpath))
@@ -945,12 +945,20 @@ namespace Deployment
             {
                 logger.Error(ex.Message);
             }
-            Deploy.CreateShortcut(
-                binPath,
-                destPath,
-                "",
-                iconPath,
-                false);
+
+            if (forAll)
+            {
+                //Shortcut in Subutai folder for SubutaiTray
+                destPath = Path.Combine(folderpath, "Subutai.lnk");
+                Deploy.CreateShortcut(
+                    binPath,
+                    destPath,
+                    "",
+                    iconPath,
+                    false);
+            }
+            
+            //Shortcut in Subutai folder for Uninstall
             destPath = Path.Combine(folderpath, "Uninstall.lnk");
             binPath = Path.Combine(FD.logDir(), SubutaiUninstallName);
             iconPath = Path.Combine(Program.inst_Dir, SubutaiUninstallIconName);

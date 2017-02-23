@@ -135,7 +135,7 @@ namespace Deployment
                     try
                     {
                         rk.SetValue("UninstallString", strUninst);
-                        rk.SetValue("QuietUninstallString", $"{strUninst} Silent NoAll");
+                        rk.SetValue("QuietUninstallString", $"{strUninst} Silent false NoAll");
                         rk.Close();
                         logger.Info("Updated uninstall strings");
                         return true;
@@ -332,10 +332,6 @@ namespace Deployment
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
                     "", "", true);
-                //Deploy.CreateShortcut(
-                //    $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
-                //    $"{Environment.GetEnvironmentVariable("Public")}\\Desktop\\Oracle VM VirtualBox.lnk",
-                //    "", true, "");
                 Deploy.CreateShortcut(
                     $"{Environment.GetEnvironmentVariable("ProgramFiles")}\\Oracle\\VirtualBox\\VirtualBox.exe",
                     $"{Environment.GetEnvironmentVariable("ProgramData")}\\Microsoft\\Windows\\Start Menu\\Programs\\Oracle VM VirtualBox\\Oracle VM VirtualBox.lnk",
@@ -564,7 +560,7 @@ namespace Deployment
                     Program.form1.Invoke((MethodInvoker)delegate
                     {
                         Program.ShowError("Management template was not installed, installation failed, please try to install later", "Management template was not imported");
-                        //Program.form1.Visible = false;
+                        Program.form1.Visible = false;
                     });
                 }
             }
@@ -796,7 +792,7 @@ namespace Deployment
             b_res = prepare_server_task(appDir);
             if (!b_res)
             {
-                Program.ShowError("Can not open ssh to run scripts, please check network and VM state and reinstall later", "No prepare-server");
+                Program.ShowError("Can not run scripts, please check network and VM state and reinstall later", "No prepare-server");
                 Program.form1.Visible = false;
             }
             
@@ -831,7 +827,7 @@ namespace Deployment
             string ssh_res = "";
             // creating tmpfs folder
             Deploy.StageReporter("", "Creating tmps folder");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 7);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 20);
             logger.Info("Creating tmpfs folder: {0}", ssh_res);
             if (ssh_res.Contains("Connection Error"))
             {
@@ -839,7 +835,7 @@ namespace Deployment
                 {
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 7);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "mkdir tmpfs; sudo mount -t tmpfs -o size=1G tmpfs /home/ubuntu/tmpfs", 20);
                 logger.Info("Creating tmpfs folder second time: {0}", ssh_res);
                 if (ssh_res.Contains("Connection Error"))
                 {
@@ -858,9 +854,7 @@ namespace Deployment
         {
             Deploy.StageReporter("", "Copying Subutai files");
             string shPath = Path.Combine(appDir, "redist", "subutai", "prepare-server.sh");
-            //shPath = "\"" + shPath + "\""; 
             string snapPath = Path.Combine(appDir, "redist", "subutai", TC.snapFile);
-            //snapPath = "@\"" + snapPath + "\"";
             string ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                 shPath,
                 snapPath}, 
@@ -868,10 +862,6 @@ namespace Deployment
             logger.Info("Copying Subutai files: {0}, prepare-server.sh", TC.snapFile);
             if (!ftp_res.Equals("Uploaded"))
             {
-                //ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
-                //    $"{appDir}/redist/subutai/prepare-server.sh",
-                //    $"{appDir}/redist/subutai/{TC.snapFile}"
-                //    }, "/home/ubuntu/tmpfs");
                 ftp_res = Deploy.SendFileSftp("127.0.0.1", 4567, "ubuntu", "ubuntu", new List<string>() {
                     shPath,
                     snapPath}, 
@@ -964,7 +954,7 @@ namespace Deployment
             Deploy.StageReporter("", "Running installation scripts");
 
             //ssh_res = Deploy.SendSshCommand_task("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh");
-            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
+            ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 20);
             logger.Info("Running installation scripts: {0}", ssh_res);
             if (ssh_res.Contains("Error"))
             {
@@ -973,7 +963,7 @@ namespace Deployment
                     Program.ShowError("Can not communicate with VM, please check network and VM state and reinstall later", "No SSH");
                     Program.form1.Visible = false;
                 }
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs", 5);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs", 10);
                 if (ssh_res.ToLower().Contains("no such file"))
                 {
                     b_res = create_tmpfs();
@@ -984,12 +974,12 @@ namespace Deployment
                     }
                 } else
                 {
-                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs", 5);
+                    ssh_res =  Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo chmod -R 0777 /home/ubuntu/tmpfs", 10);
                     logger.Info("Chmod tmpfs", ssh_res);
                 }
 
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh", 5);
-                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}", 5);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo ls /home/ubuntu/tmpfs/prepare-server.sh", 20);
+                ssh_res_1 = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", $"sudo ls  /home/ubuntu/tmpfs/{TC.snapFile}", 10);
                 if (ssh_res.ToLower().Contains("no such file") || ssh_res_1.ToLower().Contains("no such file"))
                 {
                     b_res = upload_files(appDir);
@@ -1008,7 +998,7 @@ namespace Deployment
                 }
 
                 Deploy.StageReporter("", "Running installation scripts");
-                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 7);
+                ssh_res = Deploy.SendSshCommand("127.0.0.1", 4567, "ubuntu", "ubuntu", "sudo bash /home/ubuntu/tmpfs/prepare-server.sh", 20);
                 logger.Info("Running installation scripts second time: {0}", b_res);
                 if (ssh_res.Contains("Error"))
                 {
