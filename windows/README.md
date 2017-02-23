@@ -14,7 +14,8 @@ Subutai installation consists of two parts:
 </ul>
 
 # How to install
-Run installer w/Administrative privileges on fresh Windows 7-eng/8/10 x64 machine </br>
+Run installer (it will run with Administrative privileges) on fresh Windows 7-eng/8/10 x64 machine </br>
+Choose what need to be installed (Resource Host(RH) only, Management Host(MH) - full installation, Client only).
 Wait until installation process finishes install </br>
 After installation finished You will see SubutaiTray login form, log in with Your Hub account, SubutaiTray icon will appear in Windows tray. </br> 
 Right click on the SubutaiTray icon to open menu. Now You can open management dashbord with Launch->Launch to SS console menu.</br>
@@ -41,6 +42,7 @@ Open installation script \windows\codebase\Inno\subutai-network-installer.iss wi
 	<li> define MyAppURL "http://subutai.io/" </li>  
 	<li> define MyAppExeName "Deployment.exe" </li>  
 	<li> define MySRCFiles "<Path to repo>\installers\windows\codebase\installation_files" </li>   
+	<li> define kurjunURL "https://cdn.subut.ai:8338" <li>  
 </ul>
   
 and parameters for Deployment.exe in Run section : <installation type> repo descriptor> <Run></br>
@@ -50,33 +52,14 @@ Names for installers should be: subutai-network-installer.exe for production, su
 
 
 # Overview
-## Deployment Tool Parameters (case-sensitive):
+## Deployment Tool Parameters - in that order:
 <ul>
-	<li>
-		params - activities to perform during installation. Order of parameters does not matter. All parameters should be separated w/comma
-		<ul>
-			<li>deploy-redist - deploy redistributables (Google Chrome, Oracle VirtualBox, etc.)</li>
-			<li>prepare-vbox - configure VirtualBox (create NAT network, import Snappy.ova)</li>
-			<li>prepare-rh - configure resource host (install Subutai, import templates, etc.)</li>
-			<li>deploy-p2p - deploy Subutai P2P service</li>
-		</ul>
-	<li>network-installation - can be true or false</li>
-	<li>kurjunUrl - Kurjun CDN network URL</li>
-	<li>repo_descriptor - file-descriptor of Kurjun CDN repository for Windows installer</li>
-	<li>appDir - Subutai installation directory</li>
-	<li>peer - can be "trial" or "rh-only". Identifies type of RH installation.</li>
-	</li>
+	<li>Installation type: -dev. -master. prod </li>  
+	<li>Installation description file </li> 
+	<li>Run</li>  
+	<li>URL for file download (kurjun URL) </li> 
 </ul>
 
-### Parameters examples:
-<ul>
-	<li> params=deploy-redist,prepare-vbox,prepare-rh,deploy-p2p </li>
-	<li> network-installation=true </li>
-	<li> kurjunUrl=https://cdn.subut.ai/ </li>
-	<li> repo_descriptor=repomd5 </li>
-	<li> appDir=C:\Subutai </li>
-	<li> peer=trial </li>
-</ul>
 
 ## Repository descriptor (repomd5)
 	i.e. bin | tray.zip | 1 | 0 | 1 |1|1|1
@@ -84,11 +67,12 @@ Names for installers should be: subutai-network-installer.exe for production, su
 	bin - is target directory where the file will be saved. I.e. if our Subutai directory is C:\Subutai then full path will be C:\Subutai\bin\tray.zip
 
 "| 1 | 0 | 1 |1|1|1" describes if this file will needed for given peer type and installation type, 1 means fille need to be installed, 0 - file not needed:
-| Trial | RH | Tray |prod|-dev|-master
+| RH only | MH | Client |prod|-dev|-master
 peer type can be:
-	 Trial: RH + Management + SubutaiTray, recomended for start
-	 RH: RH only - will be needed for multy-RH installations (1 MH and many RH), recommended for advanced users, Subutai Tray can be installed if needed
-	SubutaiTray: SubutaiTray application only. Installed if You have MH or RH installed before, and if You plan to work with environments on remote hosts.
+	
+	RH: RH only - recommended for advanced users, Subutai Tray can be installed if needed
+	MH: RH + Management + Client, recommended for start
+	Client only: SubutaiTray + P2P + Google Chrome + E2E plugin. Installed if You plan to work with environments on remote hosts.
 
 ## Full content of repomd5 (all these files must persist on Kurjun):
 	bin | tray.zip - tray application
@@ -104,6 +88,10 @@ redist/subutai | subutai_4.0.<VN + 1>_amd64-dev.snap - Subutai package for Ubunt
 	redist/subutai | subutai_4.0.<VN + 1>_amd64-master.snap - Subutai package for Ubuntu Snappy built from master branch
 
 Installation Manual can be found here: https://github.com/subutai-io/installers/wiki/Windows-Installer:-Installation-Manual
+
+# Code signing on Windows
+Deployment.exe, uninstall-clean.exe and installer can be signed with command:
+signtool sign /a /f  <.pfx> /p <password> /t http://timestamp.comodoca.com/?td=sha256 <.exe> 
 
 NOTE
 #What need to be done if version changed (before release)

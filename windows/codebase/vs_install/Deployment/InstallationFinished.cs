@@ -73,7 +73,7 @@ namespace Deployment
         private void clean(string appdir)
         {
             
-            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}",  "Silent NoAll");
+            Process.Start($"{FD.logDir()}\\{Deploy.SubutaiUninstallName}",  "Silent false NoAll");
         }
 
         /// <summary>

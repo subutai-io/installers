@@ -12,13 +12,13 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>dev repomd5-dev Run</StartArguments>
+    <StartArguments>dev repomd5-test Run "https://cdn.subut.ai:8338"</StartArguments>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup>
     <EnableSecurityDebugging>false</EnableSecurityDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <StartArguments>dev Installer</StartArguments>
+    <StartArguments>dev Installer "https://cdn.subut.ai:8338"</StartArguments>
   </PropertyGroup>
 </Project>

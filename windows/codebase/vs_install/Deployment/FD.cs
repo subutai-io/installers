@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using NLog;
@@ -17,15 +18,11 @@ namespace Deployment
     class FD
     {
         private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
-        private int[] md5Sum;
-        private string name;
-        private static readonly string [] peerTypes = {"trial","rh-only","client-only"};
-        private static readonly string[] instTypes = { "prod", "dev", "master" };
+       
+        //private static readonly string [] peerTypes = {"trial","rh-only","client-only"};
+        private static readonly string[] peerTypes = { "RH", "MH", "DC" };
 
-        public string Name
-        {
-            get { return name; }
-        }
+        private static readonly string[] instTypes = { "prod", "dev", "master" };
 
         /// <summary>
         /// Reads description file and form download list for installation
@@ -44,6 +41,12 @@ namespace Deployment
             }
             var rows = File.ReadAllLines(fpath);
             string[] rows1 = rows2download(ref rows, peer_type, inst_type);
+
+            foreach (string row in rows1)
+            {
+
+            }
+           
             return rows1;
         }
 
@@ -99,14 +102,16 @@ namespace Deployment
         public static string[] rows2download(ref string[] rows1, string peer_type, string inst_type)
         {
             List<string> rows = new List<string>();
+            List<string> rows_new = new List<string>();
+
             foreach (string row in rows1)
             {
-                string [] folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
+                string[] folderFile = row.Split(new[] { "|" }, StringSplitOptions.None);
 
                 string folder = folderFile[0].Trim();
                 string file = folderFile[1].Trim();
-                string need_mh = folderFile[2].Trim();
-                string need_rh = folderFile[3].Trim();
+                string need_rh = folderFile[2].Trim();
+                string need_mh = folderFile[3].Trim();
                 string need_client = folderFile[4].Trim();
                 string need_prod = folderFile[5].Trim();
                 string need_dev = folderFile[6].Trim();
@@ -139,22 +144,32 @@ namespace Deployment
                 }
             }
 
-            string[] arows = rows.ToArray();
+
+            foreach (string row in rows)
+            {
+                if (row.Contains("chrome") && Inst.app_installed("Clients\\StartMenuInternet\\Google Chrome") == 1)
+                {
+                    continue;
+                }
+
+                if (row.Contains("virtualbox") && Inst.app_installed("Oracle\\VirtualBox") == 1)
+                {
+                    continue;
+                }
+
+                if (row.Contains("tap") && Inst.app_installed("TAP-Windows") == 1)
+                {
+                    continue;
+                }
+                rows_new.Add(row);
+            }
+
+            var rows_unique = rows_new.Distinct();
+
+            string[] arows = rows_unique.ToArray();
             return arows;
         }
 
-        public string Md5Sum
-        {
-            get
-            {
-                string md5 = "";
-                foreach (var el in md5Sum)
-                {
-                    md5 += string.Format("{0:x}", el);
-                }
-                return md5;
-            }
-        }
 
         /// <summary>
         /// Define system drive

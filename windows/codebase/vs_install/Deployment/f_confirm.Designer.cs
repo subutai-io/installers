@@ -43,6 +43,7 @@
             this.rbRHonly = new System.Windows.Forms.RadioButton();
             this.rbTrial = new System.Windows.Forms.RadioButton();
             this.panelRight = new System.Windows.Forms.Panel();
+            this.clbPeerType = new System.Windows.Forms.CheckedListBox();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.linkTutorials = new System.Windows.Forms.LinkLabel();
             this.lblAppDir = new System.Windows.Forms.Label();
@@ -77,6 +78,7 @@
             this.epRAM = new System.Windows.Forms.ErrorProvider(this.components);
             this.ttpCPUs = new System.Windows.Forms.ToolTip(this.components);
             this.ttpRAM = new System.Windows.Forms.ToolTip(this.components);
+            this.ttpCLB = new System.Windows.Forms.ToolTip(this.components);
             this.gbxTypeInst.SuspendLayout();
             this.panelRight.SuspendLayout();
             this.panelLeft.SuspendLayout();
@@ -135,7 +137,7 @@
             // tbxAppDir
             // 
             this.tbxAppDir.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.tbxAppDir.Location = new System.Drawing.Point(13, 250);
+            this.tbxAppDir.Location = new System.Drawing.Point(13, 262);
             this.tbxAppDir.Margin = new System.Windows.Forms.Padding(2);
             this.tbxAppDir.Name = "tbxAppDir";
             this.tbxAppDir.Size = new System.Drawing.Size(310, 23);
@@ -145,7 +147,7 @@
             // 
             this.lblFreeSpace.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.lblFreeSpace.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.lblFreeSpace.Location = new System.Drawing.Point(13, 277);
+            this.lblFreeSpace.Location = new System.Drawing.Point(13, 289);
             this.lblFreeSpace.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.lblFreeSpace.Name = "lblFreeSpace";
             this.lblFreeSpace.Size = new System.Drawing.Size(383, 17);
@@ -169,12 +171,14 @@
             this.gbxTypeInst.Controls.Add(this.rbClientOnly);
             this.gbxTypeInst.Controls.Add(this.rbRHonly);
             this.gbxTypeInst.Controls.Add(this.rbTrial);
+            this.gbxTypeInst.Enabled = false;
             this.gbxTypeInst.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.gbxTypeInst.Location = new System.Drawing.Point(13, 303);
+            this.gbxTypeInst.Location = new System.Drawing.Point(248, 386);
             this.gbxTypeInst.Name = "gbxTypeInst";
             this.gbxTypeInst.Size = new System.Drawing.Size(219, 88);
             this.gbxTypeInst.TabIndex = 15;
             this.gbxTypeInst.TabStop = false;
+            this.gbxTypeInst.Visible = false;
             // 
             // rbClientOnly
             // 
@@ -216,6 +220,7 @@
             // 
             // panelRight
             // 
+            this.panelRight.Controls.Add(this.clbPeerType);
             this.panelRight.Controls.Add(this.btnBrowse);
             this.panelRight.Controls.Add(this.linkTutorials);
             this.panelRight.Controls.Add(this.lblAppDir);
@@ -231,11 +236,21 @@
             this.panelRight.Size = new System.Drawing.Size(423, 428);
             this.panelRight.TabIndex = 16;
             // 
+            // clbPeerType
+            // 
+            this.clbPeerType.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.clbPeerType.FormattingEnabled = true;
+            this.clbPeerType.Location = new System.Drawing.Point(16, 329);
+            this.clbPeerType.Name = "clbPeerType";
+            this.clbPeerType.Size = new System.Drawing.Size(219, 76);
+            this.clbPeerType.TabIndex = 26;
+            this.ttpCLB.SetToolTip(this.clbPeerType, "Management Host is installed together with Desktop Client");
+            // 
             // btnBrowse
             // 
             this.btnBrowse.Enabled = false;
             this.btnBrowse.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnBrowse.Location = new System.Drawing.Point(329, 245);
+            this.btnBrowse.Location = new System.Drawing.Point(329, 257);
             this.btnBrowse.Name = "btnBrowse";
             this.btnBrowse.Size = new System.Drawing.Size(75, 32);
             this.btnBrowse.TabIndex = 25;
@@ -261,7 +276,7 @@
             // 
             this.lblAppDir.AutoSize = true;
             this.lblAppDir.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblAppDir.Location = new System.Drawing.Point(13, 232);
+            this.lblAppDir.Location = new System.Drawing.Point(13, 244);
             this.lblAppDir.Name = "lblAppDir";
             this.lblAppDir.Size = new System.Drawing.Size(244, 17);
             this.lblAppDir.TabIndex = 23;
@@ -278,7 +293,7 @@
             this.tb_Info.Multiline = true;
             this.tb_Info.Name = "tb_Info";
             this.tb_Info.ReadOnly = true;
-            this.tb_Info.Size = new System.Drawing.Size(392, 139);
+            this.tb_Info.Size = new System.Drawing.Size(392, 151);
             this.tb_Info.TabIndex = 22;
             // 
             // panelLeft
@@ -351,8 +366,8 @@
             this.tb_RAM_VM.TabIndex = 49;
             this.tb_RAM_VM.Text = "0";
             this.tb_RAM_VM.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.tb_RAM_VM.Validating += new System.ComponentModel.CancelEventHandler(this.tb_RAM_VM_Validating);
             this.tb_RAM_VM.MouseHover += new System.EventHandler(this.tb_RAM_VM_MouseHover);
+            this.tb_RAM_VM.Validating += new System.ComponentModel.CancelEventHandler(this.tb_RAM_VM_Validating);
             // 
             // tb_Proc_VM
             // 
@@ -363,8 +378,8 @@
             this.tb_Proc_VM.TabIndex = 19;
             this.tb_Proc_VM.Text = "0";
             this.tb_Proc_VM.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.tb_Proc_VM.Validating += new System.ComponentModel.CancelEventHandler(this.tb_Proc_VM_Validating);
             this.tb_Proc_VM.MouseHover += new System.EventHandler(this.tb_Proc_VM_MouseHover);
+            this.tb_Proc_VM.Validating += new System.ComponentModel.CancelEventHandler(this.tb_Proc_VM_Validating);
             // 
             // l_VB_min
             // 
@@ -662,5 +677,7 @@
         private System.Windows.Forms.ErrorProvider epRAM;
         private System.Windows.Forms.ToolTip ttpCPUs;
         private System.Windows.Forms.ToolTip ttpRAM;
+        private System.Windows.Forms.CheckedListBox clbPeerType;
+        private System.Windows.Forms.ToolTip ttpCLB;
     }
 }

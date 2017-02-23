@@ -73,7 +73,7 @@ namespace uninstall_clean
                 
                 res = SCP.LaunchCommandLineApp("sc", $"stop {drvName.Replace(".sys","")}", 
                     true, false, 420000);
- 
+
                 string drvPath = Path.Combine(dirStart, drvName);
 
                 bool b_res = FD.del_sysfile(drvPath);
@@ -304,7 +304,6 @@ namespace uninstall_clean
             RG.DeleteKeyByName(subkey, "VirtualBox", rh);
             //HKEY_CLASSES_ROOT\VirtualBox.Session
             RG.DeleteKeyByName(subkey, "VirtualBox", rh);
-
         }
 
         /// <summary>
